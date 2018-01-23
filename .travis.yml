@@ -24,13 +24,14 @@ before install:
   # manually set sdk.dir variable, according to local paths
   - echo "sdk.dir=~/Android/Sdk" > local.properties
 
-install :
-   - android-update-sdk --accept-licenses = 'android-sdk-license -. +' --components = tools
-   - android - update - sdk --accept - licenses = 'android - sdk - license -. +' --components = build - tools - 27.0.1
-   - android - update - sdk --accept - licenses = 'android - sdk - license -. +' --components = android - 27
-   - android - update - sdk --accept - licenses = 'android - sdk - license -. +' --components = extra - android - m2repository
-   - android - update - sdk - accept - licenses = 'android - sdk - license -. +' - components = extra - google - m 2 repository
-
+android:
+  components:
+    - tools
+    - platform-tools
+    - build-tools-27.0.1
+    - android-27
+    - extra-google-m2repository
+    - extra-android-m2repository
 
 script:
   - ./gradlew assemble

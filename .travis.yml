@@ -23,6 +23,7 @@ before install:
 
   # manually set sdk.dir variable, according to local paths
   - echo "sdk.dir=~/Android/Sdk" > local.properties
+  - cp ./gradle/wrapper/gradle-wrapper.properties /home/travis/build/Radu-Raicea/SignalAndroid/gradle/wrapper/gradle-wrapper.properties
 
 script:
   - gradle assemble

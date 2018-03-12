@@ -1340,6 +1340,7 @@
     <string name="Conversation__menu_search_conversation">Search conversation</string>
     <string name="Conversation__menu_end_search_conversation">End search conversation</string>
     <string name="search_title">Search</string>
+    <string name="go">Go</string>
 
 
     <!-- EOF -->

@@ -44,7 +44,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.view.menu.MenuView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -60,13 +59,12 @@ import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.inputmethod.*;
 
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.protobuf.ByteString;
@@ -166,7 +164,6 @@ import org.thoughtcrime.securesms.util.concurrent.SettableFuture;
 import org.thoughtcrime.securesms.util.views.Stub;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
-import org.thoughtcrime.securesms.components.InputPanel;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -243,6 +240,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   protected HidingLinearLayout     quickAttachmentToggle;
   private   QuickAttachmentDrawer  quickAttachmentDrawer;
   private   InputPanel             inputPanel;
+  private   LinearLayout           linMessage, linSearch;
+  InputPanel bottomPanel;
 
   private Recipient  recipient;
   private long       threadId;
@@ -297,7 +296,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   protected void onNewIntent(Intent intent) {
     Log.w(TAG, "onNewIntent()");
-    
     if (isFinishing()) {
       Log.w(TAG, "Activity is finishing...");
       return;
@@ -476,7 +474,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public boolean onPrepareOptionsMenu(Menu menu) {
     MenuInflater inflater = this.getMenuInflater();
     menu.clear();
-    
     if (isSecureText) {
       if (recipient.getExpireMessages() > 0) {
         inflater.inflate(R.menu.conversation_expiring_on, menu);
@@ -561,8 +558,17 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   public void onBackPressed() {
     Log.w(TAG, "onBackPressed()");
-    if (container.isInputOpen()) container.hideCurrentInput(composeText);
-    else                         super.onBackPressed();
+    if (container.isInputOpen()) {
+      container.hideCurrentInput(composeText);
+    }
+    else if (linSearch.getVisibility() == View.VISIBLE) {
+      linSearch.setVisibility(View.GONE);
+      bottomPanel.setVisibility(View.VISIBLE);
+      linMessage.setVisibility(View.VISIBLE);
+    }
+    else {
+      super.onBackPressed();
+    }
   }
 
   @Override
@@ -750,22 +756,26 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void handleSearch(MenuItem item) {
-    InputPanel bottomPanel = (InputPanel) findViewById(R.id.bottom_panel);
+    bottomPanel = (InputPanel) findViewById(R.id.bottom_panel);
 
     if(!this.isSearchMode) {
       hideKeyboard();
+      linMessage.setVisibility(View.GONE);
       bottomPanel.setVisibility(View.GONE);
       // TODO add the logic to show the search bar
+      linSearch.setVisibility(View.VISIBLE);
     } else {
       hideKeyboard();
       // TODO shawn adds method to hide the search bar when the "Search Conversation" is clicked
       bottomPanel.setVisibility(View.VISIBLE);
+      linMessage.setVisibility(View.VISIBLE);
+      linSearch.setVisibility(View.GONE);
     }
     this.isSearchMode = !isSearchMode;
   }
 
-  /*
-  TODO add a method that when the user presses back button and they are in searchMode, the
+
+  /*TODO add a method that when the user presses back button and they are in searchMode, the
   Search mode will be closed and every thing will be back as it was before
   make use of isSearchMode field and make sure you toggle it properly
   */
@@ -1265,6 +1275,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     quickAttachmentDrawer = ViewUtil.findById(this, R.id.quick_attachment_drawer);
     quickAttachmentToggle = ViewUtil.findById(this, R.id.quick_attachment_toggle);
     inputPanel            = ViewUtil.findById(this, R.id.bottom_panel);
+    linMessage            = ViewUtil.findById(this, R.id.linMessage);
+    linSearch            = ViewUtil.findById(this, R.id.linSearch);
 
     ImageButton quickCameraToggle = ViewUtil.findById(this, R.id.quick_camera_toggle);
     View        composeBubble     = ViewUtil.findById(this, R.id.compose_bubble);

@@ -9,11 +9,12 @@
         android:background="@android:color/white"
         android:gravity="center">
         <ImageView
-            android:id="@+id/btnPrevios"
+            android:id="@+id/btnPrevious"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@drawable/up"
             android:layout_margin="2dp"
+            android:clickable="true"
             />
         <ImageView
             android:id="@+id/btnNext"
@@ -21,10 +22,11 @@
             android:layout_height="32dp"
             android:src="@drawable/down"
             android:layout_margin="2dp"
+            android:clickable="true"
             />
 
         <SearchView
-            android:id="@+id/custom_Search"
+            android:id="@+id/custom_search"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"

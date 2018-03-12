@@ -62,6 +62,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -244,6 +245,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private   LinearLayout           linMessage, linSearch;
   InputPanel bottomPanel;
   SearchView searchView;
+  ImageView upArrow, downArrow;
 
   private Recipient  recipient;
   private long       threadId;
@@ -564,11 +566,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       container.hideCurrentInput(composeText);
     }
     else if (isSearchMode) {
-      linSearch.setVisibility(View.GONE);
-      bottomPanel.setVisibility(View.VISIBLE);
-      linMessage.setVisibility(View.VISIBLE);
-      this.isSearchMode = !isSearchMode;
-
+      hideSearchMode();
     }
     else {
       super.onBackPressed();
@@ -761,32 +759,34 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void handleSearch(MenuItem item) {
     bottomPanel = (InputPanel) findViewById(R.id.bottom_panel);
-    searchView = (SearchView)  findViewById(R.id.custom_Search);
+    searchView = (SearchView)  findViewById(R.id.custom_search);
 
     if(!this.isSearchMode) {
-      hideKeyboard();
-      linMessage.setVisibility(View.GONE);
-      bottomPanel.setVisibility(View.GONE);
-      // TODO add the logic to show the search bar
-      linSearch.setVisibility(View.VISIBLE);
-      searchView.setIconified(false);
-
+      showSearchMode(bottomPanel, searchView);
 
     } else {
-      hideKeyboard();
-      // TODO shawn adds method to hide the search bar when the "Search Conversation" is clicked
-      bottomPanel.setVisibility(View.VISIBLE);
-      linMessage.setVisibility(View.VISIBLE);
-      linSearch.setVisibility(View.GONE);
+      hideSearchMode();
     }
     this.isSearchMode = !isSearchMode;
   }
 
+  public void hideSearchMode()
+  {
+    hideKeyboard();
+    linSearch.setVisibility(View.GONE);
+    bottomPanel.setVisibility(View.VISIBLE);
+    linMessage.setVisibility(View.VISIBLE);
+    this.isSearchMode = !isSearchMode;
+  }
 
-  /*TODO add a method that when the user presses back button and they are in searchMode, the
-  Search mode will be closed and every thing will be back as it was before
-  make use of isSearchMode field and make sure you toggle it properly
-  */
+  public void showSearchMode(InputPanel i, SearchView s)
+  {
+    hideKeyboard();
+    linMessage.setVisibility(View.GONE);
+    i.setVisibility(View.GONE);
+    linSearch.setVisibility(View.VISIBLE);
+    s.setIconified(false);
+  }
 
   private void hideKeyboard() {
     View view = this.getCurrentFocus();

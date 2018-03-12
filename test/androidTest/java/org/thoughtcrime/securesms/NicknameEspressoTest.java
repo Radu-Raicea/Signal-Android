@@ -4,7 +4,6 @@ import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +27,7 @@ public class NicknameEspressoTest {
     }
 
     @Test
-    public void canSetNickName() {
+    public void canSetNickname() {
         Helper helper = new Helper(mainActivityRule);
 
         String testString = helper.randString();
@@ -37,14 +36,13 @@ public class NicknameEspressoTest {
             .goConversations()
             .goConversation()
             .goSettings()
-                .scrolTOButtom()
                 .setNickname(testString)
             .goConversation()
                 .assertText(testString);
     }
 
-    @Test @Ignore
-    public void resettingNickname() {
+    @Test
+    public void canResetNickname() {
         Helper helper = new Helper(mainActivityRule);
 
         String testString = helper.randString();

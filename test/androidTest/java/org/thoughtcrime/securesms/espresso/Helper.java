@@ -1,6 +1,5 @@
 package org.thoughtcrime.securesms.espresso;
 
-
 import android.support.test.rule.ActivityTestRule;
 
 import org.thoughtcrime.securesms.ConversationListActivity;

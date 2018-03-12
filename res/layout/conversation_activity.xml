@@ -54,7 +54,7 @@
                 android:layout_height="wrap_content"/>
 
             <LinearLayout
-                android:id="@+id/linMessage"
+                android:id="@+id/lin_message"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <include layout="@layout/conversation_input_panel"/>
@@ -62,7 +62,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/linSearch"
+                android:id="@+id/lin_search"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone">

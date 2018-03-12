@@ -243,9 +243,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private   QuickAttachmentDrawer  quickAttachmentDrawer;
   private   InputPanel             inputPanel;
   private   LinearLayout           linMessage, linSearch;
-  InputPanel bottomPanel;
-  SearchView searchView;
-  ImageView upArrow, downArrow;
+  private   InputPanel             bottomPanel;
+  private   SearchView             searchView;
+  private   ImageView              upArrow, downArrow;
 
   private Recipient  recipient;
   private long       threadId;
@@ -770,8 +770,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     this.isSearchMode = !isSearchMode;
   }
 
-  public void hideSearchMode()
-  {
+  public void hideSearchMode() {
     hideKeyboard();
     linSearch.setVisibility(View.GONE);
     bottomPanel.setVisibility(View.VISIBLE);
@@ -779,8 +778,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     this.isSearchMode = !isSearchMode;
   }
 
-  public void showSearchMode(InputPanel i, SearchView s)
-  {
+  public void showSearchMode(InputPanel i, SearchView s) {
     hideKeyboard();
     linMessage.setVisibility(View.GONE);
     i.setVisibility(View.GONE);
@@ -1283,8 +1281,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     quickAttachmentDrawer = ViewUtil.findById(this, R.id.quick_attachment_drawer);
     quickAttachmentToggle = ViewUtil.findById(this, R.id.quick_attachment_toggle);
     inputPanel            = ViewUtil.findById(this, R.id.bottom_panel);
-    linMessage            = ViewUtil.findById(this, R.id.linMessage);
-    linSearch            = ViewUtil.findById(this, R.id.linSearch);
+    linMessage            = ViewUtil.findById(this, R.id.lin_message);
+    linSearch             = ViewUtil.findById(this, R.id.lin_search);
+    upArrow               = ViewUtil.findById(this, R.id.search_arrow_up);
+    downArrow             = ViewUtil.findById(this, R.id.search_arrow_down);
 
     ImageButton quickCameraToggle = ViewUtil.findById(this, R.id.quick_camera_toggle);
     View        composeBubble     = ViewUtil.findById(this, R.id.compose_bubble);

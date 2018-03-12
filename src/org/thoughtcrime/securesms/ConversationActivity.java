@@ -63,6 +63,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -242,6 +243,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private   InputPanel             inputPanel;
   private   LinearLayout           linMessage, linSearch;
   InputPanel bottomPanel;
+  SearchView searchView;
 
   private Recipient  recipient;
   private long       threadId;
@@ -561,10 +563,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (container.isInputOpen()) {
       container.hideCurrentInput(composeText);
     }
-    else if (linSearch.getVisibility() == View.VISIBLE) {
+    else if (isSearchMode) {
       linSearch.setVisibility(View.GONE);
       bottomPanel.setVisibility(View.VISIBLE);
       linMessage.setVisibility(View.VISIBLE);
+      this.isSearchMode = !isSearchMode;
+
     }
     else {
       super.onBackPressed();

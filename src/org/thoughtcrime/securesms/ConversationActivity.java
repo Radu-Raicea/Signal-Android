@@ -761,6 +761,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   private void handleSearch(MenuItem item) {
     bottomPanel = (InputPanel) findViewById(R.id.bottom_panel);
+    searchView = (SearchView)  findViewById(R.id.custom_Search);
 
     if(!this.isSearchMode) {
       hideKeyboard();
@@ -768,6 +769,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       bottomPanel.setVisibility(View.GONE);
       // TODO add the logic to show the search bar
       linSearch.setVisibility(View.VISIBLE);
+      searchView.setIconified(false);
+
+
     } else {
       hideKeyboard();
       // TODO shawn adds method to hide the search bar when the "Search Conversation" is clicked

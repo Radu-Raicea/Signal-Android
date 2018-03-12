@@ -27,7 +27,7 @@ public class NicknameEspressoTest {
             .goSettings();
     }
 
-    @Test @Ignore
+    @Test
     public void canSetNickName() {
         Helper helper = new Helper(mainActivityRule);
 
@@ -37,6 +37,7 @@ public class NicknameEspressoTest {
             .goConversations()
             .goConversation()
             .goSettings()
+                .scrolTOButtom()
                 .setNickname(testString)
             .goConversation()
                 .assertText(testString);

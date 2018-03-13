@@ -12,8 +12,12 @@ import static android.support.test.espresso.action.ViewActions.longClick;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.contrib.RecyclerViewActions.scrollToPosition;
+import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.thoughtcrime.securesms.espresso.ViewActions.pressAndHoldAction;
+import static org.thoughtcrime.securesms.espresso.ViewActions.releaseAction;
+import static org.thoughtcrime.securesms.espresso.ViewActions.waitFor;
 
 public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
     ConversationHelper(HelperSecret s) {}
@@ -42,6 +46,24 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
         return this;
     }
 
+    public ConversationHelper sendAudio() {
+        onView(withId(R.id.recorder_view)).perform(pressAndHoldAction());
+        onView(isRoot()).perform(waitFor(2000));
+        onView(withId(R.id.recorder_view)).perform(releaseAction());
+        onView(isRoot()).perform(waitFor(1000));
+        return this;
+    }
+
+    public ConversationHelper selectAudio(int position) {
+        this.messageSelected = true;
+
+        onView(withId(android.R.id.list))
+                .perform(scrollToPosition(position))
+                .perform(longClick());
+
+        return this;
+    }
+
     public ConversationHelper selectMessage(int position) {
         this.messageSelected = true;
 
@@ -59,6 +81,28 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
 
         this.messageSelected = false;
         pressBack();
+
+        return this;
+    }
+
+    public ConversationHelper pinAudio(int position) {
+        this.unselectMessage();
+
+        this.selectAudio(position);
+
+        onView(withId(R.id.menu_context_pin_message))
+                .perform(click());
+
+        return this;
+    }
+
+    public ConversationHelper unpinAudio(int position) {
+        this.unselectMessage();
+
+        this.selectAudio(position);
+
+        onView(withId(R.id.menu_context_unpin_message))
+                .perform(click());
 
         return this;
     }
@@ -113,3 +157,4 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
         return new PreferencesHelper(new HelperSecret());
     }
 }
+

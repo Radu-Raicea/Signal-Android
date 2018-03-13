@@ -130,6 +130,39 @@ public class PinnedMessageEspressoTest {
     }
 
     @Test
+    public void canPinAudio() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+                .goConversations()
+                .goConversation()
+                    .sendAudio()
+                    .pinAudio(0)
+                .goConversations()
+                .goConversation()
+                    .goPinned();
+    }
+
+    @Test
+    public void canUnPinAudio() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+                .goConversations()
+                .goConversation()
+                    .sendAudio()
+                    .pinAudio(0)
+                .goConversations()
+                .goConversation()
+                    .unpinAudio(0);
+    }
+
+
+    @Test
     public void canUnpinImageMms() {
         Helper helper = new Helper(mainActivityRule);
 

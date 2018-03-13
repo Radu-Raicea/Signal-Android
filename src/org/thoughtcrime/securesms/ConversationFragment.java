@@ -90,7 +90,8 @@ public class ConversationFragment extends Fragment
 
     private final ActionModeCallback actionModeCallback     = new ActionModeCallback();
     private final ItemClickListener  selectionClickListener = new ConversationFragmentItemClickListener();
-    private       SearchHandler      searchHandler          = new SearchHandler();
+
+    private SearchHandler searchHandler = new SearchHandler();
 
     private ConversationFragmentListener listener;
 
@@ -776,5 +777,9 @@ public class ConversationFragment extends Fragment
                 }
             }, 400);
         }
+    }
+
+    public SearchHandler getSearchHandler() {
+        return searchHandler;
     }
 }

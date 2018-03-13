@@ -9,7 +9,8 @@ public class SearchHandler {
 
     private LinkedList<MessageRecord> messageRecordList;
     private LinkedList<SearchResult>  searchResultList;
-    private int                       searchIndex = 0;
+    private int                       searchIndex = -1;
+    private int                       positionIndex = 0;
     private String                    searchedTerm = null;
 
     public SearchHandler() {
@@ -18,7 +19,7 @@ public class SearchHandler {
     }
 
     public void search(String term) {
-        searchIndex = 0;
+        positionIndex = 0;
         searchResultList.clear();
         searchedTerm = term;
 
@@ -27,12 +28,11 @@ public class SearchHandler {
         while (iterator.hasNext()) {
             MessageRecord messageRecord = iterator.next();
             if (messageRecord.getBody().getBody().toString().toLowerCase().contains(term)) {
-                SearchResult searchResult = new SearchResult(searchIndex, messageRecord);
+                SearchResult searchResult = new SearchResult(positionIndex, messageRecord);
                 searchResultList.add(searchResult);
             }
-            searchIndex++;
+            positionIndex++;
         }
-
     }
 
     //Used to add messageRecords when conversation gets new messages
@@ -58,17 +58,15 @@ public class SearchHandler {
     }
 
     //returns the next position in the searchResultList to scrollTo
-    public SearchResult getNextResultPosition() {
-        if (searchIndex < getResultNumber()) return searchResultList.get(searchIndex++);
-
-        return null;
+    public int getNextResultPosition() {
+        if (searchIndex < getResultNumber()) return searchResultList.get(++searchIndex).getPosition();
+        return -1;
     }
 
     //returns the previous position in the searchResultList
-    public SearchResult getPreviousResultPosition() {
-        if (searchIndex-- > -1) return searchResultList.get(searchIndex--);
-
-        return null;
+    public int getPreviousResultPosition() {
+        if (searchIndex >= -1) return searchResultList.get(--searchIndex).getPosition();
+        return -1;
     }
 
     public boolean hasResults() {

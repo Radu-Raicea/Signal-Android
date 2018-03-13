@@ -762,6 +762,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     searchView = (SearchView)  findViewById(R.id.custom_search);
 
     searchView.setOnQueryTextListener(new SearchInitiatedListener());
+    upArrow.setOnClickListener(new NextSearchResultListener());
+    downArrow.setOnClickListener(new PreviousSearchResultListener());
 
     if(!this.isSearchMode) {
       showSearchMode(bottomPanel, searchView);
@@ -2051,6 +2053,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     public boolean onQueryTextSubmit(String query) {
       fragment.getSearchHandler().search(query);
       fragment.updateAdapterSearchHandler();
+      fragment.scrollToNextSearchResult();
       return false;
     }
 
@@ -2102,6 +2105,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     @Override
     public void onFocusChange(View v, boolean hasFocus) {}
+  }
+
+  private class NextSearchResultListener implements OnClickListener {
+    @Override
+    public void onClick(View v) {
+      fragment.scrollToNextSearchResult();
+    }
+  }
+
+  private class PreviousSearchResultListener implements OnClickListener {
+    @Override
+    public void onClick(View v) {
+      fragment.scrollToPreviousSearchResult();
+    }
   }
 
   @Override

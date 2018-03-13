@@ -787,4 +787,18 @@ public class ConversationFragment extends Fragment
         getListAdapter().updateSearchHandler(searchHandler);
         getListAdapter().notifyDataSetChanged();
     }
+
+    public void scrollToNextSearchResult() {
+        int position = searchHandler.getNextResultPosition();
+        if (position > -1) {
+            list.getLayoutManager().scrollToPosition(position);
+        }
+    }
+
+    public void scrollToPreviousSearchResult() {
+        int position = searchHandler.getPreviousResultPosition();
+        if (position > -1) {
+            list.getLayoutManager().scrollToPosition(position);
+        }
+    }
 }

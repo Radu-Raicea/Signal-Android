@@ -59,9 +59,12 @@ import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -239,6 +242,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   protected HidingLinearLayout     quickAttachmentToggle;
   private   QuickAttachmentDrawer  quickAttachmentDrawer;
   private   InputPanel             inputPanel;
+  private   LinearLayout           linMessage, linSearch;
+  private   InputPanel             bottomPanel;
+  private   SearchView             searchView;
+  private   ImageView              upArrow, downArrow;
 
   private Recipient  recipient;
   private long       threadId;
@@ -248,6 +255,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private boolean    isDefaultSms          = true;
   private boolean    isMmsEnabled          = true;
   private boolean    isSecurityInitialized = false;
+  private boolean    isSearchMode          = false;
 
   private final IdentityRecordList identityRecords = new IdentityRecordList();
   private final DynamicTheme       dynamicTheme    = new DynamicTheme();
@@ -292,7 +300,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   protected void onNewIntent(Intent intent) {
     Log.w(TAG, "onNewIntent()");
-    
     if (isFinishing()) {
       Log.w(TAG, "Activity is finishing...");
       return;
@@ -471,7 +478,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public boolean onPrepareOptionsMenu(Menu menu) {
     MenuInflater inflater = this.getMenuInflater();
     menu.clear();
-
     if (isSecureText) {
       if (recipient.getExpireMessages() > 0) {
         inflater.inflate(R.menu.conversation_expiring_on, menu);
@@ -546,6 +552,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
     case R.id.menu_view_pinned_messages:      handleViewPinnedMessages();                        return true;
+    case R.id.menu_search_conversation:       handleSearch(item);                                    return true;
     case android.R.id.home:                   handleReturnToConversationList();                  return true;
     }
 
@@ -555,8 +562,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   @Override
   public void onBackPressed() {
     Log.w(TAG, "onBackPressed()");
-    if (container.isInputOpen()) container.hideCurrentInput(composeText);
-    else                         super.onBackPressed();
+    if (container.isInputOpen()) {
+      container.hideCurrentInput(composeText);
+    }
+    else if (isSearchMode) {
+      hideSearchMode();
+    }
+    else {
+      super.onBackPressed();
+    }
   }
 
   @Override
@@ -741,6 +755,44 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     intent.putExtra(PinnedMessageActivity.ADDRESS_EXTRA, recipient.getAddress());
     intent.putExtra("THREADID", getThreadId());
     startActivity(intent);
+  }
+
+  private void handleSearch(MenuItem item) {
+    bottomPanel = (InputPanel) findViewById(R.id.bottom_panel);
+    searchView = (SearchView)  findViewById(R.id.custom_search);
+
+    if(!this.isSearchMode) {
+      showSearchMode(bottomPanel, searchView);
+
+    } else {
+      hideSearchMode();
+    }
+    this.isSearchMode = !isSearchMode;
+  }
+
+  public void hideSearchMode() {
+    hideKeyboard();
+    linSearch.setVisibility(View.GONE);
+    bottomPanel.setVisibility(View.VISIBLE);
+    linMessage.setVisibility(View.VISIBLE);
+    this.isSearchMode = !isSearchMode;
+  }
+
+  public void showSearchMode(InputPanel i, SearchView s) {
+    hideKeyboard();
+    linMessage.setVisibility(View.GONE);
+    i.setVisibility(View.GONE);
+    linSearch.setVisibility(View.VISIBLE);
+    s.setIconified(false);
+  }
+
+  private void hideKeyboard() {
+    View view = this.getCurrentFocus();
+    if (view != null) {
+      InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+      imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
   }
 
   private void handleLeavePushGroup() {
@@ -1229,6 +1281,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     quickAttachmentDrawer = ViewUtil.findById(this, R.id.quick_attachment_drawer);
     quickAttachmentToggle = ViewUtil.findById(this, R.id.quick_attachment_toggle);
     inputPanel            = ViewUtil.findById(this, R.id.bottom_panel);
+    linMessage            = ViewUtil.findById(this, R.id.lin_message);
+    linSearch             = ViewUtil.findById(this, R.id.lin_search);
+    upArrow               = ViewUtil.findById(this, R.id.search_arrow_up);
+    downArrow             = ViewUtil.findById(this, R.id.search_arrow_down);
 
     ImageButton quickCameraToggle = ViewUtil.findById(this, R.id.quick_camera_toggle);
     View        composeBubble     = ViewUtil.findById(this, R.id.compose_bubble);

@@ -140,7 +140,6 @@ public class ViewActions {
                 float[] precision = Press.FINGER.describePrecision();
                 float[] coords = GeneralLocation.CENTER.calculateCoordinates(view);
                 sMotionEventDownHeldView = MotionEvents.sendDown(uiController, coords, precision).down;
-                // TODO: save view information and make sure release() is on same view
             }
         };
     }

@@ -59,13 +59,13 @@ public class SearchHandler {
 
     //returns the next position in the searchResultList to scrollTo
     public int getNextResultPosition() {
-        if (searchIndex < getResultNumber()) return searchResultList.get(++searchIndex).getPosition();
+        if (searchIndex < getResultNumber() - 1) return searchResultList.get(++searchIndex).getPosition();
         return -1;
     }
 
     //returns the previous position in the searchResultList
     public int getPreviousResultPosition() {
-        if (searchIndex >= -1) return searchResultList.get(--searchIndex).getPosition();
+        if (searchIndex > 0) return searchResultList.get(--searchIndex).getPosition();
         return -1;
     }
 

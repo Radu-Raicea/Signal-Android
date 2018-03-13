@@ -324,46 +324,43 @@ public class ConversationFragment extends Fragment
 
     public void handlePinOrUnpinMessage(final MessageRecord message, boolean pin,
                                         PinnedMessageHandler handler) {
-        // PinnedMessageHandler pinHandler;
-        // MessagingDatabase databaseToQuery;
-        // String outputMessage;
-        // boolean result;
+        PinnedMessageHandler pinHandler;
+        MessagingDatabase databaseToQuery;
+        String outputMessage;
+        boolean result;
 
-        // pinHandler = handler;
-        // databaseToQuery = pinHandler.getAppropriateDatabase(message);
+        pinHandler = handler;
+        databaseToQuery = pinHandler.getAppropriateDatabase(message);
 
-        // if (pin) {
-        //     // Blocking Video and Audio pinning Temporarily
-        //     if (message.isMms() && ((MmsMessageRecord) message).getSlideDeck().getSlides().size() != 0) {
-        //         MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
-        //         if (!mediaMessage.getSlideDeck().getThumbnailSlide().getContentType().contains("image")) {
-        //             showToast("You can only pin image type mms!");
-        //             return;
-        //         }
-        //     }
-        //     result = pinHandler.handlePinMessage(message, databaseToQuery);
+        if (pin) {
+            // Blocking Video and Audio pinning Temporarily
+            if (message.isMms() && ((MmsMessageRecord) message).getSlideDeck().getSlides().size() != 0) {
+                MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
+                if (!mediaMessage.getSlideDeck().getThumbnailSlide().getContentType().contains("image")) {
+                    showToast("You can only pin image type mms!");
+                    return;
+                }
+            }
+            result = pinHandler.handlePinMessage(message, databaseToQuery);
 
-        //     if (result) {
-        //         outputMessage = getString(R.string.ConversationFragment_pin_new);
-        //     } else {
-        //         outputMessage = getString(R.string.ConversationFragment_pin_already_pinned);
-        //     }
+            if (result) {
+                outputMessage = getString(R.string.ConversationFragment_pin_new);
+            } else {
+                outputMessage = getString(R.string.ConversationFragment_pin_already_pinned);
+            }
 
-        // } else {
-        //     result = pinHandler.handleUnpinMessage(message, databaseToQuery);
+        } else {
+            result = pinHandler.handleUnpinMessage(message, databaseToQuery);
 
-        //     if (result) {
-        //         outputMessage = getString(R.string.ConversationFragment_unpin_new);
-        //     } else {
-        //         outputMessage = getString(R.string.ConversationFragment_unpin_already_unpinned);
-        //     }
-        // }
+            if (result) {
+                outputMessage = getString(R.string.ConversationFragment_unpin_new);
+            } else {
+                outputMessage = getString(R.string.ConversationFragment_unpin_already_unpinned);
+            }
+        }
 
-        // this.showToast(outputMessage);
-        // searchHandler.addSearchedResult(0, message);
-        searchHandler.search("test");
-        getListAdapter().updateSearchHandler(searchHandler);
-        getListAdapter().notifyDataSetChanged();
+        this.showToast(outputMessage);
+        searchHandler.addSearchedResult(0, message);
     }
 
     private void handleDeleteMessages(final Set<MessageRecord> messageRecords) {

@@ -348,7 +348,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
       while (true) {
         try {
           MessageRecord messageRecord = getRecordForPositionOrThrow(i++);
-          searchHandler.messageRecordList.add(messageRecord);
+          searchHandler.getMessageRecordList().add(messageRecord);
         } catch (IllegalStateException e) {
           break;
         }

@@ -7,10 +7,10 @@ import java.util.LinkedList;
 
 public class SearchHandler {
 
-    public LinkedList<MessageRecord> messageRecordList;
-    public LinkedList<SearchResult> searchResultList;
-    private int searchIndex = 0;
-    private String searchedTerm = null;
+    private LinkedList<MessageRecord> messageRecordList;
+    private LinkedList<SearchResult>  searchResultList;
+    private int                       searchIndex = 0;
+    private String                    searchedTerm = null;
 
     public SearchHandler() {
         messageRecordList = new LinkedList<MessageRecord>();
@@ -56,6 +56,7 @@ public class SearchHandler {
             }
         }
     }
+
     //returns the next position in the searchResultList to scrollTo
     public SearchResult getNextResultPosition() {
         if (searchIndex < getResultNumber()) return searchResultList.get(searchIndex++);
@@ -98,6 +99,18 @@ public class SearchHandler {
 
     public String getSearchedTerm() {
         return searchedTerm;
+    }
+
+    public LinkedList<MessageRecord> getMessageRecordList() {
+        return messageRecordList;
+    }
+
+    public LinkedList<SearchResult> getSearchResultList() {
+        return searchResultList;
+    }
+
+    public void setMessageRecordList(LinkedList<MessageRecord> messageRecordList) {
+        this.messageRecordList = messageRecordList;
     }
 
     //not sure if should create seperate class file, needs to be accessed outside

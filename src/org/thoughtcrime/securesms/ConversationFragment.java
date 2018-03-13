@@ -782,4 +782,9 @@ public class ConversationFragment extends Fragment
     public SearchHandler getSearchHandler() {
         return searchHandler;
     }
+
+    public void updateAdapterSearchHandler() {
+        getListAdapter().updateSearchHandler(searchHandler);
+        getListAdapter().notifyDataSetChanged();
+    }
 }

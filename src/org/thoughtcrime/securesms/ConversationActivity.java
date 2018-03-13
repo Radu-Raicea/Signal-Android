@@ -761,7 +761,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     bottomPanel = (InputPanel) findViewById(R.id.bottom_panel);
     searchView = (SearchView)  findViewById(R.id.custom_search);
 
-    searchView.OnQueryTextListener(new SearchInitiatiedListener());
+    searchView.setOnQueryTextListener(new SearchInitiatedListener());
 
     if(!this.isSearchMode) {
       showSearchMode(bottomPanel, searchView);
@@ -2046,10 +2046,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private class SearchInitiatiedListener implements SearchView.OnQueryTextListener {
+  private class SearchInitiatedListener implements SearchView.OnQueryTextListener {
     @Override
     public boolean onQueryTextSubmit(String query) {
       fragment.getSearchHandler().search(query);
+      fragment.updateAdapterSearchHandler();
       return false;
     }
 
@@ -2058,8 +2059,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       return false;
     }
   }
-
-
 
   private class ComposeKeyPressedListener implements OnKeyListener, OnClickListener, TextWatcher, OnFocusChangeListener {
 

@@ -788,6 +788,10 @@ public class ConversationFragment extends Fragment
         getListAdapter().notifyDataSetChanged();
     }
 
+    public void resetAdapterSearchHandler() {
+        getListAdapter().resetSearchHandler();
+    }
+
     public void scrollToNextSearchResult() {
         int position = searchHandler.getNextResultPosition();
         if (position > -1) {

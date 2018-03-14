@@ -552,7 +552,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     case R.id.menu_expiring_messages_off:
     case R.id.menu_expiring_messages:         handleSelectMessageExpiration();                   return true;
     case R.id.menu_view_pinned_messages:      handleViewPinnedMessages();                        return true;
-    case R.id.menu_search_conversation:       handleSearch(item);                                    return true;
+    case R.id.menu_search_conversation:       handleSearch(item);                                return true;
     case android.R.id.home:                   handleReturnToConversationList();                  return true;
     }
 
@@ -561,7 +561,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   @Override
   public void onBackPressed() {
-    Log.w(TAG, "onBackPressed()");
     if (container.isInputOpen()) {
       container.hideCurrentInput(composeText);
     }
@@ -767,7 +766,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     if(!this.isSearchMode) {
       showSearchMode(bottomPanel, searchView);
-
     } else {
       hideSearchMode();
     }
@@ -780,6 +778,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     bottomPanel.setVisibility(View.VISIBLE);
     linMessage.setVisibility(View.VISIBLE);
     this.isSearchMode = !isSearchMode;
+
+    fragment.resetAdapterSearchHandler();
   }
 
   public void showSearchMode(InputPanel i, SearchView s) {

@@ -30,6 +30,7 @@ public class SearchHandler {
      */
     public void search(String term) {
         positionIndex = 0;
+        searchIndex = -1;
         searchResultList.clear();
         searchedTerm = term;
 
@@ -100,7 +101,7 @@ public class SearchHandler {
 
     /**
      * Checks if the given message record is contained in the searchedResultList
-     * @param messageRecord
+     * @param searchedMessageRecord
      * @return boolean
      */
     public boolean isSearchedMessage(MessageRecord searchedMessageRecord) {
@@ -114,6 +115,16 @@ public class SearchHandler {
         }
 
         return false;
+    }
+
+    /**
+     * Resets the search handler state
+     * @return 
+     */
+    public void resetSearchHandler() {
+        searchResultList.clear();
+        searchIndex = -1;
+        searchedTerm = null;
     }
 
     public boolean hasResults() {
@@ -161,5 +172,4 @@ public class SearchHandler {
             return messageRecord;
         }
     }
-
 }

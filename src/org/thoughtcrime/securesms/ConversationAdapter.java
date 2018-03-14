@@ -376,6 +376,10 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
     this.searchHandler = searchHandler;
   }
 
+  public void resetSearchHandler() {
+    this.resetSearchHandler();
+  }
+
   public Set<MessageRecord> getSelectedItems() {
     return Collections.unmodifiableSet(new HashSet<>(batchSelected));
   }

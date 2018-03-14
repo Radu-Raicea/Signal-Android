@@ -252,13 +252,13 @@ public class ConversationItem extends LinearLayout
     int start = 0;
     int index = str.toString().toLowerCase().indexOf(highlight, start);
 
-    if (index > -1) {
-      if(messageRecord.isOutgoing()) {
+    while (index > -1) {
+      if(!messageRecord.isOutgoing()) {
         color = Color.parseColor("#E1BEE7");
       } else {
         color = Color.YELLOW;
       }
-      str.setSpan(color, index, index + highlight.length(), 0);
+      str.setSpan(new BackgroundColorSpan(color), index, index + highlight.length(), 0);
       bodyText.setText(str);
       start = highlight.length() + index;
       index = str.toString().toLowerCase().indexOf(highlight, start);

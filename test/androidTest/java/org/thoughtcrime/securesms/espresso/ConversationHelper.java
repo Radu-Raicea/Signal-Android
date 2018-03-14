@@ -8,13 +8,14 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.openActionBarOverflowOrOptionsMenu;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.longClick;
+import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.contrib.RecyclerViewActions.scrollToPosition;
 import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.thoughtcrime.securesms.espresso.ViewActions.clickPercent;
 import static org.thoughtcrime.securesms.espresso.ViewActions.pressAndHoldAction;
 import static org.thoughtcrime.securesms.espresso.ViewActions.releaseAction;
 import static org.thoughtcrime.securesms.espresso.ViewActions.waitFor;
@@ -36,8 +37,10 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
     public ConversationHelper sendImage(String message) {
         onView(withId(R.id.quick_camera_toggle))
             .perform(click());
+        onView(isRoot()).perform(waitFor(2000));
         onView(withId(R.id.shutter_button))
             .perform(click());
+        onView(isRoot()).perform(waitFor(2000));
         onView(withId(R.id.embedded_text_editor))
             .perform(typeText(message));
         onView(withId(R.id.send_button))
@@ -54,22 +57,13 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
         return this;
     }
 
-    public ConversationHelper selectAudio(int position) {
-        this.messageSelected = true;
-
-        onView(withId(android.R.id.list))
-                .perform(scrollToPosition(position))
-                .perform(longClick());
-
-        return this;
-    }
-
     public ConversationHelper selectMessage(int position) {
         this.messageSelected = true;
 
         onView(withId(android.R.id.list))
+            .perform(closeSoftKeyboard())
             .perform(scrollToPosition(position))
-            .perform(actionOnItemAtPosition(position, longClick()));
+            .perform(actionOnItemAtPosition(position, clickPercent(0f,0f)));
 
         return this;
     }
@@ -85,23 +79,12 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
         return this;
     }
 
-    public ConversationHelper pinAudio(int position) {
+    public ConversationHelper deleteMessage(int position) {
         this.unselectMessage();
 
-        this.selectAudio(position);
+        this.selectMessage(position);
 
-        onView(withId(R.id.menu_context_pin_message))
-                .perform(click());
-
-        return this;
-    }
-
-    public ConversationHelper unpinAudio(int position) {
-        this.unselectMessage();
-
-        this.selectAudio(position);
-
-        onView(withId(R.id.menu_context_unpin_message))
+        onView(withId(R.id.menu_context_delete_message))
                 .perform(click());
 
         return this;

@@ -2,9 +2,12 @@ package org.thoughtcrime.securesms.espresso;
 
 import android.support.test.espresso.UiController;
 import android.support.test.espresso.ViewAction;
+import android.support.test.espresso.action.CoordinatesProvider;
+import android.support.test.espresso.action.GeneralClickAction;
 import android.support.test.espresso.action.GeneralLocation;
 import android.support.test.espresso.action.MotionEvents;
 import android.support.test.espresso.action.Press;
+import android.support.test.espresso.action.Tap;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -15,7 +18,6 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayingAtL
 import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
 
 public class ViewActions {
-    static MotionEvent sMotionEventDownHeldView = null;
 
     public static ViewAction clickChildViewWithId(final int id) {
 
@@ -36,6 +38,31 @@ public class ViewActions {
                 v.performClick();
             }
         };
+    }
+
+    public static ViewAction clickPercent(final float pctX, final float pctY){
+        return new GeneralClickAction(
+                Tap.LONG,
+                new CoordinatesProvider() {
+                    @Override
+                    public float[] calculateCoordinates(View view) {
+
+                        final int[] screenPos = new int[2];
+                        view.getLocationOnScreen(screenPos);
+                        int w = view.getWidth();
+                        int h = view.getHeight();
+
+                        float x = w * pctX;
+                        float y = h * pctY;
+
+                        final float screenX = screenPos[0] + x;
+                        final float screenY = screenPos[1] + y;
+                        float[] coordinates = {screenX, screenY};
+
+                        return coordinates;
+                    }
+                },
+                Press.FINGER);
     }
 
     public static ViewAction longClickChildViewWithId(final int id) {
@@ -120,51 +147,65 @@ public class ViewActions {
     }
 
     public static ViewAction pressAndHoldAction() {
-        return new ViewAction(){
-            @Override
-            public Matcher<View> getConstraints() {
-                return isDisplayingAtLeast(90); // Like GeneralClickAction
-            }
-
-            @Override
-            public String getDescription() {
-                return "Press and hold action";
-            }
-
-            @Override
-            public void perform(final UiController uiController, final View view) {
-                if (sMotionEventDownHeldView != null) {
-                    throw new AssertionError("Only one view can be held at a time");
-                }
-
-                float[] precision = Press.FINGER.describePrecision();
-                float[] coords = GeneralLocation.CENTER.calculateCoordinates(view);
-                sMotionEventDownHeldView = MotionEvents.sendDown(uiController, coords, precision).down;
-            }
-        };
+        return PressAndReleaseHandler.pressAndHoldAction();
     }
 
     public static ViewAction releaseAction() {
-        return new  ViewAction() {
-            @Override
-            public Matcher<View> getConstraints() {
-                return isDisplayingAtLeast(90);  // Like GeneralClickAction
-            }
+        return PressAndReleaseHandler.releaseAction();
+    }
 
-            @Override
-            public String getDescription() {
-                return "Release action";
-            }
+    private static class PressAndReleaseHandler {
+        static MotionEvent sMotionEventDownHeldView = null;
 
-            @Override
-            public void perform(final UiController uiController, final View view) {
-                if (sMotionEventDownHeldView == null) {
-                    throw new AssertionError("Before calling release(), you must call pressAndHold() on a view");
+        public static ViewAction pressAndHoldAction() {
+            return new ViewAction(){
+                @Override
+                public Matcher<View> getConstraints() {
+                    return isDisplayingAtLeast(90); // Like GeneralClickAction
                 }
 
-                float[] coords = GeneralLocation.CENTER.calculateCoordinates(view);
-                MotionEvents.sendUp(uiController, sMotionEventDownHeldView, coords);
-            }
-        };
+                @Override
+                public String getDescription() {
+                    return "Press and hold action";
+                }
+
+                @Override
+                public void perform(final UiController uiController, final View view) {
+                    if (sMotionEventDownHeldView != null) {
+                        throw new AssertionError("Only one view can be held at a time");
+                    }
+
+                    float[] precision = Press.FINGER.describePrecision();
+                    float[] coords = GeneralLocation.CENTER.calculateCoordinates(view);
+                    sMotionEventDownHeldView = MotionEvents.sendDown(uiController, coords, precision).down;
+                }
+            };
+        }
+
+        public static ViewAction releaseAction() {
+            return new  ViewAction() {
+                @Override
+                public Matcher<View> getConstraints() {
+                    return isDisplayingAtLeast(90);  // Like GeneralClickAction
+                }
+
+                @Override
+                public String getDescription() {
+                    return "Release action";
+                }
+
+                @Override
+                public void perform(final UiController uiController, final View view) {
+                    if (sMotionEventDownHeldView == null) {
+                        throw new AssertionError("Before calling release(), you must call pressAndHold() on a view");
+                    }
+
+                    float[] coords = GeneralLocation.CENTER.calculateCoordinates(view);
+                    MotionEvents.sendUp(uiController, sMotionEventDownHeldView, coords);
+                    sMotionEventDownHeldView = null;
+                }
+            };
+        }
     }
+
 }

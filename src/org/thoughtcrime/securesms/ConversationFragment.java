@@ -494,7 +494,7 @@ public class ConversationFragment extends Fragment
             getListAdapter().changeCursor(cursor);
 
             int lastSeenPosition = getListAdapter().findLastSeenPosition(lastSeen);
-            getListAdapter().addMessagesToSearchHandler(searchHandler);
+            getListAdapter().addMessagesToSearchHandler(searchHandler, firstLoad);
 
             if (firstLoad) {
                 scrollToLastSeenPosition(lastSeenPosition);

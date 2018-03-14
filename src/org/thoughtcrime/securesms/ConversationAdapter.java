@@ -342,17 +342,23 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
     return -1;
   }
 
-  public void addMessagesToSearchHandler(SearchHandler searchHandler) {
-    if (!searchHandler.hasMessageRecords()) {
-      int i = 0;
-      while (true) {
-        try {
-          MessageRecord messageRecord = getRecordForPositionOrThrow(i++);
-          searchHandler.getMessageRecordList().add(messageRecord);
-        } catch (IllegalStateException e) {
-          break;
+  public void addMessagesToSearchHandler(SearchHandler searchHandler, boolean firstLoad) {
+
+    if (firstLoad) {
+      if (!searchHandler.hasMessageRecords()) {
+        int i = 0;
+        while (true) {
+          try {
+            MessageRecord messageRecord = getRecordForPositionOrThrow(i++);
+            searchHandler.getMessageRecordList().add(messageRecord);
+          } catch (IllegalStateException e) {
+            break;
+          }
         }
       }
+    } else {
+      //add the latest message
+      searchHandler.addMessageRecord(getRecordForPositionOrThrow(0));
     }
   }
 

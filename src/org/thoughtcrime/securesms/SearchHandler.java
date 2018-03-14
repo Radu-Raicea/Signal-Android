@@ -5,6 +5,10 @@ import org.thoughtcrime.securesms.database.model.MessageRecord;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+/**
+ * A search handler that contains and implements all the necessary functionality to 
+ * search through a conversation's message records and return positions of the searched messages
+ */
 public class SearchHandler {
 
     private LinkedList<MessageRecord> messageRecordList;
@@ -18,6 +22,12 @@ public class SearchHandler {
         searchResultList = new LinkedList<SearchResult>();
     }
 
+    /**
+     * Searches through the message records bodies for occurance of the term and pushes
+     * the message records into searchResultList if found
+     * @param term
+     * @return
+     */
     public void search(String term) {
         positionIndex = 0;
         searchResultList.clear();
@@ -35,16 +45,29 @@ public class SearchHandler {
         }
     }
 
-    //Used to add messageRecords when conversation gets new messages
+    /**
+     * Adds to the front of the messageRecordList
+     * @param messageRecord
+     * @return
+     */
     public void addMessageRecord(MessageRecord messageRecord) {
         messageRecordList.addFirst(messageRecord);
     }
 
+    /**
+     * Adds to the front of the searchResultList
+     * @param messageRecord
+     * @return
+     */
     public void addSearchedResult(int position, MessageRecord messageRecord) {
         searchResultList.addFirst(new SearchResult(position, messageRecord));
     }
 
-    //Used to delete messageRecords when user deleted message records from conversation
+    /**
+     * Deletes the message record from messageRecordList with the id
+     * @param messageId
+     * @return
+     */
     public void deleteMessageRecord(long messageId) {
         Iterator<MessageRecord> iterator = messageRecordList.iterator();
         
@@ -57,16 +80,40 @@ public class SearchHandler {
         }
     }
 
-    //returns the next position in the searchResultList to scrollTo
+    /**
+     * Returns the next position of the searchedResultList
+     * @return int representing the position
+     */
     public int getNextResultPosition() {
         if (searchIndex < getResultNumber() - 1) return searchResultList.get(++searchIndex).getPosition();
         return -1;
     }
 
-    //returns the previous position in the searchResultList
+    /**
+     * Returns the previous position of the searchedResultList
+     * @return int representing the position
+     */
     public int getPreviousResultPosition() {
         if (searchIndex > 0) return searchResultList.get(--searchIndex).getPosition();
         return -1;
+    }
+
+    /**
+     * Checks if the given message record is contained in the searchedResultList
+     * @param messageRecord
+     * @return boolean
+     */
+    public boolean isSearchedMessage(MessageRecord searchedMessageRecord) {
+        Iterator<SearchResult> iterator = searchResultList.iterator();
+        
+        while (iterator.hasNext()) {
+            SearchResult messageRecord = iterator.next();
+            if (messageRecord.getMessageRecord().getId() == searchedMessageRecord.getId()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public boolean hasResults() {
@@ -81,22 +128,12 @@ public class SearchHandler {
         return messageRecordList.size() > 0;
     }
 
-    //TODO check if message record is a searchedResult
-    public boolean isSearchedMessage(MessageRecord searchedMessageRecord) {
-        Iterator<SearchResult> iterator = searchResultList.iterator();
-        
-        while (iterator.hasNext()) {
-            SearchResult messageRecord = iterator.next();
-            if (messageRecord.getMessageRecord().getId() == searchedMessageRecord.getId()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public String getSearchedTerm() {
         return searchedTerm;
+    }
+
+    public void setMessageRecordList(LinkedList<MessageRecord> messageRecordList) {
+        this.messageRecordList = messageRecordList;
     }
 
     public LinkedList<MessageRecord> getMessageRecordList() {
@@ -107,13 +144,6 @@ public class SearchHandler {
         return searchResultList;
     }
 
-    public void setMessageRecordList(LinkedList<MessageRecord> messageRecordList) {
-        this.messageRecordList = messageRecordList;
-    }
-
-    //not sure if should create seperate class file, needs to be accessed outside
-
-    //currently bind in conversationAdapter doesn't pass the position. implement this if it passes position to get easier search
     public class SearchResult {
         private int position;
         private MessageRecord messageRecord;
@@ -131,4 +161,5 @@ public class SearchHandler {
             return messageRecord;
         }
     }
+
 }

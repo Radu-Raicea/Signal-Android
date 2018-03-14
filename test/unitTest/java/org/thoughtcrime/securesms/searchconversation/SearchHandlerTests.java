@@ -46,6 +46,16 @@ public class SearchHandlerTests extends SearchConversationMocks {
     }
 
     @Test
+    public void testSearchIsCaseInsensitive() {
+        searchHandler.search("HeLlO");
+        Iterator<SearchHandler.SearchResult> iterator = searchHandler.getSearchResultList().iterator();
+
+        assertEquals(searchHandler.getResultNumber(), 2);
+        assertEquals(iterator.next().getMessageRecord().getBody().getBody(), "Hello World");
+        assertEquals(iterator.next().getMessageRecord().getBody().getBody(), "hello");
+    }
+
+    @Test
     public void testSearchWithoutResults() {
         searchHandler.search("helllo");
         assertEquals(searchHandler.getResultNumber(), 0);

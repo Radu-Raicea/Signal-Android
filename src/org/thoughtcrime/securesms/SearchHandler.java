@@ -27,7 +27,7 @@ public class SearchHandler {
         Iterator<MessageRecord> iterator = messageRecordList.iterator();
         while (iterator.hasNext()) {
             MessageRecord messageRecord = iterator.next();
-            if (messageRecord.getBody().getBody().toString().toLowerCase().contains(term)) {
+            if (messageRecord.getBody().getBody().toString().toLowerCase().contains(term.toLowerCase())) {
                 SearchResult searchResult = new SearchResult(positionIndex, messageRecord);
                 searchResultList.add(searchResult);
             }

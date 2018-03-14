@@ -248,12 +248,20 @@ public class ConversationItem extends LinearLayout
   public void highlightText(MessageRecord messageRecord, String highlight) {
     SpannableString str = new SpannableString(messageRecord.getDisplayBody());
 
-    //TODO if the highlight occurs more than once in a single messageRecord, have to loop and highlight all occurrences.
-    int index = str.toString().indexOf(highlight);
+    int color;
+    int start = 0;
+    int index = str.toString().toLowerCase().indexOf(highlight, start);
 
     if (index > -1) {
-      str.setSpan(new BackgroundColorSpan(Color.YELLOW), index, index + highlight.length(), 0);
+      if(messageRecord.isOutgoing()) {
+        color = Color.parseColor("#E1BEE7");
+      } else {
+        color = Color.YELLOW;
+      }
+      str.setSpan(color, index, index + highlight.length(), 0);
       bodyText.setText(str);
+      start = highlight.length() + index;
+      index = str.toString().toLowerCase().indexOf(highlight, start);
     }
   }
 

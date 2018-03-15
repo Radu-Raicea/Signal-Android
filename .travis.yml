@@ -45,11 +45,10 @@
   artifacts:
     paths:
     - $(git ls-files -o | grep build/outputs | tr "\n" ":")
-    
+
  before_install:
      - chmod +x gradlew
      - yes | sdkmanager "platforms;android-27"
-     - yes | sdkmanager "platforms;build-tools-27.0.1"
      - pip install --user codecov
 
  script:

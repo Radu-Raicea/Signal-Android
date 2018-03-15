@@ -54,6 +54,7 @@
                     android:id="@+id/pinned_message_body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minWidth="150dp"
                     android:text=" Mango pickle lorem ipsum"
                     android:textColorLink="@color/black"
                     android:textSize="16sp" />

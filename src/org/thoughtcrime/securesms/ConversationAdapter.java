@@ -377,7 +377,7 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
   }
 
   public void resetSearchHandler() {
-    this.resetSearchHandler();
+    this.searchHandler.resetSearchHandler();
   }
 
   public Set<MessageRecord> getSelectedItems() {

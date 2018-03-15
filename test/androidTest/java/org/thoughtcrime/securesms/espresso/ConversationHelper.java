@@ -112,4 +112,13 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
 
         return new PreferencesHelper(new HelperSecret());
     }
+
+    public SearchHelper goSearch() {
+        openActionBarOverflowOrOptionsMenu(InstrumentationRegistry.getTargetContext());
+
+        onView(withText(R.string.Conversation__menu_search_conversation))
+            .perform(click());
+
+        return new SearchHelper(new HelperSecret());
+    }
 }

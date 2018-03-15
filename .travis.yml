@@ -5,57 +5,65 @@
 #
 # Typically, this file should not be modified.
 # -----------------------------------------------------------------------
- language: android
- jdk: oraclejdk8
- sudo: false
+language: android
+jdk: oraclejdk8
+sudo: false
 
- before_cache:
-   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+before_cache:
+ - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+ - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
 cache:
-  directories:
+ directories:
+ - $HOME/.gradle/caches/
+ - $HOME/.gradle/daemon      #Cache daemon logs
+ - $HOME/.gradle/native      #Cache library downloaded from the gradle dependency
+ - $HOME/.gradle/wrapper     #Cache the gradle
+    - $HOME/.android/build-cache
+env:
+ global:
+ - ANDROID_API=27
+ - ANDROID_BUILD_TOOLS=27.0.1
 
- cache:
-   directories:
-     - $HOME/.gradle/caches/
-     - $HOME/.gradle/daemon      #Cache daemon logs
-     - $HOME/.gradle/native      #Cache library downloaded from the gradle dependency
-     - $HOME/.gradle/wrapper     #Cache the gradle
-     - $HOME/.android/build-cache
-
- addons:
-   apt_packages:
-     - pandoc
-   artifacts:
+addons:
+  apt_packages:
+    - pandoc
+  artifacts:
      paths:
-       - $(git ls-files -o | grep build/outputs | tr "\n" ":")
+      - $(git ls-files -o | grep build/outputs | tr "\n" ":")
 
- android:
-   components:
+android:
+ components:
      - tools
      - platform-tools
-     - build-tools-27.0.1
-     - android-27
+     - build-tools-$ANDROID_BUILD_TOOLS
+     - android-$ANDROID_API
      - extra-google-m2repository
 
- before_install:
-    - chmod +x gradlew
-    - yes | sdkmanager "platforms;android-27"
-    - pip install --user codecov
+ licenses:
+     - android-sdk-preview-license-.+
+     - android-sdk-license-.+
+     - google-gdk-license-.+
 
- script:
+before_install:
+     - chmod +x gradlew
+     - yes | sdkmanager "platforms;android-27"
+     - yes | sdkmanager "platforms;build-tools-27.0.1"
+     - pip install --user codecov
+
+script:
     - echo "Travis branch is $TRAVIS_BRANCH"
     - echo "Travis branch is in pull request $TRAVIS_PULL+REQUEST"
     - ./gradlew assemble
     - ./gradlew check
 
- after_success:
+after_success:
     - codecov
 
- after_failure:
+after_failure:
     - pandoc build/reports/tests/index.html -t plain | sed -n '/^Failed tests/,/default-package/p'
 
- after_script:
+after_script:
     - for f in build/outputs/lint-results.html; do pandoc $f -t plain; done
     - for f in build/outputs/lint-results.html; do pandoc $f -t plain; done
 

@@ -9,32 +9,32 @@
         android:background="?conversation_background"
         android:gravity="center">
 
-        <ImageView
-            android:id="@+id/search_arrow_up"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/up"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginLeft="5dp"
-            android:layout_marginStart="5dp"/>
-
-        <ImageView
-            android:id="@+id/search_arrow_down"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/down"
-            android:clickable="true"
-            android:focusable="true"/>
-
         <SearchView
             android:id="@+id/custom_search"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:layout_weight="1"
-            android:queryHint="Search"
-            android:background="?conversation_item_bubble_background"/>
+            android:background="?conversation_item_bubble_background"
+            android:queryHint="Search" />
+
+        <ImageView
+            android:id="@+id/search_arrow_down"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/down" />
+
+        <ImageView
+            android:id="@+id/search_arrow_up"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/up" />
 
     </LinearLayout>
 

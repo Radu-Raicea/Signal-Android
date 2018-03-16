@@ -566,6 +566,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
     else if (isSearchMode) {
       hideSearchMode();
+      Toast.makeText(this, getString(R.string.ConversationActivity_search_mode_off),
+              Toast.LENGTH_LONG).show();
     }
     else {
       super.onBackPressed();

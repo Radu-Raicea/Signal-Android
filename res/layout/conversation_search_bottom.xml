@@ -15,7 +15,7 @@
             android:layout_height="47dp"
             android:layout_weight="1"
             android:autoText="false"
-            android:background="@drawable/received_bubble"
+            android:background="@android:drawable/editbox_background"
             android:fontFamily="sans-serif"
             android:gravity="center"
             android:maxLines="21"
@@ -27,10 +27,10 @@
         <SearchView
             android:id="@+id/custom_search"
             android:layout_width="200dp"
-            android:layout_height="wrap_content"
+            android:layout_height="49dp"
             android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="?conversation_item_bubble_background"
+            android:background="@android:drawable/editbox_background"
             android:queryHint="Search">
 
         </SearchView>

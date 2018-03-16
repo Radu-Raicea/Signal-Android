@@ -37,9 +37,9 @@ public class NicknameEspressoTest {
             .goConversation()
             .goSettings()
                 .setNickname(testString)
-                .goConversation()
+            .goConversation()
             .goConversations()
-            .assertText(testString)
+                .assertText(testString)
             .goConversation()
                 .goSettings()
                 .resetNickname()
@@ -55,19 +55,19 @@ public class NicknameEspressoTest {
         String testString = helper.randString();
 
         helper
-                .goConversations()
-                .goGroup()
-                    .goSettings()
-                    .setNickname(testString)
-                .goConversation()
-                .goConversations()
-                    .assertText(testString).
-                goGroup(testString)
-                    .goSettings()
-                    .resetNickname()
-                .goConversation()
-                .goConversations()
-                    .assertNoText(testString);
+            .goConversations()
+            .goGroup()
+                .goSettings()
+                .setNickname(testString)
+            .goConversation()
+            .goConversations()
+                .assertText(testString).
+            goGroup(testString)
+                .goSettings()
+                .resetNickname()
+            .goConversation()
+            .goConversations()
+                .assertNoText(testString);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class NicknameEspressoTest {
         helper
             .goConversations()
             .goConversation()
-            .goSettings()
+                .goSettings()
                 .setNickname(testString)
                 .resetNickname()
             .goConversation()

@@ -20,7 +20,6 @@ import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
 public class ViewActions {
 
     public static ViewAction clickChildViewWithId(final int id) {
-
         return new ViewAction() {
             @Override
             public Matcher<View> getConstraints() {
@@ -41,9 +40,7 @@ public class ViewActions {
     }
 
     public static ViewAction clickPercent(final float pctX, final float pctY){
-        return new GeneralClickAction(
-                Tap.LONG,
-                new CoordinatesProvider() {
+        return new GeneralClickAction(Tap.LONG, new CoordinatesProvider() {
                     @Override
                     public float[] calculateCoordinates(View view) {
 
@@ -61,8 +58,7 @@ public class ViewActions {
 
                         return coordinates;
                     }
-                },
-                Press.FINGER);
+                }, Press.FINGER);
     }
 
     public static ViewAction longClickChildViewWithId(final int id) {

@@ -22,39 +22,37 @@ public class PreferencesHelper extends BaseHelper<PreferencesHelper>{
     public PreferencesHelper resetNickname() {
         try {
             onView(withText(R.string.RecipientPreferenceActivity_resetnickname))
-                    .check(matches(isDisplayed()));
-
+                .check(matches(isDisplayed()));
         } catch (AssertionFailedError e) {
             onView(withId(android.R.id.content))
-                    .perform(swipeUp());
+                .perform(swipeUp());
             onView(isRoot())
-                    .perform(waitFor(500));
-        }
-        finally {
+                .perform(waitFor(500));
+        } finally {
             onView(withText(R.string.RecipientPreferenceActivity_resetnickname))
-                    .perform(click());
+                .perform(click());
         }
+
         return new PreferencesHelper(new HelperSecret());
     }
 
     public PreferencesHelper setNickname(String message) {
         try {
             onView(withText(R.string.RecipientPreferenceActivity_setnickname))
-                    .check(matches(isDisplayed()));
+                .check(matches(isDisplayed()));
 
         } catch (AssertionFailedError e) {
             onView(withId(android.R.id.content))
                 .perform(swipeUp());
             onView(isRoot())
-                    .perform(waitFor(500));
-        }
-
-        finally {
-            onView(withText(R.string.RecipientPreferenceActivity_setnickname)).perform(click());
+                .perform(waitFor(500));
+        } finally {
+            onView(withText(R.string.RecipientPreferenceActivity_setnickname))
+                .perform(click());
             onView(withId(android.R.id.edit))
-                    .perform(replaceText(message));
+                .perform(replaceText(message));
             onView(withId(android.R.id.button1))
-                    .perform(click());
+                .perform(click());
         }
 
         return new PreferencesHelper(new HelperSecret());

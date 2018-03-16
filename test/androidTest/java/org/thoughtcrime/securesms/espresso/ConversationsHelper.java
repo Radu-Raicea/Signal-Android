@@ -32,12 +32,11 @@ public class ConversationsHelper extends BaseHelper<ConversationsHelper> {
     public ConversationHelper goGroup() {
         try {
             this.assertText(groupName);
-            onView(withText(groupName)).perform(click());
+            onView(withText(groupName))
+                .perform(click());
         } catch (NoMatchingViewException e) {
             newGroup();
-        }
-
-        finally {
+        } finally {
             return new ConversationHelper(new HelperSecret());
         }
     }
@@ -45,12 +44,11 @@ public class ConversationsHelper extends BaseHelper<ConversationsHelper> {
     public ConversationHelper goGroup(String groupname) {
         try {
             this.assertText(groupname);
-            onView(withText(groupname)).perform(click());
+            onView(withText(groupname))
+                .perform(click());
         } catch (NoMatchingViewException e) {
             newGroup();
-        }
-
-        finally {
+        } finally {
             return new ConversationHelper(new HelperSecret());
         }
     }
@@ -59,26 +57,24 @@ public class ConversationsHelper extends BaseHelper<ConversationsHelper> {
         openActionBarOverflowOrOptionsMenu(InstrumentationRegistry.getTargetContext());
 
         onView(withText(R.string.text_secure_normal__menu_new_group))
-                .perform(click());
+            .perform(click());
         onView(withId(R.id.group_name))
-                .perform(typeText(groupName));
+            .perform(typeText(groupName));
         onView(withId(R.id.recipients_text))
-                .perform(click());
+            .perform(click());
         onView(withId(R.id.recipients_text))
-                .perform(typeText(phoneNumber));
+            .perform(typeText(phoneNumber));
 
         onView(withText(phoneNumber))
-                .inRoot(RootMatchers.isPlatformPopup())
-                .perform(click());
-
+            .inRoot(RootMatchers.isPlatformPopup())
+            .perform(click());
         onView(withId(R.id.recipients_text))
-                .perform(typeText(phoneNumber2));
+            .perform(typeText(phoneNumber2));
 
         onView(withText(phoneNumber2))
-                .inRoot(RootMatchers.isPlatformPopup())
-                .perform(click());
-
+            .inRoot(RootMatchers.isPlatformPopup())
+            .perform(click());
         onView(withId(R.id.menu_create_group))
-                .perform(click());
+            .perform(click());
     }
 }

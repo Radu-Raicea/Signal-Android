@@ -37,10 +37,12 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
     public ConversationHelper sendImage(String message) {
         onView(withId(R.id.quick_camera_toggle))
             .perform(click());
-        onView(isRoot()).perform(waitFor(2000));
+        onView(isRoot())
+            .perform(waitFor(2000));
         onView(withId(R.id.shutter_button))
             .perform(click());
-        onView(isRoot()).perform(waitFor(2000));
+        onView(isRoot())
+            .perform(waitFor(2000));
         onView(withId(R.id.embedded_text_editor))
             .perform(typeText(message));
         onView(withId(R.id.send_button))
@@ -50,10 +52,15 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
     }
 
     public ConversationHelper sendAudio() {
-        onView(withId(R.id.recorder_view)).perform(pressAndHoldAction());
-        onView(isRoot()).perform(waitFor(2000));
-        onView(withId(R.id.recorder_view)).perform(releaseAction());
-        onView(isRoot()).perform(waitFor(1000));
+        onView(withId(R.id.recorder_view))
+            .perform(pressAndHoldAction());
+        onView(isRoot())
+            .perform(waitFor(2000));
+        onView(withId(R.id.recorder_view))
+            .perform(releaseAction());
+        onView(isRoot())
+            .perform(waitFor(1000));
+
         return this;
     }
 
@@ -75,17 +82,6 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
 
         this.messageSelected = false;
         pressBack();
-
-        return this;
-    }
-
-    public ConversationHelper deleteMessage(int position) {
-        this.unselectMessage();
-
-        this.selectMessage(position);
-
-        onView(withId(R.id.menu_context_delete_message))
-                .perform(click());
 
         return this;
     }

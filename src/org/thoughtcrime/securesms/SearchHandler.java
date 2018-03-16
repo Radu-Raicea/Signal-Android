@@ -15,6 +15,7 @@ public class SearchHandler {
     private LinkedList<SearchResult>  searchResultList;
     private int                       searchIndex = -1;
     private int                       positionIndex = 0;
+    private int                       counter       = 0;
     private String                    searchedTerm = null;
 
     public SearchHandler() {
@@ -29,6 +30,7 @@ public class SearchHandler {
      * @return
      */
     public void search(String term) {
+        counter = 0;
         positionIndex = 0;
         searchIndex = -1;
         searchResultList.clear();
@@ -86,7 +88,10 @@ public class SearchHandler {
      * @return int representing the position
      */
     public int getNextResultPosition() {
-        if (searchIndex < getResultNumber() - 1) return searchResultList.get(++searchIndex).getPosition();
+        if (searchIndex < getResultNumber() - 1) {
+            counter ++;
+            return searchResultList.get(++searchIndex).getPosition();
+        }
         return -1;
     }
 
@@ -95,8 +100,20 @@ public class SearchHandler {
      * @return int representing the position
      */
     public int getPreviousResultPosition() {
-        if (searchIndex > 0) return searchResultList.get(--searchIndex).getPosition();
+        if (searchIndex > 0) {
+            counter--;
+            return searchResultList.get(--searchIndex).getPosition();
+        }
         return -1;
+    }
+
+    /**
+     * This method is used by the conversationfragment to show as search counter
+     * when pressing next and previous keys
+     * @return
+     */
+    public int getCounter() {
+        return this.counter;
     }
 
     /**

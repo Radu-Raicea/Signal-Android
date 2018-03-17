@@ -10,7 +10,6 @@ import java.util.LinkedList;
  * search through a conversation's message records and return positions of the searched messages
  */
 public class SearchHandler {
-
     private LinkedList<MessageRecord> messageRecordList;
     private LinkedList<SearchResult>  searchResultList;
     private int                       searchIndex = -1;
@@ -36,7 +35,8 @@ public class SearchHandler {
         searchResultList.clear();
         searchedTerm = term;
 
-        //search messageRecordList and push position (which is the index of the list) and messageRecord into searchResultList
+        // Search messageRecordList and push position (which is the index of the list)
+        // and messageRecord into searchResultList
         Iterator<MessageRecord> iterator = messageRecordList.iterator();
         while (iterator.hasNext()) {
             MessageRecord messageRecord = iterator.next();

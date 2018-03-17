@@ -83,8 +83,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @SuppressLint("StaticFieldLeak")
-public class ConversationFragment extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ConversationFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = ConversationFragment.class.getSimpleName();
 
     private static final long PARTIAL_CONVERSATION_LIMIT = 500L;
@@ -321,8 +320,9 @@ public class ConversationFragment extends Fragment
 
         String result = bodyBuilder.toString();
 
-        if (!TextUtils.isEmpty(result))
+        if (!TextUtils.isEmpty(result)) {
             clipboard.setText(result);
+        }
     }
 
     public void handlePinOrUnpinMessage(final MessageRecord message, boolean pin,
@@ -641,7 +641,6 @@ public class ConversationFragment extends Fragment
     }
 
     private class ConversationFragmentItemClickListener implements ItemClickListener {
-
         @Override
         public void onItemClick(MessageRecord messageRecord) {
             if (actionMode != null) {
@@ -664,7 +663,6 @@ public class ConversationFragment extends Fragment
     }
 
     private class ActionModeCallback implements ActionMode.Callback {
-
         private int statusBarColor;
 
         @Override

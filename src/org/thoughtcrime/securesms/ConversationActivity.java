@@ -242,10 +242,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   protected HidingLinearLayout     quickAttachmentToggle;
   private   QuickAttachmentDrawer  quickAttachmentDrawer;
   private   InputPanel             inputPanel;
-  private   LinearLayout           linMessage, linSearch;
+  private   LinearLayout           linMessage;
+  private   LinearLayout           linSearch;
   private   InputPanel             bottomPanel;
   private   SearchView             searchView;
-  private   ImageView              upArrow, downArrow;
+  private   ImageView              upArrow;
+  private   ImageView              downArrow;
 
   private Recipient  recipient;
   private long       threadId;
@@ -563,13 +565,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public void onBackPressed() {
     if (container.isInputOpen()) {
       container.hideCurrentInput(composeText);
-    }
-    else if (isSearchMode) {
+    } else if (isSearchMode) {
       hideSearchMode();
       Toast.makeText(this, getString(R.string.ConversationActivity_search_mode_off),
               Toast.LENGTH_LONG).show();
-    }
-    else {
+    } else {
       super.onBackPressed();
     }
   }
@@ -759,8 +759,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void handleSearch(MenuItem item) {
-    bottomPanel = (InputPanel) findViewById(R.id.bottom_panel);
-    searchView = (SearchView)  findViewById(R.id.custom_search);
+    bottomPanel = (InputPanel)findViewById(R.id.bottom_panel);
+    searchView = (SearchView)findViewById(R.id.custom_search);
 
     searchView.setOnQueryTextListener(new SearchInitiatedListener());
     upArrow.setOnClickListener(new NextSearchResultListener());
@@ -798,7 +798,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
-
   }
 
   private void handleLeavePushGroup() {

@@ -779,7 +779,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     linSearch.setVisibility(View.GONE);
     bottomPanel.setVisibility(View.VISIBLE);
     linMessage.setVisibility(View.VISIBLE);
-    this.isSearchMode = !isSearchMode;
+    this.isSearchMode = false;
 
     fragment.resetAdapterSearchHandler();
   }

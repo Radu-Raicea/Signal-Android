@@ -115,7 +115,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         this.masterSecret = getArguments().getParcelable("master_secret");
-        this.locale = (Locale) getArguments().getSerializable(PassphraseRequiredActionBarActivity.LOCALE_EXTRA);
+        this.locale = (Locale)getArguments().getSerializable(PassphraseRequiredActionBarActivity.LOCALE_EXTRA);
     }
 
     @Override
@@ -141,7 +141,6 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
 
         return view;
     }
-
 
     @Override
     public void onActivityCreated(Bundle bundle) {

@@ -41,7 +41,7 @@ public class NicknameEspressoTest {
             .goConversations()
                 .assertText(testString)
             .goConversation()
-                .goSettings()
+            .goSettings()
                 .resetNickname()
             .goConversation()
             .goConversations()
@@ -57,13 +57,13 @@ public class NicknameEspressoTest {
         helper
             .goConversations()
             .goGroup()
-                .goSettings()
+            .goSettings()
                 .setNickname(testString)
             .goConversation()
             .goConversations()
                 .assertText(testString).
             goGroup(testString)
-                .goSettings()
+            .goSettings()
                 .resetNickname()
             .goConversation()
             .goConversations()
@@ -79,7 +79,7 @@ public class NicknameEspressoTest {
         helper
             .goConversations()
             .goConversation()
-                .goSettings()
+            .goSettings()
                 .setNickname(testString)
                 .resetNickname()
             .goConversation()

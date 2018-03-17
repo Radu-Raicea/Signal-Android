@@ -145,7 +145,7 @@ public class PinnedMessageAdapter extends RecyclerView.Adapter<PinnedMessageAdap
                 dialog.cancel();
 
                 // Update cursor
-                PinnedMessageLoader l = new PinnedMessageLoader(context,record.getThreadId(), 0);
+                PinnedMessageLoader l = new PinnedMessageLoader(context, record.getThreadId(), 0);
                 swapCursor(l.getCursor());
             });
 

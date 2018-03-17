@@ -41,24 +41,24 @@ public class ViewActions {
 
     public static ViewAction clickPercent(final float pctX, final float pctY){
         return new GeneralClickAction(Tap.LONG, new CoordinatesProvider() {
-                    @Override
-                    public float[] calculateCoordinates(View view) {
+            @Override
+            public float[] calculateCoordinates(View view) {
 
-                        final int[] screenPos = new int[2];
-                        view.getLocationOnScreen(screenPos);
-                        int w = view.getWidth();
-                        int h = view.getHeight();
+                final int[] screenPos = new int[2];
+                view.getLocationOnScreen(screenPos);
+                int w = view.getWidth();
+                int h = view.getHeight();
 
-                        float x = w * pctX;
-                        float y = h * pctY;
+                float x = w * pctX;
+                float y = h * pctY;
 
-                        final float screenX = screenPos[0] + x;
-                        final float screenY = screenPos[1] + y;
-                        float[] coordinates = {screenX, screenY};
+                final float screenX = screenPos[0] + x;
+                final float screenY = screenPos[1] + y;
+                float[] coordinates = {screenX, screenY};
 
-                        return coordinates;
-                    }
-                }, Press.FINGER);
+                return coordinates;
+            }
+        }, Press.FINGER);
     }
 
     public static ViewAction longClickChildViewWithId(final int id) {

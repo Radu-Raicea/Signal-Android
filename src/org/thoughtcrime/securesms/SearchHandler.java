@@ -19,12 +19,12 @@ public class SearchHandler {
     private String                    searchedTerm = null;
 
     public SearchHandler() {
-        messageRecordList = new LinkedList<MessageRecord>();
-        searchResultList = new LinkedList<SearchResult>();
+        messageRecordList = new LinkedList<>();
+        searchResultList = new LinkedList<>();
     }
 
     /**
-     * Searches through the message records bodies for occurance of the term and pushes
+     * Searches through the message records bodies for occurrence of the term and pushes
      * the message records into searchResultList if found
      * @param term
      * @return
@@ -36,11 +36,11 @@ public class SearchHandler {
         searchResultList.clear();
         searchedTerm = term;
 
-        //search messageRecordList and push position (which is the index of the list) and    messageRecord into searchResultList
+        //search messageRecordList and push position (which is the index of the list) and messageRecord into searchResultList
         Iterator<MessageRecord> iterator = messageRecordList.iterator();
         while (iterator.hasNext()) {
             MessageRecord messageRecord = iterator.next();
-            if (messageRecord.getBody().getBody().toString().toLowerCase().contains(term.toLowerCase())) {
+            if (messageRecord.getBody().getBody().toLowerCase().contains(term.toLowerCase())) {
                 SearchResult searchResult = new SearchResult(positionIndex, messageRecord);
                 searchResultList.add(searchResult);
             }
@@ -89,7 +89,7 @@ public class SearchHandler {
      */
     public int getNextResultPosition() {
         if (searchIndex < getResultNumber() - 1) {
-            counter ++;
+            counter++;
             return searchResultList.get(++searchIndex).getPosition();
         }
         return -1;

@@ -38,7 +38,36 @@ public class NicknameEspressoTest {
             .goSettings()
                 .setNickname(testString)
             .goConversation()
-                .assertText(testString);
+            .goConversations()
+                .assertText(testString)
+            .goConversation()
+            .goSettings()
+                .resetNickname()
+            .goConversation()
+            .goConversations()
+                .assertNoText(testString);
+    }
+
+    @Test
+    public void canSetGroupNickname() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+            .goConversations()
+            .goGroup()
+            .goSettings()
+                .setNickname(testString)
+            .goConversation()
+            .goConversations()
+                .assertText(testString)
+            .goGroup(testString)
+            .goSettings()
+                .resetNickname()
+            .goConversation()
+            .goConversations()
+                .assertNoText(testString);
     }
 
     @Test

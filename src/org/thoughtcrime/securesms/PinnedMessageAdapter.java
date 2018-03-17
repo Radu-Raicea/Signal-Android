@@ -24,6 +24,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
@@ -42,6 +43,7 @@ import org.thoughtcrime.securesms.util.views.Stub;
 
 import java.util.Locale;
 
+import static android.widget.RelativeLayout.ALIGN_BASELINE;
 import static android.widget.RelativeLayout.ALIGN_PARENT_LEFT;
 import static android.widget.RelativeLayout.ALIGN_PARENT_RIGHT;
 
@@ -97,6 +99,7 @@ public class PinnedMessageAdapter extends RecyclerView.Adapter<PinnedMessageAdap
         MmsSmsDatabase.Reader reader           = db.readerFor(dataCursor, masterSecret);
         MessageRecord         record           = reader.getCurrent();
 
+        this.recyleViewHolder(holder);
         this.setMessageView(record, holder);
 
         if (isDocument(record)) {
@@ -140,6 +143,10 @@ public class PinnedMessageAdapter extends RecyclerView.Adapter<PinnedMessageAdap
 
                 ((ViewGroup)v.getParent().getParent()).removeAllViews();
                 dialog.cancel();
+
+                // Update cursor
+                PinnedMessageLoader l = new PinnedMessageLoader(context, record.getThreadId(), 0);
+                swapCursor(l.getCursor());
             });
 
             builder.setNegativeButton(R.string.no, (dialog, id) -> dialog.cancel());
@@ -153,7 +160,6 @@ public class PinnedMessageAdapter extends RecyclerView.Adapter<PinnedMessageAdap
         if (record.isOutgoing()) {
             lp.addRule(ALIGN_PARENT_RIGHT);
             viewHolder.wrapper.setLayoutParams(lp);
-
             viewHolder.recipient.setText(R.string.PinnedMessageActivity_own_name);
             return;
         } else {
@@ -178,6 +184,25 @@ public class PinnedMessageAdapter extends RecyclerView.Adapter<PinnedMessageAdap
 
     private boolean isDocument(MessageRecord messageRecord) {
         return messageRecord.isMms() && ((MmsMessageRecord)messageRecord).getSlideDeck().getDocumentSlide() != null;
+    }
+
+    private void recyleViewHolder(ViewHolder holder) {
+        holder.documentViewStub.get().setVisibility(view.GONE);
+        holder.audioViewStub.get().setVisibility(view.GONE);
+        holder.mediaThumbnailStub.get().setVisibility(View.GONE);
+        holder.messageContent.setText("");
+        holder.recipient.setText("");
+
+        LinearLayout.LayoutParams lpMessage = new LinearLayout.LayoutParams
+                (LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        LinearLayout messageBubble = (LinearLayout)holder.wrapper.findViewById(R.id.pinned_body_bubble);
+        holder.messageContent.setLayoutParams(lpMessage);
+
+        LayoutParams lp = (LayoutParams) holder.wrapper.getLayoutParams();
+
+        lp.addRule(ALIGN_PARENT_RIGHT,0);
+        lp.addRule(ALIGN_PARENT_LEFT,0);
+        holder.wrapper.setLayoutParams(lp);
     }
 
     @Override

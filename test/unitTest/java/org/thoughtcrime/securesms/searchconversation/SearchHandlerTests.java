@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
 public class SearchHandlerTests extends SearchConversationMocks {
@@ -91,6 +92,56 @@ public class SearchHandlerTests extends SearchConversationMocks {
 
         assertEquals(searchHandler.getResultNumber(), 1);
         assertEquals(iterator.next().getMessageRecord().getBody().getBody(), "Hello World");
+    }
+
+    @Test
+    public void testGetNextResultPosition() {
+        searchHandler.search("hello");
+
+        assertEquals(searchHandler.getNextResultPosition(), 0);
+        assertEquals(searchHandler.getNextResultPosition(), 2);
+        assertEquals(searchHandler.getNextResultPosition(), -1); // reached end of results
+    }
+
+    @Test
+    public void testGetPreviousResultPosition() {
+        searchHandler.search("goodbye");
+
+        assertEquals(searchHandler.getPreviousResultPosition(), -1);
+
+        searchHandler.getNextResultPosition();
+        searchHandler.getNextResultPosition();
+
+        assertEquals(searchHandler.getPreviousResultPosition(), 1);
+        assertEquals(searchHandler.getPreviousResultPosition(), -1); // reached beginning of results
+    }
+
+    @Test
+    public void testGetNextOrPrevPositionWithNoResultsReturnsNegative() {
+        searchHandler.search("foo");
+
+        assertEquals(searchHandler.getNextResultPosition(), -1);
+        assertEquals(searchHandler.getPreviousResultPosition(), -1);
+    }
+
+    @Test
+    public void testIsSearchedMessage() {
+        searchHandler.search("hello");
+
+        assertEquals(searchHandler.isSearchedMessage(super.messageRecordOne), true);
+        assertEquals(searchHandler.isSearchedMessage(super.messageRecordTwo), false);
+        assertEquals(searchHandler.isSearchedMessage(super.messageRecordThree), true);
+        assertEquals(searchHandler.isSearchedMessage(super.messageRecordFour), false);
+        assertEquals(searchHandler.isSearchedMessage(super.messageRecordFive), false);
+    }
+
+    @Test
+    public void testResetSearchHandler() {
+        searchHandler.search("hello");
+        searchHandler.resetSearchHandler();
+
+        assertEquals(searchHandler.getResultNumber(), 0);
+        assertNull(searchHandler.getSearchedTerm());
     }
 
 }

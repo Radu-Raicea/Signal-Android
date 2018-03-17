@@ -250,7 +250,8 @@ public class ConversationItem extends LinearLayout
 
     int color;
     int start = 0;
-    int index = str.toString().toLowerCase().indexOf(highlight, start);
+    String tempString = str.toString().toLowerCase();
+    int index = tempString.indexOf(highlight, start);
 
     while (index > -1) {
       if(!messageRecord.isOutgoing()) {
@@ -603,7 +604,7 @@ public class ConversationItem extends LinearLayout
     });
   }
 
-  private class AttachmentDownloadClickListener implements SlideClickListener {
+  public class AttachmentDownloadClickListener implements SlideClickListener {
     @Override
     public void onClick(View v, final Slide slide) {
       if (messageRecord.isMmsNotification()) {

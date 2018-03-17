@@ -15,30 +15,32 @@ public class SearchHandler {
     private LinkedList<SearchResult>  searchResultList;
     private int                       searchIndex = -1;
     private int                       positionIndex = 0;
+    private int                       counter       = 0;
     private String                    searchedTerm = null;
 
     public SearchHandler() {
-        messageRecordList = new LinkedList<MessageRecord>();
-        searchResultList = new LinkedList<SearchResult>();
+        messageRecordList = new LinkedList<>();
+        searchResultList = new LinkedList<>();
     }
 
     /**
-     * Searches through the message records bodies for occurance of the term and pushes
+     * Searches through the message records bodies for occurrence of the term and pushes
      * the message records into searchResultList if found
      * @param term
      * @return
      */
     public void search(String term) {
+        counter = 0;
         positionIndex = 0;
         searchIndex = -1;
         searchResultList.clear();
         searchedTerm = term;
 
-        //search messageRecordList and push position (which is the index of the list) and    messageRecord into searchResultList
+        //search messageRecordList and push position (which is the index of the list) and messageRecord into searchResultList
         Iterator<MessageRecord> iterator = messageRecordList.iterator();
         while (iterator.hasNext()) {
             MessageRecord messageRecord = iterator.next();
-            if (messageRecord.getBody().getBody().toString().toLowerCase().contains(term.toLowerCase())) {
+            if (messageRecord.getBody().getBody().toLowerCase().contains(term.toLowerCase())) {
                 SearchResult searchResult = new SearchResult(positionIndex, messageRecord);
                 searchResultList.add(searchResult);
             }
@@ -86,7 +88,10 @@ public class SearchHandler {
      * @return int representing the position
      */
     public int getNextResultPosition() {
-        if (searchIndex < getResultNumber() - 1) return searchResultList.get(++searchIndex).getPosition();
+        if (searchIndex < getResultNumber() - 1) {
+            counter++;
+            return searchResultList.get(++searchIndex).getPosition();
+        }
         return -1;
     }
 
@@ -95,8 +100,20 @@ public class SearchHandler {
      * @return int representing the position
      */
     public int getPreviousResultPosition() {
-        if (searchIndex > 0) return searchResultList.get(--searchIndex).getPosition();
+        if (searchIndex > 0) {
+            counter--;
+            return searchResultList.get(--searchIndex).getPosition();
+        }
         return -1;
+    }
+
+    /**
+     * This method is used by the conversationfragment to show as search counter
+     * when pressing next and previous keys
+     * @return
+     */
+    public int getCounter() {
+        return this.counter;
     }
 
     /**

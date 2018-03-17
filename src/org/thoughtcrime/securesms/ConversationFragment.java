@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -109,6 +110,7 @@ public class ConversationFragment extends Fragment
     private View                        composeDivider;
     private View                        scrollToBottomButton;
     private TextView                    scrollDateHeader;
+    private TextView                    searchCounterText;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -124,7 +126,6 @@ public class ConversationFragment extends Fragment
         composeDivider = ViewUtil.findById(view, R.id.compose_divider);
         scrollToBottomButton = ViewUtil.findById(view, R.id.scroll_to_bottom_button);
         scrollDateHeader = ViewUtil.findById(view, R.id.scroll_date_header);
-
         scrollToBottomButton.setOnClickListener(v -> scrollToBottom());
 
         final LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, true);
@@ -141,6 +142,7 @@ public class ConversationFragment extends Fragment
 
         return view;
     }
+
 
     @Override
     public void onActivityCreated(Bundle bundle) {
@@ -790,12 +792,15 @@ public class ConversationFragment extends Fragment
 
     public void resetAdapterSearchHandler() {
         getListAdapter().resetSearchHandler();
+        getListAdapter().notifyDataSetChanged();
     }
 
     public void scrollToNextSearchResult() {
         int position = searchHandler.getNextResultPosition();
         if (position > -1) {
             list.getLayoutManager().scrollToPosition(position);
+            this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
+            searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
         }
     }
 
@@ -803,6 +808,7 @@ public class ConversationFragment extends Fragment
         int position = searchHandler.getPreviousResultPosition();
         if (position > -1) {
             list.getLayoutManager().scrollToPosition(position);
+            searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
         }
     }
 }

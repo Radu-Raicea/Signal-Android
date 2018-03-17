@@ -7,6 +7,7 @@ import android.view.View;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.thoughtcrime.securesms.R;
 
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -51,6 +52,27 @@ public class ViewMatchers {
                     throw new VisibleErr("ViewMatchers.visibleIdAt: No view found matching " + id + " at child #" + position);
                 }
                 return true;
+            }
+        };
+    }
+
+    public static Matcher<View> first(Matcher<View> expected){
+        return new TypeSafeMatcher<View>() {
+            private boolean found = false;
+
+            @Override
+            protected boolean matchesSafely(View item) {
+                if(expected.matches(item) && !found){
+                    found = true;
+                    return true;
+                }
+
+                return false;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Matcher.first( " + expected.toString() + " )" );
             }
         };
     }

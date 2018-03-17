@@ -38,28 +38,6 @@ public class ViewActions {
         };
     }
 
-    public static ViewAction clickPercent(final float pctX, final float pctY){
-        return new GeneralClickAction(Tap.LONG, new CoordinatesProvider() {
-            @Override
-            public float[] calculateCoordinates(View view) {
-
-                final int[] screenPos = new int[2];
-                view.getLocationOnScreen(screenPos);
-                int w = view.getWidth();
-                int h = view.getHeight();
-
-                float x = w * pctX;
-                float y = h * pctY;
-
-                final float screenX = screenPos[0] + x;
-                final float screenY = screenPos[1] + y;
-                float[] coordinates = {screenX, screenY};
-
-                return coordinates;
-            }
-        }, Press.FINGER);
-    }
-
     public static ViewAction longClickChildViewWithId(final int id) {
         return new ViewAction() {
             @Override
@@ -78,6 +56,40 @@ public class ViewActions {
                 v.performLongClick();
             }
         };
+    }
+
+    public static ViewAction clickPercent(final float pctX, final float pctY) {
+        return new GeneralClickAction(Tap.SINGLE, (View view) -> {
+            final int[] screenPos = new int[2];
+            view.getLocationOnScreen(screenPos);
+            int w = view.getWidth();
+            int h = view.getHeight();
+
+            float x = w * pctX;
+            float y = h * pctY;
+
+            final float screenX = screenPos[0] + x;
+            final float screenY = screenPos[1] + y;
+
+            return new float[]{screenX, screenY};
+        }, Press.FINGER);
+    }
+
+    public static ViewAction longClickPercent(final float pctX, final float pctY) {
+        return new GeneralClickAction(Tap.LONG, (View view) -> {
+            final int[] screenPos = new int[2];
+            view.getLocationOnScreen(screenPos);
+            int w = view.getWidth();
+            int h = view.getHeight();
+
+            float x = w * pctX;
+            float y = h * pctY;
+
+            final float screenX = screenPos[0] + x;
+            final float screenY = screenPos[1] + y;
+
+            return new float[]{screenX, screenY};
+        }, Press.FINGER);
     }
 
     public static ViewAction getTextFromView(String[] holder) {
@@ -202,5 +214,4 @@ public class ViewActions {
             };
         }
     }
-
 }

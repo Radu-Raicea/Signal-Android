@@ -62,7 +62,7 @@ public class NicknameEspressoTest {
             .goConversation()
             .goConversations()
                 .assertText(testString)
-            .goGroup(testString)
+            .goGroup()
             .goSettings()
                 .resetNickname()
             .goConversation()

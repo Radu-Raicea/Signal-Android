@@ -58,7 +58,7 @@ public class ViewActions {
         };
     }
 
-    public static ViewAction clickPercent(final float pctX, final float pctY) {
+    public static ViewAction clickPercent(float pctX, float pctY) {
         return new GeneralClickAction(Tap.SINGLE, (View view) -> {
             final int[] screenPos = new int[2];
             view.getLocationOnScreen(screenPos);
@@ -75,7 +75,7 @@ public class ViewActions {
         }, Press.FINGER);
     }
 
-    public static ViewAction longClickPercent(final float pctX, final float pctY) {
+    public static ViewAction longClickPercent(float pctX, float pctY) {
         return new GeneralClickAction(Tap.LONG, (View view) -> {
             final int[] screenPos = new int[2];
             view.getLocationOnScreen(screenPos);

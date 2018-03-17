@@ -143,6 +143,7 @@ public class ConversationFragment extends Fragment
         return view;
     }
 
+
     @Override
     public void onActivityCreated(Bundle bundle) {
         super.onActivityCreated(bundle);

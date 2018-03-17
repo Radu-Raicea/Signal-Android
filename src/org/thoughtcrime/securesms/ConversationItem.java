@@ -604,7 +604,7 @@ public class ConversationItem extends LinearLayout
     });
   }
 
-  private class AttachmentDownloadClickListener implements SlideClickListener {
+  public class AttachmentDownloadClickListener implements SlideClickListener {
     @Override
     public void onClick(View v, final Slide slide) {
       if (messageRecord.isMmsNotification()) {

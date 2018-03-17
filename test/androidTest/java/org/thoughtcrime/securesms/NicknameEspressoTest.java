@@ -4,7 +4,6 @@ import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,8 +26,8 @@ public class NicknameEspressoTest {
             .goSettings();
     }
 
-    @Test @Ignore
-    public void canSetNickName() {
+    @Test
+    public void canSetNickname() {
         Helper helper = new Helper(mainActivityRule);
 
         String testString = helper.randString();
@@ -39,11 +38,40 @@ public class NicknameEspressoTest {
             .goSettings()
                 .setNickname(testString)
             .goConversation()
-                .assertText(testString);
+            .goConversations()
+                .assertText(testString)
+            .goConversation()
+            .goSettings()
+                .resetNickname()
+            .goConversation()
+            .goConversations()
+                .assertNoText(testString);
     }
 
-    @Test @Ignore
-    public void resettingNickname() {
+    @Test
+    public void canSetGroupNickname() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+            .goConversations()
+            .goGroup()
+            .goSettings()
+                .setNickname(testString)
+            .goConversation()
+            .goConversations()
+                .assertText(testString)
+            .goGroup(testString)
+            .goSettings()
+                .resetNickname()
+            .goConversation()
+            .goConversations()
+                .assertNoText(testString);
+    }
+
+    @Test
+    public void canResetNickname() {
         Helper helper = new Helper(mainActivityRule);
 
         String testString = helper.randString();

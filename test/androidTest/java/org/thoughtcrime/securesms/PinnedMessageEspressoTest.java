@@ -130,6 +130,82 @@ public class PinnedMessageEspressoTest {
     }
 
     @Test
+    public void canPinAudio() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+            .goConversations()
+            .goConversation()
+                .sendAudio()
+                .pinMessage(0)
+                .selectMessage(0)
+                .assertId(R.id.menu_context_unpin_message);
+    }
+
+    @Test
+    public void canPinTextInGroup() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+            .goConversations()
+            .goGroup()
+                .sendMessage(testString)
+                .pinMessage(0)
+            .goPinned()
+                .assertText(testString);
+    }
+
+    @Test
+    public void canPinImageInGroup() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+            .goConversations()
+            .goGroup()
+                .sendImage(testString)
+                .pinMessage(0)
+                .selectMessage(0)
+                .assertId(R.id.menu_context_unpin_message);
+    }
+
+    @Test
+    public void canPinAudioInGroup() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+            .goConversations()
+            .goGroup()
+                .sendAudio()
+                .pinMessage(0)
+                .selectMessage(0)
+                .assertId(R.id.menu_context_unpin_message);
+    }
+
+    @Test
+    public void canUnPinAudio() {
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString = helper.randString();
+
+        helper
+            .goConversations()
+            .goConversation()
+                .sendAudio()
+                .pinMessage(0)
+                .unpinMessage(0)
+                .selectMessage(0)
+                .assertId(R.id.menu_context_pin_message);
+    }
+
+    @Test
     public void canUnpinImageMms() {
         Helper helper = new Helper(mainActivityRule);
 

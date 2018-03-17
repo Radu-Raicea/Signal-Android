@@ -362,7 +362,6 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
 
         this.showToast(outputMessage);
-        searchHandler.addSearchedResult(0, message);
     }
 
     private void handleDeleteMessages(final Set<MessageRecord> messageRecords) {

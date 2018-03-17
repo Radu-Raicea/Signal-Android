@@ -35,8 +35,10 @@ public class SearchHandler {
         searchResultList.clear();
         searchedTerm = term;
 
-        // Search messageRecordList and push position (which is the index of the list)
-        // and messageRecord into searchResultList
+        /**
+         *   Search messageRecordList and push position (which is the index of the list)
+         *   and messageRecord into searchResultList
+         */
         Iterator<MessageRecord> iterator = messageRecordList.iterator();
         while (iterator.hasNext()) {
             MessageRecord messageRecord = iterator.next();

@@ -18,7 +18,6 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayingAtL
 import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
 
 public class ViewActions {
-
     public static ViewAction clickChildViewWithId(final int id) {
         return new ViewAction() {
             @Override

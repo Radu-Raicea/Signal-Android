@@ -786,6 +786,9 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         int position = searchHandler.getNextResultPosition();
         if (position > -1) {
             list.getLayoutManager().scrollToPosition(position);
+        } else {
+            Toast.makeText(getActivity(),
+                     "No more messages found" ,Toast.LENGTH_LONG).show();
         }
 
         this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
@@ -797,6 +800,9 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         if (position > -1) {
             list.getLayoutManager().scrollToPosition(position);
             searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
+        } else {
+            Toast.makeText(getActivity(),
+                    "No more messages found" ,Toast.LENGTH_LONG).show();
         }
     }
 }

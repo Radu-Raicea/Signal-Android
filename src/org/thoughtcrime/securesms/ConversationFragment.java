@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -82,688 +83,728 @@ import java.util.Locale;
 import java.util.Set;
 
 @SuppressLint("StaticFieldLeak")
-public class ConversationFragment extends Fragment
-  implements LoaderManager.LoaderCallbacks<Cursor>
-{
-  private static final String TAG = ConversationFragment.class.getSimpleName();
+public class ConversationFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final String TAG = ConversationFragment.class.getSimpleName();
 
-  private static final long   PARTIAL_CONVERSATION_LIMIT = 500L;
+    private static final long PARTIAL_CONVERSATION_LIMIT = 500L;
 
-  private final ActionModeCallback actionModeCallback     = new ActionModeCallback();
-  private final ItemClickListener  selectionClickListener = new ConversationFragmentItemClickListener();
+    private final ActionModeCallback actionModeCallback     = new ActionModeCallback();
+    private final ItemClickListener  selectionClickListener = new ConversationFragmentItemClickListener();
 
-  private ConversationFragmentListener listener;
+    private SearchHandler searchHandler = new SearchHandler();
 
-  private MasterSecret                masterSecret;
-  private Recipient                   recipient;
-  private long                        threadId;
-  private long                        lastSeen;
-  private boolean                     firstLoad;
-  private ActionMode                  actionMode;
-  private Locale                      locale;
-  private RecyclerView                list;
-  private RecyclerView.ItemDecoration lastSeenDecoration;
-  private View                        loadMoreView;
-  private UnknownSenderView           unknownSenderView;
-  private View                        composeDivider;
-  private View                        scrollToBottomButton;
-  private TextView                    scrollDateHeader;
+    private ConversationFragmentListener listener;
 
-  @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
-    this.masterSecret = getArguments().getParcelable("master_secret");
-    this.locale       = (Locale) getArguments().getSerializable(PassphraseRequiredActionBarActivity.LOCALE_EXTRA);
-  }
+    private MasterSecret                masterSecret;
+    private Recipient                   recipient;
+    private long                        threadId;
+    private long                        lastSeen;
+    private boolean                     firstLoad;
+    private ActionMode                  actionMode;
+    private Locale                      locale;
+    private RecyclerView                list;
+    private RecyclerView.ItemDecoration lastSeenDecoration;
+    private View                        loadMoreView;
+    private UnknownSenderView           unknownSenderView;
+    private View                        composeDivider;
+    private View                        scrollToBottomButton;
+    private TextView                    scrollDateHeader;
+    private TextView                    searchCounterText;
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle bundle) {
-    final View view = inflater.inflate(R.layout.conversation_fragment, container, false);
-    list                 = ViewUtil.findById(view, android.R.id.list);
-    composeDivider       = ViewUtil.findById(view, R.id.compose_divider);
-    scrollToBottomButton = ViewUtil.findById(view, R.id.scroll_to_bottom_button);
-    scrollDateHeader     = ViewUtil.findById(view, R.id.scroll_date_header);
-
-    scrollToBottomButton.setOnClickListener(v -> scrollToBottom());
-
-    final LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, true);
-    list.setHasFixedSize(false);
-    list.setLayoutManager(layoutManager);
-    list.setItemAnimator(null);
-
-    loadMoreView = inflater.inflate(R.layout.load_more_header, container, false);
-    loadMoreView.setOnClickListener(v -> {
-      Bundle args = new Bundle();
-      args.putLong("limit", 0);
-      getLoaderManager().restartLoader(0, args, ConversationFragment.this);
-    });
-
-    return view;
-  }
-
-  @Override
-  public void onActivityCreated(Bundle bundle) {
-    super.onActivityCreated(bundle);
-
-    initializeResources();
-    initializeListAdapter();
-  }
-
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-    this.listener = (ConversationFragmentListener)activity;
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-
-    if (list.getAdapter() != null) {
-      list.getAdapter().notifyDataSetChanged();
-    }
-  }
-
-  public void onNewIntent() {
-    if (actionMode != null) {
-      actionMode.finish();
+    @Override
+    public void onCreate(Bundle icicle) {
+        super.onCreate(icicle);
+        this.masterSecret = getArguments().getParcelable("master_secret");
+        this.locale = (Locale)getArguments().getSerializable(PassphraseRequiredActionBarActivity.LOCALE_EXTRA);
     }
 
-    initializeResources();
-    initializeListAdapter();
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle bundle) {
+        final View view = inflater.inflate(R.layout.conversation_fragment, container, false);
+        list = ViewUtil.findById(view, android.R.id.list);
+        composeDivider = ViewUtil.findById(view, R.id.compose_divider);
+        scrollToBottomButton = ViewUtil.findById(view, R.id.scroll_to_bottom_button);
+        scrollDateHeader = ViewUtil.findById(view, R.id.scroll_date_header);
+        scrollToBottomButton.setOnClickListener(v -> scrollToBottom());
 
-    if (threadId == -1) {
-      getLoaderManager().restartLoader(0, Bundle.EMPTY, this);
-    }
-  }
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, true);
+        list.setHasFixedSize(false);
+        list.setLayoutManager(layoutManager);
+        list.setItemAnimator(null);
 
-  public void reloadList() {
-    getLoaderManager().restartLoader(0, Bundle.EMPTY, this);
-  }
+        loadMoreView = inflater.inflate(R.layout.load_more_header, container, false);
+        loadMoreView.setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putLong("limit", 0);
+            getLoaderManager().restartLoader(0, args, ConversationFragment.this);
+        });
 
-  private void initializeResources() {
-    this.recipient         = Recipient.from(getActivity(), getActivity().getIntent().getParcelableExtra(ConversationActivity.ADDRESS_EXTRA), true);
-    this.threadId          = this.getActivity().getIntent().getLongExtra(ConversationActivity.THREAD_ID_EXTRA, -1);
-    this.lastSeen          = this.getActivity().getIntent().getLongExtra(ConversationActivity.LAST_SEEN_EXTRA, -1);
-    this.firstLoad         = true;
-    this.unknownSenderView = new UnknownSenderView(getActivity(), recipient, threadId);
-
-    OnScrollListener scrollListener = new ConversationScrollListener(getActivity());
-    list.addOnScrollListener(scrollListener);
-  }
-
-  private void initializeListAdapter() {
-    if (this.recipient != null && this.threadId != -1) {
-      ConversationAdapter adapter = new ConversationAdapter(getActivity(), masterSecret, GlideApp.with(this), locale, selectionClickListener, null, this.recipient);
-      list.setAdapter(adapter);
-      list.addItemDecoration(new StickyHeaderDecoration(adapter, false, false));
-
-      setLastSeen(lastSeen);
-      getLoaderManager().restartLoader(0, Bundle.EMPTY, this);
-    }
-  }
-
-  private void setCorrectMenuVisibility(Menu menu) {
-    Set<MessageRecord> messageRecords = getListAdapter().getSelectedItems();
-    boolean            actionMessage  = false;
-
-    if (actionMode != null && messageRecords.size() == 0) {
-      actionMode.finish();
-      return;
+        return view;
     }
 
-    for (MessageRecord messageRecord : messageRecords) {
-      if (messageRecord.isGroupAction() || messageRecord.isCallLog() ||
-          messageRecord.isJoined() || messageRecord.isExpirationTimerUpdate() ||
-          messageRecord.isEndSession() || messageRecord.isIdentityUpdate() ||
-          messageRecord.isIdentityVerified() || messageRecord.isIdentityDefault())
-      {
-        actionMessage = true;
-        break;
-      }
+    @Override
+    public void onActivityCreated(Bundle bundle) {
+        super.onActivityCreated(bundle);
+
+        initializeResources();
+        initializeListAdapter();
     }
 
-    if (messageRecords.size() > 1) {
-      menu.findItem(R.id.menu_context_forward).setVisible(false);
-      menu.findItem(R.id.menu_context_details).setVisible(false);
-      menu.findItem(R.id.menu_context_save_attachment).setVisible(false);
-      menu.findItem(R.id.menu_context_resend).setVisible(false);
-      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
-      menu.findItem(R.id.menu_context_pin_message).setVisible(false);
-      menu.findItem(R.id.menu_context_unpin_message).setVisible(false);
-    } else {
-      MessageRecord messageRecord = messageRecords.iterator().next();
-
-      menu.findItem(R.id.menu_context_resend).setVisible(messageRecord.isFailed());
-      menu.findItem(R.id.menu_context_save_attachment).setVisible(!actionMessage                     &&
-                                                                  messageRecord.isMms()              &&
-                                                                  !messageRecord.isMmsNotification() &&
-                                                                  ((MediaMmsMessageRecord)messageRecord).containsMediaSlide());
-
-      menu.findItem(R.id.menu_context_forward).setVisible(!actionMessage);
-      menu.findItem(R.id.menu_context_details).setVisible(!actionMessage);
-      menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
-
-      setCorrectPinVisibility(menu, messageRecord, actionMessage);
-    }
-  }
-
-  private void setCorrectPinVisibility(Menu menu, MessageRecord messageRecord, boolean actionMessage) {
-    if (messageRecord.isPinned()) {
-      menu.findItem(R.id.menu_context_unpin_message).setVisible(!actionMessage);
-      menu.findItem(R.id.menu_context_pin_message).setVisible(false);
-    } else {
-      menu.findItem(R.id.menu_context_pin_message).setVisible(!actionMessage);
-      menu.findItem(R.id.menu_context_unpin_message).setVisible(false);
-    }
-  }
-
-  private ConversationAdapter getListAdapter() {
-    return (ConversationAdapter) list.getAdapter();
-  }
-
-  private MessageRecord getSelectedMessageRecord() {
-    Set<MessageRecord> messageRecords = getListAdapter().getSelectedItems();
-
-    if (messageRecords.size() == 1) return messageRecords.iterator().next();
-    else                            throw new AssertionError();
-  }
-
-  public void reload(Recipient recipient, long threadId) {
-    this.recipient = recipient;
-
-    if (this.threadId != threadId) {
-      this.threadId = threadId;
-      initializeListAdapter();
-    }
-  }
-
-  public void scrollToBottom() {
-    list.smoothScrollToPosition(0);
-  }
-
-  public void setLastSeen(long lastSeen) {
-    this.lastSeen = lastSeen;
-    if (lastSeenDecoration != null) {
-      list.removeItemDecoration(lastSeenDecoration);
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        this.listener = (ConversationFragmentListener) activity;
     }
 
-    lastSeenDecoration = new ConversationAdapter.LastSeenHeader(getListAdapter(), lastSeen);
-    list.addItemDecoration(lastSeenDecoration);
-  }
+    @Override
+    public void onResume() {
+        super.onResume();
 
-  private void handleCopyMessage(final Set<MessageRecord> messageRecords) {
-    List<MessageRecord> messageList = new LinkedList<>(messageRecords);
-    Collections.sort(messageList, new Comparator<MessageRecord>() {
-      @Override
-      public int compare(MessageRecord lhs, MessageRecord rhs) {
-        if      (lhs.getDateReceived() < rhs.getDateReceived())  return -1;
-        else if (lhs.getDateReceived() == rhs.getDateReceived()) return 0;
-        else                                                     return 1;
-      }
-    });
-
-    StringBuilder    bodyBuilder = new StringBuilder();
-    ClipboardManager clipboard   = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-    boolean          first       = true;
-
-    for (MessageRecord messageRecord : messageList) {
-      String body = messageRecord.getDisplayBody().toString();
-
-      if (body != null) {
-        if (!first) bodyBuilder.append('\n');
-        bodyBuilder.append(body);
-        first = false;
-      }
+        if (list.getAdapter() != null) {
+            list.getAdapter().notifyDataSetChanged();
+        }
     }
 
-    String result = bodyBuilder.toString();
-
-    if (!TextUtils.isEmpty(result))
-        clipboard.setText(result);
-  }
-
-  public void handlePinOrUnpinMessage(final MessageRecord message, boolean pin,
-                                      PinnedMessageHandler handler) {
-    PinnedMessageHandler  pinHandler;
-    MessagingDatabase     databaseToQuery;
-    String                outputMessage;
-    boolean               result;
-
-    pinHandler       = handler;
-    databaseToQuery  = pinHandler.getAppropriateDatabase(message);
-
-    if (pin) {
-        result = pinHandler.handlePinMessage(message, databaseToQuery);
-        if (result) {
-          outputMessage = getString(R.string.ConversationFragment_pin_new);
-        } else {
-          outputMessage = getString(R.string.ConversationFragment_pin_already_pinned);
+    public void onNewIntent() {
+        if (actionMode != null) {
+            actionMode.finish();
         }
 
-      } else {
-        result = pinHandler.handleUnpinMessage(message, databaseToQuery);
+        initializeResources();
+        initializeListAdapter();
 
-        if (result) {
-          outputMessage = getString(R.string.ConversationFragment_unpin_new);
-        } else {
-          outputMessage = getString(R.string.ConversationFragment_unpin_already_unpinned);
+        if (threadId == -1) {
+            getLoaderManager().restartLoader(0, Bundle.EMPTY, this);
         }
-      }
+    }
 
-    this.showToast(outputMessage);
-  }
+    public void reloadList() {
+        getLoaderManager().restartLoader(0, Bundle.EMPTY, this);
+    }
 
-  private void handleDeleteMessages(final Set<MessageRecord> messageRecords) {
-    int                 messagesCount = messageRecords.size();
-    AlertDialog.Builder builder       = new AlertDialog.Builder(getActivity());
+    private void initializeResources() {
+        this.recipient = Recipient.from(getActivity(), getActivity().getIntent().getParcelableExtra(ConversationActivity.ADDRESS_EXTRA), true);
+        this.threadId = this.getActivity().getIntent().getLongExtra(ConversationActivity.THREAD_ID_EXTRA, -1);
+        this.lastSeen = this.getActivity().getIntent().getLongExtra(ConversationActivity.LAST_SEEN_EXTRA, -1);
+        this.firstLoad = true;
+        this.unknownSenderView = new UnknownSenderView(getActivity(), recipient, threadId);
 
-    builder.setIconAttribute(R.attr.dialog_alert_icon);
-    builder.setTitle(getActivity().getResources().getQuantityString(R.plurals.ConversationFragment_delete_selected_messages, messagesCount, messagesCount));
-    builder.setMessage(getActivity().getResources().getQuantityString(R.plurals.ConversationFragment_this_will_permanently_delete_all_n_selected_messages, messagesCount, messagesCount));
-    builder.setCancelable(true);
+        OnScrollListener scrollListener = new ConversationScrollListener(getActivity());
+        list.addOnScrollListener(scrollListener);
+    }
 
-    builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int which) {
-        new ProgressDialogAsyncTask<MessageRecord, Void, Void>(getActivity(),
-                                                               R.string.ConversationFragment_deleting,
-                                                               R.string.ConversationFragment_deleting_messages)
-        {
-          @Override
-          protected Void doInBackground(MessageRecord... messageRecords) {
-            for (MessageRecord messageRecord : messageRecords) {
-              boolean threadDeleted;
+    private void initializeListAdapter() {
+        if (this.recipient != null && this.threadId != -1) {
+            ConversationAdapter adapter = new ConversationAdapter(getActivity(), masterSecret, GlideApp.with(this), locale, selectionClickListener, null, this.recipient, searchHandler);
+            list.setAdapter(adapter);
+            list.addItemDecoration(new StickyHeaderDecoration(adapter, false, false));
 
-              if (messageRecord.isMms()) {
-                threadDeleted = DatabaseFactory.getMmsDatabase(getActivity()).delete(messageRecord.getId());
-              } else {
-                threadDeleted = DatabaseFactory.getSmsDatabase(getActivity()).deleteMessage(messageRecord.getId());
-              }
+            setLastSeen(lastSeen);
+            getLoaderManager().restartLoader(0, Bundle.EMPTY, this);
+        }
+    }
 
-              if (threadDeleted) {
-                threadId = -1;
-                listener.setThreadId(threadId);
-              }
+    private void setCorrectMenuVisibility(Menu menu) {
+        Set<MessageRecord> messageRecords = getListAdapter().getSelectedItems();
+        boolean actionMessage = false;
+
+        if (actionMode != null && messageRecords.size() == 0) {
+            actionMode.finish();
+            return;
+        }
+
+        for (MessageRecord messageRecord : messageRecords) {
+            if (messageRecord.isGroupAction() || messageRecord.isCallLog() ||
+                    messageRecord.isJoined() || messageRecord.isExpirationTimerUpdate() ||
+                    messageRecord.isEndSession() || messageRecord.isIdentityUpdate() ||
+                    messageRecord.isIdentityVerified() || messageRecord.isIdentityDefault()) {
+                actionMessage = true;
+                break;
+            }
+        }
+
+        if (messageRecords.size() > 1) {
+            menu.findItem(R.id.menu_context_forward).setVisible(false);
+            menu.findItem(R.id.menu_context_details).setVisible(false);
+            menu.findItem(R.id.menu_context_save_attachment).setVisible(false);
+            menu.findItem(R.id.menu_context_resend).setVisible(false);
+            menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+            menu.findItem(R.id.menu_context_pin_message).setVisible(false);
+            menu.findItem(R.id.menu_context_unpin_message).setVisible(false);
+        } else {
+            MessageRecord messageRecord = messageRecords.iterator().next();
+
+            menu.findItem(R.id.menu_context_resend).setVisible(messageRecord.isFailed());
+            menu.findItem(R.id.menu_context_save_attachment).setVisible(!actionMessage &&
+                    messageRecord.isMms() &&
+                    !messageRecord.isMmsNotification() &&
+                    ((MediaMmsMessageRecord) messageRecord).containsMediaSlide());
+
+            menu.findItem(R.id.menu_context_forward).setVisible(!actionMessage);
+            menu.findItem(R.id.menu_context_details).setVisible(!actionMessage);
+            menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
+
+            setCorrectPinVisibility(menu, messageRecord, actionMessage);
+        }
+    }
+
+    private void setCorrectPinVisibility(Menu menu, MessageRecord messageRecord, boolean actionMessage) {
+        if (messageRecord.isPinned()) {
+            menu.findItem(R.id.menu_context_unpin_message).setVisible(!actionMessage);
+            menu.findItem(R.id.menu_context_pin_message).setVisible(false);
+        } else {
+            menu.findItem(R.id.menu_context_pin_message).setVisible(!actionMessage);
+            menu.findItem(R.id.menu_context_unpin_message).setVisible(false);
+        }
+    }
+
+    private ConversationAdapter getListAdapter() {
+        return (ConversationAdapter) list.getAdapter();
+    }
+
+    private MessageRecord getSelectedMessageRecord() {
+        Set<MessageRecord> messageRecords = getListAdapter().getSelectedItems();
+
+        if (messageRecords.size() == 1) return messageRecords.iterator().next();
+        else throw new AssertionError();
+    }
+
+    public void reload(Recipient recipient, long threadId) {
+        this.recipient = recipient;
+
+        if (this.threadId != threadId) {
+            this.threadId = threadId;
+            initializeListAdapter();
+        }
+    }
+
+    public void scrollToBottom() {
+        list.smoothScrollToPosition(0);
+    }
+
+    public void setLastSeen(long lastSeen) {
+        this.lastSeen = lastSeen;
+        if (lastSeenDecoration != null) {
+            list.removeItemDecoration(lastSeenDecoration);
+        }
+
+        lastSeenDecoration = new ConversationAdapter.LastSeenHeader(getListAdapter(), lastSeen);
+        list.addItemDecoration(lastSeenDecoration);
+    }
+
+    private void handleCopyMessage(final Set<MessageRecord> messageRecords) {
+        List<MessageRecord> messageList = new LinkedList<>(messageRecords);
+        Collections.sort(messageList, new Comparator<MessageRecord>() {
+            @Override
+            public int compare(MessageRecord lhs, MessageRecord rhs) {
+                if (lhs.getDateReceived() < rhs.getDateReceived()) return -1;
+                else if (lhs.getDateReceived() == rhs.getDateReceived()) return 0;
+                else return 1;
+            }
+        });
+
+        StringBuilder bodyBuilder = new StringBuilder();
+        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        boolean first = true;
+
+        for (MessageRecord messageRecord : messageList) {
+            String body = messageRecord.getDisplayBody().toString();
+
+            if (body != null) {
+                if (!first) bodyBuilder.append('\n');
+                bodyBuilder.append(body);
+                first = false;
+            }
+        }
+
+        String result = bodyBuilder.toString();
+
+        if (!TextUtils.isEmpty(result)) {
+            clipboard.setText(result);
+        }
+    }
+
+    public void handlePinOrUnpinMessage(final MessageRecord message, boolean pin,
+                                        PinnedMessageHandler handler) {
+        PinnedMessageHandler pinHandler;
+        MessagingDatabase databaseToQuery;
+        String outputMessage;
+        boolean result;
+
+        pinHandler = handler;
+        databaseToQuery = pinHandler.getAppropriateDatabase(message);
+
+        if (pin) {
+            // Blocking Video and Audio pinning Temporarily
+            if (message.isMms() && ((MmsMessageRecord) message).getSlideDeck().getSlides().size() != 0) {
+                MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
+                if (!mediaMessage.getSlideDeck().getThumbnailSlide().getContentType().contains("image")) {
+                    showToast("You can only pin image type mms!");
+                    return;
+                }
+            }
+            result = pinHandler.handlePinMessage(message, databaseToQuery);
+
+            if (result) {
+                outputMessage = getString(R.string.ConversationFragment_pin_new);
+            } else {
+                outputMessage = getString(R.string.ConversationFragment_pin_already_pinned);
             }
 
-            return null;
-          }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, messageRecords.toArray(new MessageRecord[messageRecords.size()]));
-      }
-    });
+        } else {
+            result = pinHandler.handleUnpinMessage(message, databaseToQuery);
 
-    builder.setNegativeButton(android.R.string.cancel, null);
-    builder.show();
-  }
-
-  private void handleDisplayDetails(MessageRecord message) {
-    Intent intent = new Intent(getActivity(), MessageDetailsActivity.class);
-    intent.putExtra(MessageDetailsActivity.MASTER_SECRET_EXTRA, masterSecret);
-    intent.putExtra(MessageDetailsActivity.MESSAGE_ID_EXTRA, message.getId());
-    intent.putExtra(MessageDetailsActivity.THREAD_ID_EXTRA, threadId);
-    intent.putExtra(MessageDetailsActivity.TYPE_EXTRA, message.isMms() ? MmsSmsDatabase.MMS_TRANSPORT : MmsSmsDatabase.SMS_TRANSPORT);
-    intent.putExtra(MessageDetailsActivity.ADDRESS_EXTRA, recipient.getAddress());
-    intent.putExtra(MessageDetailsActivity.IS_PUSH_GROUP_EXTRA, recipient.isGroupRecipient() && message.isPush());
-    startActivity(intent);
-  }
-
-  private void handleForwardMessage(MessageRecord message) {
-    Intent composeIntent = new Intent(getActivity(), ShareActivity.class);
-    composeIntent.putExtra(Intent.EXTRA_TEXT, message.getDisplayBody().toString());
-    if (message.isMms()) {
-      MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
-      if (mediaMessage.containsMediaSlide()) {
-        Slide slide = mediaMessage.getSlideDeck().getSlides().get(0);
-        composeIntent.putExtra(Intent.EXTRA_STREAM, slide.getUri());
-        composeIntent.setType(slide.getContentType());
-      }
-    }
-    startActivity(composeIntent);
-  }
-
-  private void handleResendMessage(final MessageRecord message) {
-    final Context context = getActivity().getApplicationContext();
-    new AsyncTask<MessageRecord, Void, Void>() {
-      @Override
-      protected Void doInBackground(MessageRecord... messageRecords) {
-        MessageSender.resend(context, masterSecret, messageRecords[0]);
-        return null;
-      }
-    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
-  }
-
-  private void handleSaveAttachment(final MediaMmsMessageRecord message) {
-    SaveAttachmentTask.showWarningDialog(getActivity(), new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int which) {
-        for (Slide slide : message.getSlideDeck().getSlides()) {
-          if ((slide.hasImage() || slide.hasVideo() || slide.hasAudio() || slide.hasDocument()) && slide.getUri() != null) {
-            SaveAttachmentTask saveTask = new SaveAttachmentTask(getActivity(), masterSecret, list);
-            saveTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Attachment(slide.getUri(), slide.getContentType(), message.getDateReceived(), slide.getFileName().orNull()));
-            return;
-          }
+            if (result) {
+                outputMessage = getString(R.string.ConversationFragment_unpin_new);
+            } else {
+                outputMessage = getString(R.string.ConversationFragment_unpin_already_unpinned);
+            }
         }
 
-        Log.w(TAG, "No slide with attachable media found, failing nicely.");
-        Toast.makeText(getActivity(),
-                       getResources().getQuantityString(R.plurals.ConversationFragment_error_while_saving_attachments_to_sd_card, 1),
-                       Toast.LENGTH_LONG).show();
-      }
-    });
-  }
-
-  @Override
-  public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-    return new ConversationLoader(getActivity(), threadId, args.getLong("limit", PARTIAL_CONVERSATION_LIMIT), lastSeen);
-  }
-
-
-  @Override
-  public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-    Log.w(TAG, "onLoadFinished");
-    ConversationLoader loader = (ConversationLoader)cursorLoader;
-
-    if (list.getAdapter() != null) {
-      if (cursor.getCount() >= PARTIAL_CONVERSATION_LIMIT && loader.hasLimit()) {
-        getListAdapter().setFooterView(loadMoreView);
-      } else {
-        getListAdapter().setFooterView(null);
-      }
-
-      if (lastSeen == -1) {
-        setLastSeen(loader.getLastSeen());
-      }
-
-      if (!loader.hasSent() && !recipient.isSystemContact() && !recipient.isGroupRecipient() && recipient.getRegistered() == RecipientDatabase.RegisteredState.REGISTERED) {
-        getListAdapter().setHeaderView(unknownSenderView);
-      } else {
-        getListAdapter().setHeaderView(null);
-      }
-
-      getListAdapter().changeCursor(cursor);
-
-      int lastSeenPosition = getListAdapter().findLastSeenPosition(lastSeen);
-
-      if (firstLoad) {
-        scrollToLastSeenPosition(lastSeenPosition);
-        firstLoad = false;
-      }
-
-      if (lastSeenPosition <= 0) {
-        setLastSeen(0);
-      }
-    }
-  }
-
-  @Override
-  public void onLoaderReset(Loader<Cursor> arg0) {
-    if (list.getAdapter() != null) {
-      getListAdapter().changeCursor(null);
-    }
-  }
-
-  public long stageOutgoingMessage(OutgoingMediaMessage message) {
-    MessageRecord messageRecord = DatabaseFactory.getMmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
-
-    if (getListAdapter() != null) {
-      getListAdapter().setHeaderView(null);
-      setLastSeen(0);
-      getListAdapter().addFastRecord(messageRecord);
+        this.showToast(outputMessage);
     }
 
-    return messageRecord.getId();
-  }
+    private void handleDeleteMessages(final Set<MessageRecord> messageRecords) {
+        int messagesCount = messageRecords.size();
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-  public long stageOutgoingMessage(OutgoingTextMessage message) {
-    MessageRecord messageRecord = DatabaseFactory.getSmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
+        builder.setIconAttribute(R.attr.dialog_alert_icon);
+        builder.setTitle(getActivity().getResources().getQuantityString(R.plurals.ConversationFragment_delete_selected_messages, messagesCount, messagesCount));
+        builder.setMessage(getActivity().getResources().getQuantityString(R.plurals.ConversationFragment_this_will_permanently_delete_all_n_selected_messages, messagesCount, messagesCount));
+        builder.setCancelable(true);
 
-    if (getListAdapter() != null) {
-      getListAdapter().setHeaderView(null);
-      setLastSeen(0);
-      getListAdapter().addFastRecord(messageRecord);
+        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                new ProgressDialogAsyncTask<MessageRecord, Void, Void>(getActivity(),
+                        R.string.ConversationFragment_deleting,
+                        R.string.ConversationFragment_deleting_messages) {
+                    @Override
+                    protected Void doInBackground(MessageRecord... messageRecords) {
+                        for (MessageRecord messageRecord : messageRecords) {
+                            boolean threadDeleted;
+
+                            if (messageRecord.isMms()) {
+                                threadDeleted = DatabaseFactory.getMmsDatabase(getActivity()).delete(messageRecord.getId());
+                            } else {
+                                threadDeleted = DatabaseFactory.getSmsDatabase(getActivity()).deleteMessage(messageRecord.getId());
+                            }
+
+                            if (threadDeleted) {
+                                threadId = -1;
+                                listener.setThreadId(threadId);
+                            }
+
+                            searchHandler.deleteMessageRecord(messageRecord.getId());
+                        }
+
+                        return null;
+                    }
+                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, messageRecords.toArray(new MessageRecord[messageRecords.size()]));
+            }
+        });
+
+        builder.setNegativeButton(android.R.string.cancel, null);
+        builder.show();
     }
 
-    return messageRecord.getId();
-  }
-
-  public void releaseOutgoingMessage(long id) {
-    if (getListAdapter() != null) {
-      getListAdapter().releaseFastRecord(id);
+    private void handleDisplayDetails(MessageRecord message) {
+        Intent intent = new Intent(getActivity(), MessageDetailsActivity.class);
+        intent.putExtra(MessageDetailsActivity.MASTER_SECRET_EXTRA, masterSecret);
+        intent.putExtra(MessageDetailsActivity.MESSAGE_ID_EXTRA, message.getId());
+        intent.putExtra(MessageDetailsActivity.THREAD_ID_EXTRA, threadId);
+        intent.putExtra(MessageDetailsActivity.TYPE_EXTRA, message.isMms() ? MmsSmsDatabase.MMS_TRANSPORT : MmsSmsDatabase.SMS_TRANSPORT);
+        intent.putExtra(MessageDetailsActivity.ADDRESS_EXTRA, recipient.getAddress());
+        intent.putExtra(MessageDetailsActivity.IS_PUSH_GROUP_EXTRA, recipient.isGroupRecipient() && message.isPush());
+        startActivity(intent);
     }
-  }
 
-  private void scrollToLastSeenPosition(final int lastSeenPosition) {
-    if (lastSeenPosition > 0) {
-      list.post(() -> ((LinearLayoutManager)list.getLayoutManager()).scrollToPositionWithOffset(lastSeenPosition, list.getHeight()));
+    private void handleForwardMessage(MessageRecord message) {
+        Intent composeIntent = new Intent(getActivity(), ShareActivity.class);
+        composeIntent.putExtra(Intent.EXTRA_TEXT, message.getDisplayBody().toString());
+        if (message.isMms()) {
+            MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
+            if (mediaMessage.containsMediaSlide()) {
+                Slide slide = mediaMessage.getSlideDeck().getSlides().get(0);
+                composeIntent.putExtra(Intent.EXTRA_STREAM, slide.getUri());
+                composeIntent.setType(slide.getContentType());
+            }
+        }
+        startActivity(composeIntent);
     }
-  }
 
-  public void showToast(String outputMessage) {
-    Toast toast=Toast.makeText(getContext(), outputMessage, Toast.LENGTH_SHORT);
-    toast.show();
-  }
+    private void handleResendMessage(final MessageRecord message) {
+        final Context context = getActivity().getApplicationContext();
+        new AsyncTask<MessageRecord, Void, Void>() {
+            @Override
+            protected Void doInBackground(MessageRecord... messageRecords) {
+                MessageSender.resend(context, masterSecret, messageRecords[0]);
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+    }
 
-  public interface ConversationFragmentListener {
-    void setThreadId(long threadId);
-  }
+    private void handleSaveAttachment(final MediaMmsMessageRecord message) {
+        SaveAttachmentTask.showWarningDialog(getActivity(), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                for (Slide slide : message.getSlideDeck().getSlides()) {
+                    if ((slide.hasImage() || slide.hasVideo() || slide.hasAudio() || slide.hasDocument()) && slide.getUri() != null) {
+                        SaveAttachmentTask saveTask = new SaveAttachmentTask(getActivity(), masterSecret, list);
+                        saveTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Attachment(slide.getUri(), slide.getContentType(), message.getDateReceived(), slide.getFileName().orNull()));
+                        return;
+                    }
+                }
 
-  private class ConversationScrollListener extends OnScrollListener {
-
-    private final Animation              scrollButtonInAnimation;
-    private final Animation              scrollButtonOutAnimation;
-    private final ConversationDateHeader conversationDateHeader;
-
-    private boolean wasAtBottom           = true;
-    private boolean wasAtZoomScrollHeight = false;
-    private long    lastPositionId        = -1;
-
-    ConversationScrollListener(@NonNull Context context) {
-      this.scrollButtonInAnimation  = AnimationUtils.loadAnimation(context, R.anim.fade_scale_in);
-      this.scrollButtonOutAnimation = AnimationUtils.loadAnimation(context, R.anim.fade_scale_out);
-      this.conversationDateHeader   = new ConversationDateHeader(context, scrollDateHeader);
-
-      this.scrollButtonInAnimation.setDuration(100);
-      this.scrollButtonOutAnimation.setDuration(50);
+                Log.w(TAG, "No slide with attachable media found, failing nicely.");
+                Toast.makeText(getActivity(),
+                        getResources().getQuantityString(R.plurals.ConversationFragment_error_while_saving_attachments_to_sd_card, 1),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override
-    public void onScrolled(final RecyclerView rv, final int dx, final int dy) {
-      boolean currentlyAtBottom           = isAtBottom();
-      boolean currentlyAtZoomScrollHeight = isAtZoomScrollHeight();
-      int     positionId                  = getHeaderPositionId();
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new ConversationLoader(getActivity(), threadId, args.getLong("limit", PARTIAL_CONVERSATION_LIMIT), lastSeen);
+    }
 
-      if (currentlyAtBottom && !wasAtBottom) {
-        ViewUtil.fadeOut(composeDivider, 50, View.INVISIBLE);
-        ViewUtil.animateOut(scrollToBottomButton, scrollButtonOutAnimation, View.INVISIBLE);
-      } else if (!currentlyAtBottom && wasAtBottom) {
-        ViewUtil.fadeIn(composeDivider, 500);
-      }
 
-      if (currentlyAtZoomScrollHeight && !wasAtZoomScrollHeight) {
-        ViewUtil.animateIn(scrollToBottomButton, scrollButtonInAnimation);
-      }
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        Log.w(TAG, "onLoadFinished");
+        ConversationLoader loader = (ConversationLoader) cursorLoader;
 
-      if (positionId != lastPositionId) {
-        bindScrollHeader(conversationDateHeader, positionId);
-      }
+        if (list.getAdapter() != null) {
+            if (cursor.getCount() >= PARTIAL_CONVERSATION_LIMIT && loader.hasLimit()) {
+                getListAdapter().setFooterView(loadMoreView);
+            } else {
+                getListAdapter().setFooterView(null);
+            }
 
-      wasAtBottom           = currentlyAtBottom;
-      wasAtZoomScrollHeight = currentlyAtZoomScrollHeight;
-      lastPositionId        = positionId;
+            if (lastSeen == -1) {
+                setLastSeen(loader.getLastSeen());
+            }
+
+            if (!loader.hasSent() && !recipient.isSystemContact() && !recipient.isGroupRecipient() && recipient.getRegistered() == RecipientDatabase.RegisteredState.REGISTERED) {
+                getListAdapter().setHeaderView(unknownSenderView);
+            } else {
+                getListAdapter().setHeaderView(null);
+            }
+
+            getListAdapter().changeCursor(cursor);
+
+            int lastSeenPosition = getListAdapter().findLastSeenPosition(lastSeen);
+            getListAdapter().addMessagesToSearchHandler(searchHandler, firstLoad);
+
+            if (firstLoad) {
+                scrollToLastSeenPosition(lastSeenPosition);
+                firstLoad = false;
+            }
+
+            if (lastSeenPosition <= 0) {
+                setLastSeen(0);
+            }
+        }
     }
 
     @Override
-    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-      if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
-        conversationDateHeader.show();
-      } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-        conversationDateHeader.hide();
-      }
+    public void onLoaderReset(Loader<Cursor> arg0) {
+        if (list.getAdapter() != null) {
+            getListAdapter().changeCursor(null);
+        }
     }
 
-    private boolean isAtBottom() {
-      if (list.getChildCount() == 0) return true;
+    public long stageOutgoingMessage(OutgoingMediaMessage message) {
+        MessageRecord messageRecord = DatabaseFactory.getMmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-      View    bottomView       = list.getChildAt(0);
-      int     firstVisibleItem = ((LinearLayoutManager) list.getLayoutManager()).findFirstVisibleItemPosition();
-      boolean isAtBottom       = (firstVisibleItem == 0);
+        if (getListAdapter() != null) {
+            getListAdapter().setHeaderView(null);
+            setLastSeen(0);
+            getListAdapter().addFastRecord(messageRecord);
+        }
 
-      return isAtBottom && bottomView.getBottom() <= list.getHeight();
+        return messageRecord.getId();
     }
 
-    private boolean isAtZoomScrollHeight() {
-      return ((LinearLayoutManager) list.getLayoutManager()).findFirstCompletelyVisibleItemPosition() > 4;
+    public long stageOutgoingMessage(OutgoingTextMessage message) {
+        MessageRecord messageRecord = DatabaseFactory.getSmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
+
+        if (getListAdapter() != null) {
+            getListAdapter().setHeaderView(null);
+            setLastSeen(0);
+            getListAdapter().addFastRecord(messageRecord);
+        }
+
+        return messageRecord.getId();
     }
 
-    private int getHeaderPositionId() {
-      return ((LinearLayoutManager)list.getLayoutManager()).findLastVisibleItemPosition();
+    public void releaseOutgoingMessage(long id) {
+        if (getListAdapter() != null) {
+            getListAdapter().releaseFastRecord(id);
+        }
     }
 
-    private void bindScrollHeader(HeaderViewHolder headerViewHolder, int positionId) {
-      if (((ConversationAdapter)list.getAdapter()).getHeaderId(positionId) != -1) {
-        ((ConversationAdapter) list.getAdapter()).onBindHeaderViewHolder(headerViewHolder, positionId);
-      }
-    }
-  }
-
-  private class ConversationFragmentItemClickListener implements ItemClickListener {
-
-    @Override
-    public void onItemClick(MessageRecord messageRecord) {
-      if (actionMode != null) {
-        ((ConversationAdapter) list.getAdapter()).toggleSelection(messageRecord);
-        list.getAdapter().notifyDataSetChanged();
-
-        setCorrectMenuVisibility(actionMode.getMenu());
-      }
+    private void scrollToLastSeenPosition(final int lastSeenPosition) {
+        if (lastSeenPosition > 0) {
+            list.post(() -> ((LinearLayoutManager) list.getLayoutManager()).scrollToPositionWithOffset(lastSeenPosition, list.getHeight()));
+        }
     }
 
-    @Override
-    public void onItemLongClick(MessageRecord messageRecord) {
-      if (actionMode == null) {
-        ((ConversationAdapter) list.getAdapter()).toggleSelection(messageRecord);
-        list.getAdapter().notifyDataSetChanged();
-
-        actionMode = ((AppCompatActivity)getActivity()).startSupportActionMode(actionModeCallback);
-      }
-    }
-  }
-
-  private class ActionModeCallback implements ActionMode.Callback {
-
-    private int statusBarColor;
-
-    @Override
-    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-      MenuInflater inflater = mode.getMenuInflater();
-      inflater.inflate(R.menu.conversation_context, menu);
-
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        Window window = getActivity().getWindow();
-        statusBarColor = window.getStatusBarColor();
-        window.setStatusBarColor(getResources().getColor(R.color.action_mode_status_bar));
-      }
-
-      setCorrectMenuVisibility(menu);
-      return true;
+    public void showToast(String outputMessage) {
+        Toast toast = Toast.makeText(getContext(), outputMessage, Toast.LENGTH_SHORT);
+        toast.show();
     }
 
-    @Override
-    public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
-      return false;
+    public interface ConversationFragmentListener {
+        void setThreadId(long threadId);
     }
 
-    @Override
-    public void onDestroyActionMode(ActionMode mode) {
-      ((ConversationAdapter)list.getAdapter()).clearSelection();
-      list.getAdapter().notifyDataSetChanged();
+    private class ConversationScrollListener extends OnScrollListener {
 
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        getActivity().getWindow().setStatusBarColor(statusBarColor);
-      }
+        private final Animation              scrollButtonInAnimation;
+        private final Animation              scrollButtonOutAnimation;
+        private final ConversationDateHeader conversationDateHeader;
 
-      actionMode = null;
-    }
+        private boolean wasAtBottom           = true;
+        private boolean wasAtZoomScrollHeight = false;
+        private long    lastPositionId        = -1;
 
-    @Override
-    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-      switch(item.getItemId()) {
-        case R.id.menu_context_copy:
-          handleCopyMessage(getListAdapter().getSelectedItems());
-          actionMode.finish();
-          return true;
-        case R.id.menu_context_delete_message:
-          handleDeleteMessages(getListAdapter().getSelectedItems());
-          actionMode.finish();
-          return true;
-        case R.id.menu_context_details:
-          handleDisplayDetails(getSelectedMessageRecord());
-          actionMode.finish();
-          return true;
-        case R.id.menu_context_forward:
-          handleForwardMessage(getSelectedMessageRecord());
-          actionMode.finish();
-          return true;
-        case R.id.menu_context_resend:
-          handleResendMessage(getSelectedMessageRecord());
-          actionMode.finish();
-          return true;
-        case R.id.menu_context_save_attachment:
-          handleSaveAttachment((MediaMmsMessageRecord)getSelectedMessageRecord());
-          actionMode.finish();
-          return true;
-        case R.id.menu_context_pin_message:
-          handlePinOrUnpinMessage(getSelectedMessageRecord(), true,
-                  new PinnedMessageHandler(getContext()));
-          actionMode.finish();
-          return true;
-        case R.id.menu_context_unpin_message:
-          handlePinOrUnpinMessage(getSelectedMessageRecord(), false,
-                  new PinnedMessageHandler(getContext()));
-          actionMode.finish();
-          return true;
-      }
+        ConversationScrollListener(@NonNull Context context) {
+            this.scrollButtonInAnimation = AnimationUtils.loadAnimation(context, R.anim.fade_scale_in);
+            this.scrollButtonOutAnimation = AnimationUtils.loadAnimation(context, R.anim.fade_scale_out);
+            this.conversationDateHeader = new ConversationDateHeader(context, scrollDateHeader);
 
-      return false;
-    }
-  }
+            this.scrollButtonInAnimation.setDuration(100);
+            this.scrollButtonOutAnimation.setDuration(50);
+        }
 
-  private static class ConversationDateHeader extends HeaderViewHolder {
-
-    private final Animation animateIn;
-    private final Animation animateOut;
-
-    private boolean pendingHide = false;
-
-    private ConversationDateHeader(Context context, TextView textView) {
-      super(textView);
-      this.animateIn  = AnimationUtils.loadAnimation(context, R.anim.slide_from_top);
-      this.animateOut = AnimationUtils.loadAnimation(context, R.anim.slide_to_top);
-
-      this.animateIn.setDuration(100);
-      this.animateOut.setDuration(100);
-    }
-
-    public void show() {
-      if (pendingHide) {
-        pendingHide = false;
-      } else {
-        ViewUtil.animateIn(textView, animateIn);
-      }
-    }
-
-    public void hide() {
-      pendingHide = true;
-
-      textView.postDelayed(new Runnable() {
         @Override
-        public void run() {
-          if (pendingHide) {
-            pendingHide = false;
-            ViewUtil.animateOut(textView, animateOut, View.GONE);
-          }
+        public void onScrolled(final RecyclerView rv, final int dx, final int dy) {
+            boolean currentlyAtBottom = isAtBottom();
+            boolean currentlyAtZoomScrollHeight = isAtZoomScrollHeight();
+            int positionId = getHeaderPositionId();
+
+            if (currentlyAtBottom && !wasAtBottom) {
+                ViewUtil.fadeOut(composeDivider, 50, View.INVISIBLE);
+                ViewUtil.animateOut(scrollToBottomButton, scrollButtonOutAnimation, View.INVISIBLE);
+            } else if (!currentlyAtBottom && wasAtBottom) {
+                ViewUtil.fadeIn(composeDivider, 500);
+            }
+
+            if (currentlyAtZoomScrollHeight && !wasAtZoomScrollHeight) {
+                ViewUtil.animateIn(scrollToBottomButton, scrollButtonInAnimation);
+            }
+
+            if (positionId != lastPositionId) {
+                bindScrollHeader(conversationDateHeader, positionId);
+            }
+
+            wasAtBottom = currentlyAtBottom;
+            wasAtZoomScrollHeight = currentlyAtZoomScrollHeight;
+            lastPositionId = positionId;
         }
-      }, 400);
+
+        @Override
+        public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                conversationDateHeader.show();
+            } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                conversationDateHeader.hide();
+            }
+        }
+
+        private boolean isAtBottom() {
+            if (list.getChildCount() == 0) return true;
+
+            View bottomView = list.getChildAt(0);
+            int firstVisibleItem = ((LinearLayoutManager) list.getLayoutManager()).findFirstVisibleItemPosition();
+            boolean isAtBottom = (firstVisibleItem == 0);
+
+            return isAtBottom && bottomView.getBottom() <= list.getHeight();
+        }
+
+        private boolean isAtZoomScrollHeight() {
+            return ((LinearLayoutManager) list.getLayoutManager()).findFirstCompletelyVisibleItemPosition() > 4;
+        }
+
+        private int getHeaderPositionId() {
+            return ((LinearLayoutManager) list.getLayoutManager()).findLastVisibleItemPosition();
+        }
+
+        private void bindScrollHeader(HeaderViewHolder headerViewHolder, int positionId) {
+            if (((ConversationAdapter) list.getAdapter()).getHeaderId(positionId) != -1) {
+                ((ConversationAdapter) list.getAdapter()).onBindHeaderViewHolder(headerViewHolder, positionId);
+            }
+        }
     }
-  }
+
+    private class ConversationFragmentItemClickListener implements ItemClickListener {
+        @Override
+        public void onItemClick(MessageRecord messageRecord) {
+            if (actionMode != null) {
+                ((ConversationAdapter) list.getAdapter()).toggleSelection(messageRecord);
+                list.getAdapter().notifyDataSetChanged();
+
+                setCorrectMenuVisibility(actionMode.getMenu());
+            }
+        }
+
+        @Override
+        public void onItemLongClick(MessageRecord messageRecord) {
+            if (actionMode == null) {
+                ((ConversationAdapter) list.getAdapter()).toggleSelection(messageRecord);
+                list.getAdapter().notifyDataSetChanged();
+
+                actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(actionModeCallback);
+            }
+        }
+    }
+
+    private class ActionModeCallback implements ActionMode.Callback {
+        private int statusBarColor;
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.conversation_context, menu);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Window window = getActivity().getWindow();
+                statusBarColor = window.getStatusBarColor();
+                window.setStatusBarColor(getResources().getColor(R.color.action_mode_status_bar));
+            }
+
+            setCorrectMenuVisibility(menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            ((ConversationAdapter) list.getAdapter()).clearSelection();
+            list.getAdapter().notifyDataSetChanged();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getActivity().getWindow().setStatusBarColor(statusBarColor);
+            }
+
+            actionMode = null;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.menu_context_copy:
+                    handleCopyMessage(getListAdapter().getSelectedItems());
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_delete_message:
+                    handleDeleteMessages(getListAdapter().getSelectedItems());
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_details:
+                    handleDisplayDetails(getSelectedMessageRecord());
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_forward:
+                    handleForwardMessage(getSelectedMessageRecord());
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_resend:
+                    handleResendMessage(getSelectedMessageRecord());
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_save_attachment:
+                    handleSaveAttachment((MediaMmsMessageRecord) getSelectedMessageRecord());
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_pin_message:
+                    handlePinOrUnpinMessage(getSelectedMessageRecord(), true,
+                            new PinnedMessageHandler(getContext()));
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_unpin_message:
+                    handlePinOrUnpinMessage(getSelectedMessageRecord(), false,
+                            new PinnedMessageHandler(getContext()));
+                    actionMode.finish();
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
+    private static class ConversationDateHeader extends HeaderViewHolder {
+
+        private final Animation animateIn;
+        private final Animation animateOut;
+
+        private boolean pendingHide = false;
+
+        private ConversationDateHeader(Context context, TextView textView) {
+            super(textView);
+            this.animateIn = AnimationUtils.loadAnimation(context, R.anim.slide_from_top);
+            this.animateOut = AnimationUtils.loadAnimation(context, R.anim.slide_to_top);
+
+            this.animateIn.setDuration(100);
+            this.animateOut.setDuration(100);
+        }
+
+        public void show() {
+            if (pendingHide) {
+                pendingHide = false;
+            } else {
+                ViewUtil.animateIn(textView, animateIn);
+            }
+        }
+
+        public void hide() {
+            pendingHide = true;
+
+            textView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (pendingHide) {
+                        pendingHide = false;
+                        ViewUtil.animateOut(textView, animateOut, View.GONE);
+                    }
+                }
+            }, 400);
+        }
+    }
+
+    public SearchHandler getSearchHandler() {
+        return searchHandler;
+    }
+
+    public void updateAdapterSearchHandler() {
+        getListAdapter().updateSearchHandler(searchHandler);
+        getListAdapter().notifyDataSetChanged();
+    }
+
+    public void resetAdapterSearchHandler() {
+        getListAdapter().resetSearchHandler();
+        getListAdapter().notifyDataSetChanged();
+    }
+
+    public void scrollToNextSearchResult() {
+        int position = searchHandler.getNextResultPosition();
+        if (position > -1) {
+            list.getLayoutManager().scrollToPosition(position);
+            this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
+            searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
+        }
+    }
+
+    public void scrollToPreviousSearchResult() {
+        int position = searchHandler.getPreviousResultPosition();
+        if (position > -1) {
+            list.getLayoutManager().scrollToPosition(position);
+            searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
+        }
+    }
 }

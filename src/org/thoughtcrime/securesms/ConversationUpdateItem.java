@@ -86,6 +86,9 @@ public class ConversationUpdateItem extends LinearLayout
     return messageRecord;
   }
 
+  @Override
+  public void highlightText(MessageRecord messageRecord, String highlight) {}
+
   private void bind(@NonNull MessageRecord messageRecord, @NonNull Locale locale) {
     this.messageRecord = messageRecord;
     this.sender        = messageRecord.getIndividualRecipient();

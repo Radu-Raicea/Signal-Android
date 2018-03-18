@@ -19,4 +19,6 @@ public interface BindableConversationItem extends Unbindable {
             @NonNull Recipient recipients);
 
   MessageRecord getMessageRecord();
+
+  void highlightText(MessageRecord messageRecord, String highlight);
 }

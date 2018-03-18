@@ -122,6 +122,7 @@
     <string name="ConversationActivity_group_members">Group members</string>
 
     <string name="ConversationActivity_invalid_recipient">Invalid recipient!</string>
+    <string name="ConversationActivity_search_mode_off">Search mode is turned off</string>
     <string name="ConversationActivity_calls_not_supported">Calls not supported</string>
     <string name="ConversationActivity_this_device_does_not_appear_to_support_dial_actions">This device does not appear to support dial actions.</string>
     <string name="ConversationActivity_leave_group">Leave group?</string>
@@ -1337,6 +1338,10 @@
     <string name="Permissions_continue">Continue</string>
     <string name="Permissions_not_now">Not now</string>
     <string name="ConversationListActivity_signal_needs_contacts_permission_in_order_to_search_your_contacts_but_it_has_been_permanently_denied">Signal needs Contacts permission in order to search your contacts, but it has been permanently denied. Please continue to app settings, select \"Permissions\", and enable \"Contacts\".</string>
+    <string name="Conversation__menu_search_conversation">Search conversation</string>
+    <string name="Conversation__menu_end_search_conversation">End search conversation</string>
+    <string name="search_title">Search</string>
+    <string name="go">Go</string>
 
 
     <!-- EOF -->

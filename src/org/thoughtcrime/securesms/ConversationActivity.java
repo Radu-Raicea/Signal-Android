@@ -768,10 +768,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     if(!this.isSearchMode) {
       showSearchMode(bottomPanel, searchView);
+      this.isSearchMode = !isSearchMode;
     } else {
       hideSearchMode();
     }
-    this.isSearchMode = !isSearchMode;
   }
 
   public void hideSearchMode() {

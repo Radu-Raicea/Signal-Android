@@ -56,7 +56,13 @@ public class SearchHandler {
      * @return
      */
     public void addMessageRecord(MessageRecord messageRecord) {
-        messageRecordList.addFirst(messageRecord);
+        boolean is_new = true;
+
+        for (MessageRecord m : messageRecordList) {
+            if (m.getId() == messageRecord.getId()) is_new = false;
+        }
+
+        if (is_new) messageRecordList.addFirst(messageRecord);
     }
 
     /**

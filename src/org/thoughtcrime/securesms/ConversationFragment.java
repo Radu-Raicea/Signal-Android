@@ -795,9 +795,10 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         int position = searchHandler.getNextResultPosition();
         if (position > -1) {
             list.getLayoutManager().scrollToPosition(position);
-            this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
-            searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
         }
+
+        this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
+        this.searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
     }
 
     public void scrollToPreviousSearchResult() {

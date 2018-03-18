@@ -40,7 +40,6 @@ public class PreferencesHelper extends BaseHelper<PreferencesHelper>{
         try {
             onView(withText(R.string.RecipientPreferenceActivity_setnickname))
                 .check(matches(isDisplayed()));
-
         } catch (AssertionFailedError e) {
             onView(withId(android.R.id.content))
                 .perform(swipeUp());

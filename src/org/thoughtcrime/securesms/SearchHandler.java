@@ -83,6 +83,16 @@ public class SearchHandler {
                 continue;
             }
         }
+
+        SearchResult sr = new SearchResult(-1, null);
+        for(SearchResult searchResult : searchResultList) {
+            if (searchResult.getMessageRecord().getId() == messageId) {
+                sr = searchResult;
+                break;
+            }
+        }
+
+        searchResultList.remove(sr);
     }
 
     /**

@@ -326,25 +326,16 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
 
     public void handlePinOrUnpinMessage(final MessageRecord message, boolean pin,
                                         PinnedMessageHandler handler) {
-        PinnedMessageHandler pinHandler;
-        MessagingDatabase databaseToQuery;
-        String outputMessage;
-        boolean result;
+        PinnedMessageHandler  pinHandler;
+        MessagingDatabase     databaseToQuery;
+        String                outputMessage;
+        boolean               result;
 
-        pinHandler = handler;
-        databaseToQuery = pinHandler.getAppropriateDatabase(message);
+        pinHandler       = handler;
+        databaseToQuery  = pinHandler.getAppropriateDatabase(message);
 
         if (pin) {
-            // Blocking Video and Audio pinning Temporarily
-            if (message.isMms() && ((MmsMessageRecord) message).getSlideDeck().getSlides().size() != 0) {
-                MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
-                if (!mediaMessage.getSlideDeck().getThumbnailSlide().getContentType().contains("image")) {
-                    showToast("You can only pin image type mms!");
-                    return;
-                }
-            }
             result = pinHandler.handlePinMessage(message, databaseToQuery);
-
             if (result) {
                 outputMessage = getString(R.string.ConversationFragment_pin_new);
             } else {
@@ -795,9 +786,10 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         int position = searchHandler.getNextResultPosition();
         if (position > -1) {
             list.getLayoutManager().scrollToPosition(position);
-            this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
-            searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
         }
+
+        this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
+        this.searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
     }
 
     public void scrollToPreviousSearchResult() {

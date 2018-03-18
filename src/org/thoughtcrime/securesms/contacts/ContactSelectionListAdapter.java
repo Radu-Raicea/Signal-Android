@@ -181,7 +181,7 @@ public class ContactSelectionListAdapter extends CursorRecyclerViewAdapter<ViewH
     String label       = cursor.getString(cursor.getColumnIndexOrThrow(ContactsDatabase.LABEL_COLUMN));
     String labelText   = ContactsContract.CommonDataKinds.Phone.getTypeLabel(getContext().getResources(),
                                                                              numberType, label).toString();
-
+    @SuppressWarnings("ResourceType")
     int color = (contactType == ContactsDatabase.PUSH_TYPE) ? drawables.getColor(0, 0xa0000000) :
                 drawables.getColor(1, 0xff000000);
 

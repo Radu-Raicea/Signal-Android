@@ -38,6 +38,21 @@ public class SearchEspressoTest {
                 .sendMessage(testString)
                 .sendMessage("@")
             .goSearch()
-                .search(testString);
+                .search("-");
+    }
+
+    @Test
+    public void canMatchMixedCase() {
+        // TODO
+    }
+
+    @Test
+    public void canHighlightMultipleMatchesPerMessage() {
+        // TODO
+    }
+
+    @Test
+    public void canNavigateResults() {
+        // TODO
     }
 }

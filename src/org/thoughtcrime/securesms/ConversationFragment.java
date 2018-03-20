@@ -83,8 +83,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @SuppressLint("StaticFieldLeak")
-public class ConversationFragment extends Fragment
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ConversationFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = ConversationFragment.class.getSimpleName();
 
     private static final long PARTIAL_CONVERSATION_LIMIT = 500L;
@@ -116,7 +115,7 @@ public class ConversationFragment extends Fragment
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         this.masterSecret = getArguments().getParcelable("master_secret");
-        this.locale = (Locale) getArguments().getSerializable(PassphraseRequiredActionBarActivity.LOCALE_EXTRA);
+        this.locale = (Locale)getArguments().getSerializable(PassphraseRequiredActionBarActivity.LOCALE_EXTRA);
     }
 
     @Override
@@ -142,7 +141,6 @@ public class ConversationFragment extends Fragment
 
         return view;
     }
-
 
     @Override
     public void onActivityCreated(Bundle bundle) {
@@ -321,31 +319,23 @@ public class ConversationFragment extends Fragment
 
         String result = bodyBuilder.toString();
 
-        if (!TextUtils.isEmpty(result))
+        if (!TextUtils.isEmpty(result)) {
             clipboard.setText(result);
+        }
     }
 
     public void handlePinOrUnpinMessage(final MessageRecord message, boolean pin,
                                         PinnedMessageHandler handler) {
-        PinnedMessageHandler pinHandler;
-        MessagingDatabase databaseToQuery;
-        String outputMessage;
-        boolean result;
+        PinnedMessageHandler  pinHandler;
+        MessagingDatabase     databaseToQuery;
+        String                outputMessage;
+        boolean               result;
 
-        pinHandler = handler;
-        databaseToQuery = pinHandler.getAppropriateDatabase(message);
+        pinHandler       = handler;
+        databaseToQuery  = pinHandler.getAppropriateDatabase(message);
 
         if (pin) {
-            // Blocking Video and Audio pinning Temporarily
-            if (message.isMms() && ((MmsMessageRecord) message).getSlideDeck().getSlides().size() != 0) {
-                MediaMmsMessageRecord mediaMessage = (MediaMmsMessageRecord) message;
-                if (!mediaMessage.getSlideDeck().getThumbnailSlide().getContentType().contains("image")) {
-                    showToast("You can only pin image type mms!");
-                    return;
-                }
-            }
             result = pinHandler.handlePinMessage(message, databaseToQuery);
-
             if (result) {
                 outputMessage = getString(R.string.ConversationFragment_pin_new);
             } else {
@@ -363,7 +353,6 @@ public class ConversationFragment extends Fragment
         }
 
         this.showToast(outputMessage);
-        searchHandler.addSearchedResult(0, message);
     }
 
     private void handleDeleteMessages(final Set<MessageRecord> messageRecords) {
@@ -641,7 +630,6 @@ public class ConversationFragment extends Fragment
     }
 
     private class ConversationFragmentItemClickListener implements ItemClickListener {
-
         @Override
         public void onItemClick(MessageRecord messageRecord) {
             if (actionMode != null) {
@@ -664,7 +652,6 @@ public class ConversationFragment extends Fragment
     }
 
     private class ActionModeCallback implements ActionMode.Callback {
-
         private int statusBarColor;
 
         @Override
@@ -799,9 +786,13 @@ public class ConversationFragment extends Fragment
         int position = searchHandler.getNextResultPosition();
         if (position > -1) {
             list.getLayoutManager().scrollToPosition(position);
-            this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
-            searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
+        } else {
+            Toast.makeText(getActivity(),
+                     "No more messages found" ,Toast.LENGTH_LONG).show();
         }
+
+        this.searchCounterText = (TextView)getActivity().findViewById(R.id.search_counter);
+        this.searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
     }
 
     public void scrollToPreviousSearchResult() {
@@ -809,6 +800,9 @@ public class ConversationFragment extends Fragment
         if (position > -1) {
             list.getLayoutManager().scrollToPosition(position);
             searchCounterText.setText(searchHandler.getCounter() + "/" + searchHandler.getSearchResultList().size());
+        } else {
+            Toast.makeText(getActivity(),
+                    "No more messages found" ,Toast.LENGTH_LONG).show();
         }
     }
 }

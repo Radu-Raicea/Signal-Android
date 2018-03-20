@@ -14,7 +14,6 @@ import static junit.framework.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
 public class SearchHandlerTests extends SearchConversationMocks {
-
     private SearchHandler searchHandler;
 
     @Override

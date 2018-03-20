@@ -10,7 +10,6 @@ import java.util.LinkedList;
  * search through a conversation's message records and return positions of the searched messages
  */
 public class SearchHandler {
-
     private LinkedList<MessageRecord> messageRecordList;
     private LinkedList<SearchResult>  searchResultList;
     private int                       searchIndex = -1;
@@ -36,7 +35,10 @@ public class SearchHandler {
         searchResultList.clear();
         searchedTerm = term;
 
-        //search messageRecordList and push position (which is the index of the list) and messageRecord into searchResultList
+        /**
+         *   Search messageRecordList and push position (which is the index of the list)
+         *   and messageRecord into searchResultList
+         */
         Iterator<MessageRecord> iterator = messageRecordList.iterator();
         while (iterator.hasNext()) {
             MessageRecord messageRecord = iterator.next();
@@ -54,7 +56,13 @@ public class SearchHandler {
      * @return
      */
     public void addMessageRecord(MessageRecord messageRecord) {
-        messageRecordList.addFirst(messageRecord);
+        boolean is_new = true;
+
+        for (MessageRecord m : messageRecordList) {
+            if (m.getId() == messageRecord.getId()) is_new = false;
+        }
+
+        if (is_new) messageRecordList.addFirst(messageRecord);
     }
 
     /**
@@ -81,6 +89,16 @@ public class SearchHandler {
                 continue;
             }
         }
+
+        SearchResult sr = new SearchResult(-1, null);
+        for(SearchResult searchResult : searchResultList) {
+            if (searchResult.getMessageRecord().getId() == messageId) {
+                sr = searchResult;
+                break;
+            }
+        }
+
+        searchResultList.remove(sr);
     }
 
     /**

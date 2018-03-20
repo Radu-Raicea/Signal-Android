@@ -100,7 +100,6 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
   private final @NonNull  LayoutInflater    inflater;
   private final @NonNull  Calendar          calendar;
   private final @NonNull  MessageDigest     digest;
-
   private                 SearchHandler     searchHandler;
 
   protected static class ViewHolder extends RecyclerView.ViewHolder {
@@ -202,8 +201,6 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
 
     //highlight searched messages if message is part of searched results
     if (searchHandler.isSearchedMessage(messageRecord)) {
-      Log.w("DANIELYOO", "I FOUND A MESSAGE IN THE SEARCH RESULTS!");
-    // if (true) {
       viewHolder.getView().highlightText(messageRecord, searchHandler.getSearchedTerm());
     }
 
@@ -343,7 +340,6 @@ public class ConversationAdapter <V extends View & BindableConversationItem>
   }
 
   public void addMessagesToSearchHandler(SearchHandler searchHandler, boolean firstLoad) {
-
     if (firstLoad) {
       if (!searchHandler.hasMessageRecords()) {
         int i = 0;

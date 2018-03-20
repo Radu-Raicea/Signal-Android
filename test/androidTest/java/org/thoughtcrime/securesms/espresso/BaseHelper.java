@@ -24,7 +24,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 abstract class BaseHelper<T> {
     // TODO temporary solution until pinned images sent to self finish loading (bug)
     static String groupName    = "TESTTESTTEST";
-    static String phoneNumber  = "+15148136314";
+    static String phoneNumber1 = "+15148136314";
     static String phoneNumber2 = "+15149709566";
 
 
@@ -33,7 +33,7 @@ abstract class BaseHelper<T> {
     public BaseHelper(ActivityTestRule<ConversationListActivity> activityRule) {
         activityRule.launchActivity(new Intent());
 
-        if (BaseHelper.phoneNumber == null) {
+        if (BaseHelper.phoneNumber1 == null) {
             openActionBarOverflowOrOptionsMenu(InstrumentationRegistry.getTargetContext());
 
             onView(ViewMatchers.withText(R.string.text_secure_normal__menu_settings))
@@ -41,14 +41,14 @@ abstract class BaseHelper<T> {
 
             final String[] stringHolder = {null};
             onView(withId(R.id.number)).perform(ViewActions.getTextFromView(stringHolder));
-            BaseHelper.phoneNumber = stringHolder[0];
+            BaseHelper.phoneNumber1 = stringHolder[0];
 
             pressBack();
         }
     }
 
     public String getPhoneNumber() {
-        return BaseHelper.phoneNumber;
+        return BaseHelper.phoneNumber1;
     }
 
     /* ASSERTIONS */

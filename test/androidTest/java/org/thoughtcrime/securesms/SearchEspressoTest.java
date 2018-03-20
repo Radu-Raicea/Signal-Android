@@ -12,6 +12,8 @@ import org.thoughtcrime.securesms.espresso.Helper;
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class SearchEspressoTest {
+    private String wholeScreenMessage = "@\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n@";
+
     @Rule
     public ActivityTestRule<ConversationListActivity> mainActivityRule =
             new ActivityTestRule(ConversationListActivity.class, true, false);
@@ -36,23 +38,47 @@ public class SearchEspressoTest {
             .goConversations()
             .goConversation()
                 .sendMessage(testString)
-                .sendMessage("@")
+                .sendMessage(this.wholeScreenMessage)
             .goSearch()
-                .search("-");
+                .search(testString)
+                .assertText(testString);
     }
 
     @Test
     public void canMatchMixedCase() {
-        // TODO
-    }
+        Helper helper = new Helper(mainActivityRule);
 
-    @Test
-    public void canHighlightMultipleMatchesPerMessage() {
-        // TODO
+        String testString = helper.randString();
+
+        helper
+            .goConversations()
+            .goConversation()
+                .sendMessage(testString)
+                .sendMessage(this.wholeScreenMessage)
+            .goSearch()
+                .search(testString.toUpperCase())
+                .assertText(testString);
     }
 
     @Test
     public void canNavigateResults() {
-        // TODO
+        Helper helper = new Helper(mainActivityRule);
+
+        String testString1 = helper.randString();
+        String testString2 = helper.randString();
+
+        helper
+            .goConversations()
+            .goConversation()
+                .sendMessage(testString1)
+                .sendMessage(this.wholeScreenMessage)
+                .sendMessage(testString2)
+                .sendMessage(this.wholeScreenMessage)
+            .goSearch()
+                .search("-")
+                .up()
+                .assertText(testString1)
+                .down()
+                .assertText(testString2);
     }
 }

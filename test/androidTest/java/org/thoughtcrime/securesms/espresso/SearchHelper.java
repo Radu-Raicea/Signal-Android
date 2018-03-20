@@ -9,12 +9,14 @@ import static android.support.test.espresso.action.ViewActions.pressImeActionBut
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 
-public class SearchHelper extends BaseRecyclerHelper<ConversationHelper> {
+public class SearchHelper extends BaseRecyclerHelper<SearchHelper> {
     SearchHelper(HelperSecret s) {}
 
     public SearchHelper search(String message) {
         onView(withId(R.id.custom_search))
-            .perform(typeText(message), pressImeActionButton());
+            .perform(typeText(message));
+        onView(withId(R.id.custom_search))
+            .perform(pressImeActionButton());
 
         return this;
     }

@@ -12,7 +12,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.thoughtcrime.securesms.espresso.ViewMatchers.atPosition;
 import static org.thoughtcrime.securesms.espresso.ViewMatchers.visibleIdAtPosition;
 
-class BaseRecyclerHelper<T> extends BaseHelper {
+class BaseRecyclerHelper<T> extends BaseHelper<T> {
 
     /* ASSERTIONS */
 

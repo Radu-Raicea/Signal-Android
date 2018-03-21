@@ -1209,6 +1209,7 @@
     <string name="conversation_context__menu_resend_message">Resend message</string>
     <string name="conversation_context__menu_pin_message">Pin message</string>
     <string name="conversation_context__menu_unpin_message">Unpin message</string>
+    <string name="conversation_context__menu_emoji">Add emoji reaction</string>
 
     <!-- conversation_context_image -->
     <string name="conversation_context_image__save_attachment">Save attachment</string>

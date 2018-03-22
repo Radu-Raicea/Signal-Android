@@ -117,7 +117,8 @@ public class DatabaseFactory {
   private static final int MORE_RECIPIENT_FIELDS                           = 47;
   private static final int INTRODUCED_PINNED_MESSAGES                      = 48;
   private static final int INTRODUCED_NICKNAMES                            = 49;
-  private static final int DATABASE_VERSION                                = 49;
+  private static final int INTRODUCED_MESSAGE_REACTION                     = 50;
+  private static final int DATABASE_VERSION                                = 50;
 
   private static final String DATABASE_NAME    = "messages.db";
   private static final Object lock             = new Object();
@@ -205,6 +206,10 @@ public class DatabaseFactory {
 
   public static GroupReceiptDatabase getGroupReceiptDatabase(Context context) {
     return getInstance(context).groupReceiptDatabase;
+  }
+
+  public static MessageReactionDatabase getMessageReactionDatabase(Context context) {
+    return getInstance(context).messageReactionDatabase;
   }
 
   private DatabaseFactory(Context context) {
@@ -1428,6 +1433,14 @@ public class DatabaseFactory {
 
       if (oldVersion < INTRODUCED_NICKNAMES) {
         db.execSQL("ALTER TABLE recipient_preferences ADD COLUMN nick_name TEXT DEFAULT NULL;");
+      }
+
+      if(oldVersion < INTRODUCED_MESSAGE_REACTION) {
+        db.execSQL(MessageReactionDatabase.CREATE_TABLE);
+        db.execSQL("ALTER TABLE sms ADD COLUMN hash TEXT;");
+        db.execSQL("ALTER TABLE mms ADD COLUMN hash TEXT;");
+
+        // TODO gab add the method to generate the hash of the past messages here
       }
 
       db.setTransactionSuccessful();

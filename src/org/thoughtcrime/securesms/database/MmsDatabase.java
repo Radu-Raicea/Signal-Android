@@ -1105,7 +1105,7 @@ public class MmsDatabase extends MessagingDatabase {
                                        new LinkedList<NetworkFailure>(),
                                        message.getSubscriptionId(),
                                        message.getExpiresIn(),
-                                       System.currentTimeMillis(), 0);
+                                       System.currentTimeMillis(), 0, null);
     }
   }
 
@@ -1158,6 +1158,7 @@ public class MmsDatabase extends MessagingDatabase {
       int       deliveryReceiptCount = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.DELIVERY_RECEIPT_COUNT));
       int       readReceiptCount     = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.READ_RECEIPT_COUNT));
       int       subscriptionId       = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.SUBSCRIPTION_ID));
+      String    hash                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsDatabase.HASH));
 
       if (!TextSecurePreferences.isReadReceiptsEnabled(context)) {
         readReceiptCount = 0;
@@ -1179,7 +1180,7 @@ public class MmsDatabase extends MessagingDatabase {
                                               addressDeviceId, dateSent, dateReceived, deliveryReceiptCount, threadId,
                                               contentLocationBytes, messageSize, expiry, status,
                                               transactionIdBytes, mailbox, subscriptionId, slideDeck,
-                                              readReceiptCount);
+                                              readReceiptCount, hash);
     }
 
     private MediaMmsMessageRecord getMediaMmsMessageRecord(Cursor cursor) {
@@ -1199,6 +1200,7 @@ public class MmsDatabase extends MessagingDatabase {
       int                subscriptionId       = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.SUBSCRIPTION_ID));
       long               expiresIn            = cursor.getLong(cursor.getColumnIndexOrThrow(MmsDatabase.EXPIRES_IN));
       long               expireStarted        = cursor.getLong(cursor.getColumnIndexOrThrow(MmsDatabase.EXPIRE_STARTED));
+      String             hash                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsDatabase.HASH));
 
       if (!TextSecurePreferences.isReadReceiptsEnabled(context)) {
         readReceiptCount = 0;
@@ -1213,7 +1215,7 @@ public class MmsDatabase extends MessagingDatabase {
                                        addressDeviceId, dateSent, dateReceived, deliveryReceiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
                                        networkFailures, subscriptionId, expiresIn, expireStarted,
-                                       readReceiptCount);
+                                       readReceiptCount, hash);
     }
 
     private Recipient getRecipientFor(String serialized) {

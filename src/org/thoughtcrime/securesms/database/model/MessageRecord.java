@@ -53,6 +53,7 @@ public abstract class MessageRecord extends DisplayRecord {
   private final int                       subscriptionId;
   private final long                      expiresIn;
   private final long                      expireStarted;
+  private final String                    hash;
 
   MessageRecord(Context context, long id, Body body, Recipient conversationRecipient,
                 Recipient individualRecipient, int recipientDeviceId,
@@ -61,7 +62,7 @@ public abstract class MessageRecord extends DisplayRecord {
                 List<IdentityKeyMismatch> mismatches,
                 List<NetworkFailure> networkFailures,
                 int subscriptionId, long expiresIn, long expireStarted,
-                int readReceiptCount)
+                int readReceiptCount, String hash)
   {
     super(context, body, conversationRecipient, dateSent, dateReceived,
           threadId, deliveryStatus, deliveryReceiptCount, type, readReceiptCount);
@@ -73,6 +74,7 @@ public abstract class MessageRecord extends DisplayRecord {
     this.subscriptionId      = subscriptionId;
     this.expiresIn           = expiresIn;
     this.expireStarted       = expireStarted;
+    this.hash                = hash;
   }
 
   public abstract boolean isMms();
@@ -239,5 +241,9 @@ public abstract class MessageRecord extends DisplayRecord {
 
   public long getExpireStarted() {
     return expireStarted;
+  }
+
+  public String getHash() {
+    return hash;
   }
 }

@@ -814,7 +814,7 @@ public class SmsDatabase extends MessagingDatabase {
                                   0, message.isSecureMessage() ? MmsSmsColumns.Types.getOutgoingEncryptedMessageType() : MmsSmsColumns.Types.getOutgoingSmsMessageType(),
                                   threadId, 0, new LinkedList<IdentityKeyMismatch>(),
                                   message.getSubscriptionId(), message.getExpiresIn(),
-                                  System.currentTimeMillis(), 0);
+                                  System.currentTimeMillis(), 0, null);
     }
   }
 
@@ -853,6 +853,7 @@ public class SmsDatabase extends MessagingDatabase {
       int     subscriptionId       = cursor.getInt(cursor.getColumnIndexOrThrow(SmsDatabase.SUBSCRIPTION_ID));
       long    expiresIn            = cursor.getLong(cursor.getColumnIndexOrThrow(SmsDatabase.EXPIRES_IN));
       long    expireStarted        = cursor.getLong(cursor.getColumnIndexOrThrow(SmsDatabase.EXPIRE_STARTED));
+      String  hash                 = cursor.getString(cursor.getColumnIndexOrThrow(SmsDatabase.HASH));
 
       if (!TextSecurePreferences.isReadReceiptsEnabled(context)) {
         readReceiptCount = 0;
@@ -867,7 +868,7 @@ public class SmsDatabase extends MessagingDatabase {
                                   addressDeviceId,
                                   dateSent, dateReceived, deliveryReceiptCount, type,
                                   threadId, status, mismatches, subscriptionId,
-                                  expiresIn, expireStarted, readReceiptCount);
+                                  expiresIn, expireStarted, readReceiptCount, hash);
     }
 
     private List<IdentityKeyMismatch> getMismatches(String document) {

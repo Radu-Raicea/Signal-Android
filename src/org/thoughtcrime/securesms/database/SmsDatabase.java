@@ -565,6 +565,11 @@ public class SmsDatabase extends MessagingDatabase {
     values.put(BODY, message.getMessageBody());
     values.put(TYPE, type);
     values.put(THREAD_ID, threadId);
+
+    Log.w(TAG, "Generating incoming message Hash from number+time: " + message.getSender().serialize() + "-" + message.getSentTimestampMillis());
+    Log.w(TAG, "Generated incoming message HASH : " + MessageHash.generateFrom(message.getSender().serialize(),
+            message.getSentTimestampMillis()+ ""));
+
     values.put(HASH, MessageHash.generateFrom(message.getSender().serialize(),
             message.getSentTimestampMillis()+ ""));
 
@@ -629,6 +634,10 @@ public class SmsDatabase extends MessagingDatabase {
     contentValues.put(EXPIRES_IN, message.getExpiresIn());
     contentValues.put(DELIVERY_RECEIPT_COUNT, Stream.of(earlyDeliveryReceipts.values()).mapToLong(Long::longValue).sum());
     contentValues.put(READ_RECEIPT_COUNT, Stream.of(earlyReadReceipts.values()).mapToLong(Long::longValue).sum());
+    Log.w(TAG, "Generating outgoing message Hash from number+time: " + address.serialize() + "-" + date);
+    Log.w(TAG, "Generated outgoing message HASH : " + MessageHash.generateFrom(address.serialize(),
+            date+ ""));
+
     contentValues.put(HASH, MessageHash.generateFrom( address.serialize(),
             date+ ""));
 

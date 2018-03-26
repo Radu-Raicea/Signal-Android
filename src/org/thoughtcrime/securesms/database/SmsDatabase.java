@@ -634,9 +634,15 @@ public class SmsDatabase extends MessagingDatabase {
     contentValues.put(EXPIRES_IN, message.getExpiresIn());
     contentValues.put(DELIVERY_RECEIPT_COUNT, Stream.of(earlyDeliveryReceipts.values()).mapToLong(Long::longValue).sum());
     contentValues.put(READ_RECEIPT_COUNT, Stream.of(earlyReadReceipts.values()).mapToLong(Long::longValue).sum());
-    Log.w(TAG, "Generating outgoing message Hash from number+time: " + address.serialize() + "-" + date);
-    Log.w(TAG, "Generated outgoing message HASH : " + MessageHash.generateFrom(address.serialize(),
-            date+ ""));
+    try {
+      Log.w(TAG, "Generating outgoing message Hash from number+time: " + DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize() + "-" + date);
+      Log.w(TAG, "Generated outgoing message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
+              date+ ""));
+      Log.w(TAG, "Generated outgoing message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
+              date+ ""));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     contentValues.put(HASH, MessageHash.generateFrom( address.serialize(),
             date+ ""));

@@ -686,7 +686,6 @@ public class MmsDatabase extends MessagingDatabase {
     Log.w(TAG, "Generated incoming mms message HASH : " + MessageHash.generateFrom(retrieved.getFrom().serialize(),
             retrieved.getSentTimeMillis()+ ""));
 
-
     contentValues.put(HASH, MessageHash.generateFrom(retrieved.getFrom().serialize(),
             retrieved.getSentTimeMillis()+ ""));
 
@@ -856,14 +855,19 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(READ_RECEIPT_COUNT, Stream.of(earlyReadReceipts.values()).mapToLong(Long::longValue).sum());
 
 
-    Log.w(TAG, "Generating outgoing mms message Hash from number+time: " + message.getRecipient().getAddress().serialize() + "-" +
-            message.getSentTimeMillis());
 
-    Log.w(TAG, "Generated outgoin mms message HASH : " + MessageHash.generateFrom(message.getRecipient().getAddress().serialize(),
-            message.getSentTimeMillis()+ ""));
 
-    contentValues.put(HASH, MessageHash.generateFrom(message.getRecipient().getAddress().serialize(),
-            message.getSentTimeMillis()+ ""));
+    try {
+      Log.w(TAG, "Generating outgoing mms message Hash from number+time: " + DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize() + "-" +
+              message.getSentTimeMillis());
+      Log.w(TAG, "Generated outgoin mms message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
+              message.getSentTimeMillis() + ""));
+      contentValues.put(HASH, MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
+              message.getSentTimeMillis()+ ""));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     long messageId = insertMediaMessage(masterSecret, message.getBody(), message.getAttachments(), contentValues, insertListener);
 

@@ -44,6 +44,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.view.menu.ActionMenuItemView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -758,6 +759,21 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     startActivity(intent);
   }
 
+  public void handleEmojiReaction(){
+    Log.w("Shawn", "Reached emoji reaction activity");
+    showKeyboard();
+    // Add listener for single keyboard press
+    // Check if press is emoji
+    // Add emojiReaction to message in db
+    // Send syncronization message
+    // handleEmojiDisplay(emoji);
+
+  }
+
+  private void handleEmojiDisplay(String emoji){
+
+  }
+
   private void handleSearch(MenuItem item) {
     bottomPanel = (InputPanel)findViewById(R.id.bottom_panel);
     searchView = (SearchView)findViewById(R.id.custom_search);
@@ -798,6 +814,18 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
+  }
+
+  private void showKeyboard()
+  {
+    View view = this.getCurrentFocus();
+    if (view != null) {
+      InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+      imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+      onEmojiToggle();
+
+    }
+
   }
 
   private void handleLeavePushGroup() {

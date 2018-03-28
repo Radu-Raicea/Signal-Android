@@ -45,10 +45,26 @@ public class MessageReactionDatabase extends Database {
         super(context, databaseHelper);
     }
 
+    // NOT TESTED
+    public void reactToMessage(String hash, String reaction, Long reactionDate, Address reactorID) {
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        String      type;
+        ContentValues values = new ContentValues();
+
+        type = db.rawQuery("SELECT ? FROM ? WHERE ? = ? ", new String[] {REACTOR_ID, TABLE_NAME, SMS_HASH, hash})
+                .getCount() > 0 ? SMS_HASH : MMS_HASH;
+
+        values.put(type, hash);
+        values.put(REACTION, reaction);
+        values.put(REACTOR_ID, reactorID.serialize());
+        values.put(REACTION_DATE, reactionDate);
+        insertOrUpdate(values, type);
+    }
+
     public void reactToMessage(MessageRecord messageRecord, String reaction, Long reactionDate) {
         String        messageType;
         ContentValues values = new ContentValues();
-        
+
         messageType = getMessageType(messageRecord);
         values.put(messageType, messageRecord.getHash());
 
@@ -60,6 +76,7 @@ public class MessageReactionDatabase extends Database {
                 e.printStackTrace();
                 Parcel p = Parcel.obtain();
                 p.writeString("Me");
+                p.setDataPosition(0);
                 address = new Address(p);
             }
         } else {
@@ -113,7 +130,7 @@ public class MessageReactionDatabase extends Database {
         database.endTransaction();
     }
 
-    private int  removeReaction(MessageRecord record) {
+    public int removeReaction(MessageRecord record) {
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
 
         return database.delete(TABLE_NAME, getMessageType(record) + " = ?", new String[]{record.getHash()});

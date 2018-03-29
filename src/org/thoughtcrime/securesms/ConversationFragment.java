@@ -231,6 +231,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
             menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
             menu.findItem(R.id.menu_context_pin_message).setVisible(false);
             menu.findItem(R.id.menu_context_unpin_message).setVisible(false);
+            menu.findItem(R.id.menu_context_emoji).setVisible(false);
         } else {
             MessageRecord messageRecord = messageRecords.iterator().next();
 
@@ -245,6 +246,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
             menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
 
             setCorrectPinVisibility(menu, messageRecord, actionMessage);
+            setCorrectEmojiVisibility(menu, messageRecord, actionMessage);
         }
     }
 
@@ -255,6 +257,14 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         } else {
             menu.findItem(R.id.menu_context_pin_message).setVisible(!actionMessage);
             menu.findItem(R.id.menu_context_unpin_message).setVisible(false);
+        }
+    }
+
+    private void setCorrectEmojiVisibility(Menu menu, MessageRecord messageRecord, boolean actionMessage) {
+        if (messageRecord.hasEmojiReaction()) {
+            menu.findItem(R.id.menu_context_emoji).setVisible(false);
+        } else {
+            menu.findItem(R.id.menu_context_emoji).setVisible(!actionMessage);
         }
     }
 
@@ -648,6 +658,8 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
                 list.getAdapter().notifyDataSetChanged();
 
                 actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(actionModeCallback);
+
+
             }
         }
     }
@@ -722,6 +734,11 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
                 case R.id.menu_context_unpin_message:
                     handlePinOrUnpinMessage(getSelectedMessageRecord(), false,
                             new PinnedMessageHandler(getContext()));
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_emoji:
+                    Log.w("Radu", "Emoji button pressed.");
+                    ((ConversationActivity)getActivity()).handleEmojiReaction();
                     actionMode.finish();
                     return true;
             }

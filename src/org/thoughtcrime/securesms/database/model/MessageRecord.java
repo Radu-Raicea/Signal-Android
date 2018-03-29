@@ -88,6 +88,11 @@ public abstract class MessageRecord extends DisplayRecord {
     return MmsSmsColumns.Types.isPinned(type);
   }
 
+  public boolean hasEmojiReaction() {
+    // To implement
+    return false;
+  }
+
   public boolean isLegacyMessage() {
     return MmsSmsColumns.Types.isLegacyType(type);
   }

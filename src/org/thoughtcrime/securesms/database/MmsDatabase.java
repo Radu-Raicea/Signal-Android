@@ -60,6 +60,7 @@ import org.thoughtcrime.securesms.mms.SlideDeck;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFormattingException;
 import org.thoughtcrime.securesms.util.JsonUtils;
+import org.thoughtcrime.securesms.util.MessageHash;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.whispersystems.jobqueue.JobManager;
@@ -108,7 +109,8 @@ public class MmsDatabase extends MessagingDatabase {
     NETWORK_FAILURE + " TEXT DEFAULT NULL," + "d_rpt" + " INTEGER, " +
     SUBSCRIPTION_ID + " INTEGER DEFAULT -1, " + EXPIRES_IN + " INTEGER DEFAULT 0, " +
     EXPIRE_STARTED + " INTEGER DEFAULT 0, " + NOTIFIED + " INTEGER DEFAULT 0, " +
-    READ_RECEIPT_COUNT + " INTEGER DEFAULT 0, " + PINNED + " BOOLEAN DEFAULT 0 );";
+    READ_RECEIPT_COUNT + " INTEGER DEFAULT 0, " + PINNED + " BOOLEAN DEFAULT 0, " +
+    HASH + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS mms_thread_id_index ON " + TABLE_NAME + " (" + THREAD_ID + ");",
@@ -128,7 +130,7 @@ public class MmsDatabase extends MessagingDatabase {
       MESSAGE_SIZE, STATUS, TRANSACTION_ID,
       BODY, PART_COUNT, ADDRESS, ADDRESS_DEVICE_ID,
       DELIVERY_RECEIPT_COUNT, READ_RECEIPT_COUNT, MISMATCHED_IDENTITIES, NETWORK_FAILURE, SUBSCRIPTION_ID,
-      EXPIRES_IN, EXPIRE_STARTED, NOTIFIED,
+      EXPIRES_IN, EXPIRE_STARTED, NOTIFIED, HASH,
       AttachmentDatabase.TABLE_NAME + "." + AttachmentDatabase.ROW_ID + " AS " + AttachmentDatabase.ATTACHMENT_ID_ALIAS,
       AttachmentDatabase.UNIQUE_ID,
       AttachmentDatabase.MMS_ID,
@@ -678,6 +680,15 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(EXPIRES_IN, retrieved.getExpiresIn());
     contentValues.put(READ, retrieved.isExpirationUpdate() ? 1 : 0);
 
+    Log.w(TAG, "Generating incoming mms message Hash from number+time: " + retrieved.getFrom().serialize() + "-" +
+            retrieved.getSentTimeMillis());
+
+    Log.w(TAG, "Generated incoming mms message HASH : " + MessageHash.generateFrom(retrieved.getFrom().serialize(),
+            retrieved.getSentTimeMillis()+ ""));
+
+    contentValues.put(HASH, MessageHash.generateFrom(retrieved.getFrom().serialize(),
+            retrieved.getSentTimeMillis()+ ""));
+
     if (!contentValues.containsKey(DATE_SENT)) {
       contentValues.put(DATE_SENT, contentValues.getAsLong(DATE_RECEIVED));
     }
@@ -775,6 +786,15 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(READ, Util.isDefaultSmsProvider(context) ? 0 : 1);
     contentValues.put(SUBSCRIPTION_ID, subscriptionId);
 
+    Log.w(TAG, "Generating incoming mms message Hash from number+time: " +Address.fromExternal(context, Util.toIsoString(notification.getFrom().getTextString())).serialize() + "-" +
+            System.currentTimeMillis());
+
+    Log.w(TAG, "Generated incoming mms message HASH : " + MessageHash.generateFrom(Address.fromExternal(context, Util.toIsoString(notification.getFrom().getTextString())).serialize(),
+            System.currentTimeMillis()+ ""));
+
+    contentValues.put(HASH, MessageHash.generateFrom(Address.fromExternal(context, Util.toIsoString(notification.getFrom().getTextString())).serialize(),
+            System.currentTimeMillis()+ ""));
+
     if (!contentValues.containsKey(DATE_SENT))
       contentValues.put(DATE_SENT, contentValues.getAsLong(DATE_RECEIVED));
 
@@ -833,6 +853,21 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(ADDRESS, message.getRecipient().getAddress().serialize());
     contentValues.put(DELIVERY_RECEIPT_COUNT, Stream.of(earlyDeliveryReceipts.values()).mapToLong(Long::longValue).sum());
     contentValues.put(READ_RECEIPT_COUNT, Stream.of(earlyReadReceipts.values()).mapToLong(Long::longValue).sum());
+
+
+
+
+    try {
+      Log.w(TAG, "Generating outgoing mms message Hash from number+time: " + DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize() + "-" +
+              message.getSentTimeMillis());
+      Log.w(TAG, "Generated outgoin mms message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
+              message.getSentTimeMillis() + ""));
+      contentValues.put(HASH, MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
+              message.getSentTimeMillis()+ ""));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     long messageId = insertMediaMessage(masterSecret, message.getBody(), message.getAttachments(), contentValues, insertListener);
 
@@ -1104,7 +1139,7 @@ public class MmsDatabase extends MessagingDatabase {
                                        new LinkedList<NetworkFailure>(),
                                        message.getSubscriptionId(),
                                        message.getExpiresIn(),
-                                       System.currentTimeMillis(), 0);
+                                       System.currentTimeMillis(), 0, null);
     }
   }
 
@@ -1157,6 +1192,7 @@ public class MmsDatabase extends MessagingDatabase {
       int       deliveryReceiptCount = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.DELIVERY_RECEIPT_COUNT));
       int       readReceiptCount     = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.READ_RECEIPT_COUNT));
       int       subscriptionId       = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.SUBSCRIPTION_ID));
+      String    hash                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsDatabase.HASH));
 
       if (!TextSecurePreferences.isReadReceiptsEnabled(context)) {
         readReceiptCount = 0;
@@ -1178,7 +1214,7 @@ public class MmsDatabase extends MessagingDatabase {
                                               addressDeviceId, dateSent, dateReceived, deliveryReceiptCount, threadId,
                                               contentLocationBytes, messageSize, expiry, status,
                                               transactionIdBytes, mailbox, subscriptionId, slideDeck,
-                                              readReceiptCount);
+                                              readReceiptCount, hash);
     }
 
     private MediaMmsMessageRecord getMediaMmsMessageRecord(Cursor cursor) {
@@ -1198,6 +1234,7 @@ public class MmsDatabase extends MessagingDatabase {
       int                subscriptionId       = cursor.getInt(cursor.getColumnIndexOrThrow(MmsDatabase.SUBSCRIPTION_ID));
       long               expiresIn            = cursor.getLong(cursor.getColumnIndexOrThrow(MmsDatabase.EXPIRES_IN));
       long               expireStarted        = cursor.getLong(cursor.getColumnIndexOrThrow(MmsDatabase.EXPIRE_STARTED));
+      String             hash                 = cursor.getString(cursor.getColumnIndexOrThrow(MmsDatabase.HASH));
 
       if (!TextSecurePreferences.isReadReceiptsEnabled(context)) {
         readReceiptCount = 0;
@@ -1212,7 +1249,7 @@ public class MmsDatabase extends MessagingDatabase {
                                        addressDeviceId, dateSent, dateReceived, deliveryReceiptCount,
                                        threadId, body, slideDeck, partCount, box, mismatches,
                                        networkFailures, subscriptionId, expiresIn, expireStarted,
-                                       readReceiptCount);
+                                       readReceiptCount, hash);
     }
 
     private Recipient getRecipientFor(String serialized) {

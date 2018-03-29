@@ -20,6 +20,7 @@ public interface MmsSmsColumns {
   public static final String EXPIRE_STARTED           = "expire_started";
   public static final String NOTIFIED                 = "notified";
   public static final String PINNED                   = "pinned";
+  public static final String HASH                     = "hash";
 
   public static class Types {
     protected static final long TOTAL_MASK = 0xFFFFFFFF;

@@ -353,6 +353,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
 
         this.showToast(outputMessage);
+        Log.w(TAG, "This is the hash: " + message.getHash());
     }
 
     private void handleDeleteMessages(final Set<MessageRecord> messageRecords) {

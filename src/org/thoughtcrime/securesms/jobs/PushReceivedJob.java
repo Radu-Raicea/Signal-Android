@@ -46,6 +46,11 @@ public abstract class PushReceivedJob extends ContextJob {
     JobManager jobManager = ApplicationContext.getInstance(context).getJobManager();
 
     if (!recipients.isBlocked()) {
+      // Radu: handle message parsing to know if reaction or normal msg
+      // if reaction
+      //     Radu: insert reaction into db
+      //     Daniel: create new job that will refresh view
+
       long messageId = DatabaseFactory.getPushDatabase(context).insert(envelope);
       jobManager.add(new PushDecryptJob(context, messageId));
     } else {

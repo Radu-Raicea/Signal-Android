@@ -49,6 +49,7 @@ import org.thoughtcrime.securesms.util.DelimiterUtil;
 import org.thoughtcrime.securesms.util.Hex;
 import org.thoughtcrime.securesms.util.JsonUtils;
 import org.thoughtcrime.securesms.util.MediaUtil;
+import org.thoughtcrime.securesms.util.MessageHash;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.whispersystems.libsignal.IdentityKey;
@@ -118,7 +119,7 @@ public class DatabaseFactory {
   private static final int INTRODUCED_PINNED_MESSAGES                      = 48;
   private static final int INTRODUCED_NICKNAMES                            = 49;
   private static final int INTRODUCED_MESSAGE_REACTION                     = 50;
-  private static final int DATABASE_VERSION                                = 50;
+  private static final int DATABASE_VERSION                                = 49;
 
   private static final String DATABASE_NAME    = "messages.db";
   private static final Object lock             = new Object();
@@ -1440,7 +1441,23 @@ public class DatabaseFactory {
         db.execSQL("ALTER TABLE sms ADD COLUMN hash TEXT;");
         db.execSQL("ALTER TABLE mms ADD COLUMN hash TEXT;");
 
-        // TODO gab add the method to generate the hash of the past messages here
+        Cursor smsCursor = db.rawQuery("SELECT _id, address, date_sent FROM sms", null);
+        while(smsCursor.moveToNext()) {
+          String address = smsCursor.getString(smsCursor.getColumnIndex("address"));
+          String date = smsCursor.getString(smsCursor.getColumnIndex("date_sent"));
+          String hash = MessageHash.generateFrom(address, date);
+          Log.w(TAG, ">>>>>>" + address  + " " + date + " " + hash);
+        }
+        smsCursor.close();
+
+        Cursor mmsCursor = db.rawQuery("SELECT _id, address, date FROM mms", null);
+        while(mmsCursor.moveToNext()) {
+          String address = mmsCursor.getString(mmsCursor.getColumnIndex("address"));
+          String date = mmsCursor.getString(mmsCursor.getColumnIndex("date"));
+          String hash = MessageHash.generateFrom(address, date);
+          Log.w(TAG, "<<<<<<" + address  + " " + date + " " + hash);
+        }
+        mmsCursor.close();
       }
 
       db.setTransactionSuccessful();

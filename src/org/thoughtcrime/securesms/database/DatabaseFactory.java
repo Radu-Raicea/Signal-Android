@@ -1441,7 +1441,7 @@ public class DatabaseFactory {
         db.execSQL("ALTER TABLE sms ADD COLUMN hash TEXT;");
         db.execSQL("ALTER TABLE mms ADD COLUMN hash TEXT;");
 
-        Cursor smsCursor = db.rawQuery("SELECT _id, address, date_sent FROM sms WHERE hash=NULL", null);
+        Cursor smsCursor = db.rawQuery("SELECT _id, address, date_sent FROM sms WHERE hash=''", null);
         while (smsCursor.moveToNext()) {
           String address = smsCursor.getString(smsCursor.getColumnIndex("address"));
           String date = smsCursor.getString(smsCursor.getColumnIndex("date_sent"));
@@ -1454,7 +1454,7 @@ public class DatabaseFactory {
         }
         smsCursor.close();
 
-        Cursor mmsCursor = db.rawQuery("SELECT _id, address, date FROM mms WHERE hash=NULL", null);
+        Cursor mmsCursor = db.rawQuery("SELECT _id, address, date FROM mms WHERE hash=''", null);
         while (mmsCursor.moveToNext()) {
           String address = mmsCursor.getString(mmsCursor.getColumnIndex("address"));
           String date = mmsCursor.getString(mmsCursor.getColumnIndex("date"));

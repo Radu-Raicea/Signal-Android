@@ -44,7 +44,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.WindowCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.view.menu.ActionMenuItemView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -117,6 +116,7 @@ import org.thoughtcrime.securesms.database.MmsSmsColumns.Types;
 import org.thoughtcrime.securesms.database.RecipientDatabase.RegisteredState;
 import org.thoughtcrime.securesms.database.ThreadDatabase;
 import org.thoughtcrime.securesms.database.identity.IdentityRecordList;
+import org.thoughtcrime.securesms.database.model.MessageRecord;
 import org.thoughtcrime.securesms.events.ReminderUpdateEvent;
 import org.thoughtcrime.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import org.thoughtcrime.securesms.jobs.RetrieveProfileJob;
@@ -259,6 +259,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private boolean    isMmsEnabled          = true;
   private boolean    isSecurityInitialized = false;
   private boolean    isSearchMode          = false;
+  private boolean    isEmojiReactionMode   = false;
 
   private final IdentityRecordList identityRecords = new IdentityRecordList();
   private final DynamicTheme       dynamicTheme    = new DynamicTheme();
@@ -759,19 +760,44 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     startActivity(intent);
   }
 
-  public void handleEmojiReaction(){
-    Log.w("Shawn", "Reached emoji reaction activity");
-    showKeyboard();
-    // Add listener for single keyboard press
-    // Check if press is emoji
-    // Add emojiReaction to message in db
+  public void handleEmojiReaction(MessageRecord messageRecord, ReactionsHandler handler){
+
+    isEmojiReactionMode = true;
+
+    onEmojiToggle();
+    container.show(composeText, emojiDrawerStub.get()); //incase toggle doesn't work
+    inputPanel.setVisibility(View.GONE);
+    setEmojiKeyboardListener(messageRecord, handler);
+
+    Log.w("Daniel", "This is the hash: " + messageRecord.getHash());
     // Send syncronization message
     // handleEmojiDisplay(emoji);
+    isEmojiReactionMode = false;
 
   }
 
-  private void handleEmojiDisplay(String emoji){
+  private void setEmojiKeyboardListener(MessageRecord messageRecord, ReactionsHandler handler) {
+    this.emojiDrawerStub.get().setEmojiEventListener(new EmojiDrawer.EmojiEventListener() {
+      @Override
+      public void onKeyEvent(KeyEvent keyEvent) {
+        Log.w("Daniel", "event: " + keyEvent + "code:" + keyEvent.getKeyCode());
+      }
 
+      @Override
+      public void onEmojiSelected(String emoji) {
+        Log.w("Daniel", "emoji: " + emoji);
+        handler.reactToMessage(messageRecord, emoji);
+        container.showSoftkey(composeText);
+        inputPanel.setEmojiDrawer(emojiDrawerStub.get());
+        emojiDrawerStub.get().setEmojiEventListener(inputPanel);
+        hideKeyboard();
+        inputPanel.setVisibility(View.VISIBLE);
+//        final int start = composeText.getSelectionStart();
+//        final int end   = composeText.getSelectionEnd();
+//        composeText.getText().replace(Math.min(start, end), Math.max(start, end), emoji);
+//        composeText.setSelection(start + emoji.length());
+      }
+    });
   }
 
   private void handleSearch(MenuItem item) {
@@ -816,18 +842,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     }
   }
 
-  private void showKeyboard()
-  {
-    View view = this.getCurrentFocus();
-    if (view != null) {
-      InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-      imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-      onEmojiToggle();
-      linMessage.setVisibility(View.GONE);
-
-    }
-
-  }
 
   private void handleLeavePushGroup() {
     if (getRecipient() == null) {

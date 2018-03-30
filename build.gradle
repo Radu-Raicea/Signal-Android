@@ -15,12 +15,14 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.novoda:gradle-static-analysis-plugin:0.5.2'
         classpath files('libs/gradle-witness.jar')
     }
 }
 
 apply plugin: 'com.android.application'
 apply plugin: 'witness'
+apply plugin: 'com.novoda.static-analysis'
 
 repositories {
     maven {
@@ -446,6 +448,21 @@ tasks.whenTaskAdded { task ->
         task.name.equals("assembleWebsiteRelease"))
     {
          task.finalizedBy assembleWebsiteDescriptor
+    }
+}
+
+staticAnalysis {
+    penalty none
+
+    checkstyle {
+    toolVersion '8.8'
+    configFile rootProject.file('tools/checkstyle-module.xml')
+    }
+    pmd { }
+    findbugs {
+    toolVersion '3.0.1'
+    excludeFilter rootProject.file('tools/findbugs-excludes.xml')
+    includeVariants { variant -> variant.name.contains('debug') } 
     }
 }
 

@@ -1,0 +1,16 @@
+<FindBugsFilter>
+
+  <Match>
+    <Or>
+      <Class name="~.*\.R\$.*" />
+      <Class name="~.*Test" />
+      <Class name="~.*Test\$.*" />
+      <Class name="~.*\.Manifest\$.*" />
+      <Class name="~.*Dagger*.*"/>
+      <Class name="~.*\$\$ViewBinder*"/>
+      <Class name="~.*\$\$ViewBinder\$InnerUnbinder*"/>
+    </Or>
+  </Match>
+
+
+</FindBugsFilter>

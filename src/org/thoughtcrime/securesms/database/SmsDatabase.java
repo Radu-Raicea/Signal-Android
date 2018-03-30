@@ -640,12 +640,12 @@ public class SmsDatabase extends MessagingDatabase {
               date+ ""));
       Log.w(TAG, "Generated outgoing message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
               date+ ""));
+
+      contentValues.put(HASH, MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
+              date + ""));
     } catch (Exception e) {
       e.printStackTrace();
     }
-
-    contentValues.put(HASH, MessageHash.generateFrom( address.serialize(),
-            date+ ""));
 
     SQLiteDatabase db        = databaseHelper.getWritableDatabase();
     long           messageId = db.insert(TABLE_NAME, ADDRESS, contentValues);

@@ -175,6 +175,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static java.lang.System.currentTimeMillis;
 import static org.thoughtcrime.securesms.TransportOption.Type;
 import static org.thoughtcrime.securesms.database.GroupDatabase.GroupRecord;
 import static org.whispersystems.libsignal.SessionCipher.SESSION_LOCK;
@@ -784,9 +785,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       }
 
       @Override
-      public void onEmojiSelected(String emoji) {
+      public void onEmojiSelected(String emoji) throws InvalidMessageException {
         Log.w("Daniel", "emoji: " + emoji);
-        handler.reactToMessage(messageRecord, emoji);
+
+        Long time = currentTimeMillis();
+        handler.reactToMessage(messageRecord, emoji, time);
+
+        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" + emoji + "\", \"time\": \"" + time.toString() + "\"}";
+        sendTextMessage(false,0,-1, false, body);
+
         container.showSoftkey(composeText);
         inputPanel.setEmojiDrawer(emojiDrawerStub.get());
         emojiDrawerStub.get().setEmojiEventListener(inputPanel);
@@ -1744,7 +1751,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       } else if (attachmentManager.isAttachmentPresent() || recipient.isGroupRecipient() || recipient.getAddress().isEmail()) {
         sendMediaMessage(forceSms, expiresIn, subscriptionId, initiating);
       } else {
-        sendTextMessage(forceSms, expiresIn, subscriptionId, initiating);
+        sendTextMessage(forceSms, expiresIn, subscriptionId, initiating, null);
       }
     } catch (RecipientFormattingException ex) {
       Toast.makeText(ConversationActivity.this,
@@ -1811,11 +1818,17 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return future;
   }
 
-  private void sendTextMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final boolean initiatingConversation)
+  private void sendTextMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final boolean initiatingConversation, String body)
       throws InvalidMessageException
   {
     final Context context     = getApplicationContext();
-    final String  messageBody = getMessage();
+    String messageBody;
+
+    if (body != null) {
+      messageBody = body;
+    } else {
+      messageBody = getMessage();
+    }
 
     OutgoingTextMessage message;
 

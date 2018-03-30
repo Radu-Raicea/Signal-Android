@@ -23,6 +23,7 @@ import org.thoughtcrime.securesms.components.RepeatableImageKey;
 import org.thoughtcrime.securesms.components.RepeatableImageKey.KeyEventListener;
 import org.thoughtcrime.securesms.components.emoji.EmojiPageView.EmojiSelectionListener;
 import org.thoughtcrime.securesms.util.ResUtil;
+import org.whispersystems.libsignal.InvalidMessageException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -103,7 +104,7 @@ public class EmojiDrawer extends LinearLayout implements InputView {
                                            models,
                                            new EmojiSelectionListener() {
                                              @Override
-                                             public void onEmojiSelected(String emoji) {
+                                             public void onEmojiSelected(String emoji) throws InvalidMessageException {
                                                Log.w("EmojiDrawer", "onEmojiSelected()");
                                                recentModel.onCodePointSelected(emoji);
                                                if (listener != null) listener.onEmojiSelected(emoji);

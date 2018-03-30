@@ -7,7 +7,10 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Pair;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.thoughtcrime.securesms.ApplicationContext;
+import org.thoughtcrime.securesms.ReactionsHandler;
 import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.attachments.PointerAttachment;
 import org.thoughtcrime.securesms.crypto.IdentityKeyUtil;
@@ -86,8 +89,10 @@ import org.whispersystems.signalservice.api.messages.multidevice.SignalServiceSy
 import org.whispersystems.signalservice.api.messages.multidevice.VerifiedMessage;
 import org.whispersystems.signalservice.api.push.SignalServiceAddress;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class PushDecryptJob extends ContextJob {
@@ -221,6 +226,8 @@ public class PushDecryptJob extends ContextJob {
     } catch (UntrustedIdentityException e) {
       Log.w(TAG, e);
       handleUntrustedIdentityMessage(masterSecret, envelope, smsMessageId);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
@@ -625,11 +632,10 @@ public class PushDecryptJob extends ContextJob {
                                  @NonNull SignalServiceEnvelope envelope,
                                  @NonNull SignalServiceDataMessage message,
                                  @NonNull Optional<Long> smsMessageId)
-      throws MmsException
-  {
-    EncryptingSmsDatabase database   = DatabaseFactory.getEncryptingSmsDatabase(context);
-    String                body       = message.getBody().isPresent() ? message.getBody().get() : "";
-    Recipient             recipient = getMessageDestination(envelope, message);
+          throws MmsException, IOException {
+    EncryptingSmsDatabase database = DatabaseFactory.getEncryptingSmsDatabase(context);
+    String body = message.getBody().isPresent() ? message.getBody().get() : "";
+    Recipient recipient = getMessageDestination(envelope, message);
 
     if (message.getExpiresInSeconds() != recipient.getExpireMessages()) {
       handleExpirationUpdate(masterSecret, envelope, message, Optional.<Long>absent());
@@ -639,6 +645,15 @@ public class PushDecryptJob extends ContextJob {
 
     if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
       threadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body).second;
+    } else if (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\"")){
+      threadId = null;
+      ReactionsHandler handler = new ReactionsHandler(context);
+      ObjectMapper mapper = new ObjectMapper();
+      Map<String,String> map = mapper.readValue(body, Map.class);
+      Log.w("Radu", map.get("hash"));
+      Log.w("Radu", map.get("reaction"));
+      Log.w("Radu", map.get("reactionTime"));
+      handler.reactToMessage(map.get("hash"), map.get("reaction"), Long.parseLong(map.get("reactionTime")), recipient.getAddress()); // IT WILL CRASH AT THE parseLong
     } else {
       IncomingTextMessage textMessage = new IncomingTextMessage(Address.fromExternal(context, envelope.getSource()),
                                                                 envelope.getSourceDevice(),

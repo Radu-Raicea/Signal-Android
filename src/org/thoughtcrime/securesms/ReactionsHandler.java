@@ -13,8 +13,6 @@ import org.thoughtcrime.securesms.database.model.MessageRecord;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.System.currentTimeMillis;
-
 public class ReactionsHandler {
     private MessageReactionDatabase reactionsDb;
 
@@ -31,8 +29,8 @@ public class ReactionsHandler {
      * @param record
      * @param reaction
      */
-    public void reactToMessage(MessageRecord record, String reaction) {
-        this.reactionsDb.reactToMessage(record, reaction, currentTimeMillis());
+    public void reactToMessage(MessageRecord record, String reaction, Long time) {
+        this.reactionsDb.reactToMessage(record, reaction, time);
     }
 
     /**

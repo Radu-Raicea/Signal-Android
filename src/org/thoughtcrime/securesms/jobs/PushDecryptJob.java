@@ -645,14 +645,14 @@ public class PushDecryptJob extends ContextJob {
 
     if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
       threadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body).second;
-    } else if (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\"")){
-      threadId = null;
+    } else if (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\"")) {
+//      threadId = null;
+      threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipient);
       ReactionsHandler handler = new ReactionsHandler(context);
       ObjectMapper mapper = new ObjectMapper();
       Map<String,String> map = mapper.readValue(body, Map.class);
-//      Log.w("Radu", "this is the hash " + map.get("hash"));
-//      Log.w("Radu","this is the reaction " + map.get("reaction"));
-//      Log.w("Radu", "this is the time " + map.get("time"));
+
+      //add reaction to db
       handler.reactToMessage(map.get("hash"), map.get("reaction"), Long.parseLong(map.get("time")), recipient.getAddress()); // IT WILL CRASH AT THE parseLong
     } else {
       IncomingTextMessage textMessage = new IncomingTextMessage(Address.fromExternal(context, envelope.getSource()),

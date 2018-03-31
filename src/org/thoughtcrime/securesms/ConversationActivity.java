@@ -794,9 +794,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         //resets the local view to render new reaction
         fragment.getListAdapter().notifyDataSetChanged();
 
-
-//        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" + emoji + "\", \"time\": \"" + time.toString() + "\"}";
-//        sendTextMessage(false,0,-1, false, body);
+        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" + emoji + "\", \"time\": \"" + time.toString() + "\"}";
+        sendTextMessage(false,0,-1, false, body);
 
         container.showSoftkey(composeText);
         inputPanel.setEmojiDrawer(emojiDrawerStub.get());
@@ -1853,7 +1852,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                  new AsyncTask<OutgoingTextMessage, Void, Long>() {
                    @Override
                    protected Long doInBackground(OutgoingTextMessage... messages) {
-                     if (initiatingConversation) {
+
+                     //check if reaction or normal message.
+                     if (initiatingConversation && !(messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
 

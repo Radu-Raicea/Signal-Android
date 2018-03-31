@@ -268,7 +268,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
     }
 
-    private ConversationAdapter getListAdapter() {
+    public ConversationAdapter getListAdapter() {
         return (ConversationAdapter) list.getAdapter();
     }
 

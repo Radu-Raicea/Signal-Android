@@ -84,7 +84,7 @@ public class ReactionsHandler {
 
     // TODO compute reaction results
 
-    private class Reaction {
+    public class Reaction {
         private Address reactor;
         private Long reactionTime;
         private String reaction;

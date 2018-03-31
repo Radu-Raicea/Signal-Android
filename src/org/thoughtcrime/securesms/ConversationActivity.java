@@ -786,13 +786,17 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       @Override
       public void onEmojiSelected(String emoji) throws InvalidMessageException {
-        Log.w("Daniel", "emoji: " + emoji);
-
         Long time = currentTimeMillis();
+
+        //insert new reaction into db
         handler.reactToMessage(messageRecord, emoji, time);
 
-        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" + emoji + "\", \"time\": \"" + time.toString() + "\"}";
-        sendTextMessage(false,0,-1, false, body);
+        //resets the local view to render new reaction
+        fragment.getListAdapter().notifyDataSetChanged();
+
+
+//        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" + emoji + "\", \"time\": \"" + time.toString() + "\"}";
+//        sendTextMessage(false,0,-1, false, body);
 
         container.showSoftkey(composeText);
         inputPanel.setEmojiDrawer(emojiDrawerStub.get());

@@ -218,7 +218,7 @@ public class ConversationItem extends LinearLayout
     setMinimumWidth();
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
-    // setReactions(messageRecord);
+    setReactions(messageRecord);
   }
 
   @Override
@@ -535,12 +535,17 @@ public class ConversationItem extends LinearLayout
   private void setReactions(final MessageRecord messageRecord) {
     LinearLayout reactionsList = (LinearLayout) findViewById(R.id.reactions_list);
 
-    for (int i = 0; i < 3; i++) {
-      //insert text view.
+    if(((LinearLayout) reactionsList).getChildCount() > 0)
+      ((LinearLayout) reactionsList).removeAllViews();
+
+    ReactionsHandler handler = new ReactionsHandler(getContext());
+    List<ReactionsHandler.Reaction> reactions = handler.getMessageReactions(messageRecord);
+
+    for(ReactionsHandler.Reaction reaction : reactions) {
       TextView tv = new TextView(context);
 
       //set reaction text here
-      tv.setText("1 :D");
+      tv.setText(reaction.getReaction());
       tv.setBackgroundResource(R.drawable.reaction_bubble);
 
       reactionsList.addView(tv);

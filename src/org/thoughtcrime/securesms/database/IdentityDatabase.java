@@ -86,7 +86,7 @@ public class IdentityDatabase extends Database {
     return new IdentityReader(cursor);
   }
 
-  public IdentityRecord getMyIdentity() throws Exception{
+  public IdentityRecord getMyIdentity() throws Exception {
     SQLiteDatabase database = databaseHelper.getReadableDatabase();
     Cursor cursor = database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + ID + " =1", null);
     cursor.moveToNext();

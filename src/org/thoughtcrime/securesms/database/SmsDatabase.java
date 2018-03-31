@@ -568,10 +568,10 @@ public class SmsDatabase extends MessagingDatabase {
 
     Log.w(TAG, "Generating incoming message Hash from number+time: " + message.getSender().serialize() + "-" + message.getSentTimestampMillis());
     Log.w(TAG, "Generated incoming message HASH : " + MessageHash.generateFrom(message.getSender().serialize(),
-            message.getSentTimestampMillis()+ ""));
+            message.getSentTimestampMillis() + ""));
 
     values.put(HASH, MessageHash.generateFrom(message.getSender().serialize(),
-            message.getSentTimestampMillis()+ ""));
+            message.getSentTimestampMillis() + ""));
 
     if (message.isPush() && isDuplicate(message, threadId)) {
       Log.w(TAG, "Duplicate message (" + message.getSentTimestampMillis() + "), ignoring...");
@@ -637,9 +637,9 @@ public class SmsDatabase extends MessagingDatabase {
     try {
       Log.w(TAG, "Generating outgoing message Hash from number+time: " + DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize() + "-" + date);
       Log.w(TAG, "Generated outgoing message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
-              date+ ""));
+              date + ""));
       Log.w(TAG, "Generated outgoing message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
-              date+ ""));
+              date + ""));
 
       contentValues.put(HASH, MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
               date + ""));

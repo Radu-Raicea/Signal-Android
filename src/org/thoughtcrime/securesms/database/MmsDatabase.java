@@ -684,10 +684,10 @@ public class MmsDatabase extends MessagingDatabase {
             retrieved.getSentTimeMillis());
 
     Log.w(TAG, "Generated incoming mms message HASH : " + MessageHash.generateFrom(retrieved.getFrom().serialize(),
-            retrieved.getSentTimeMillis()+ ""));
+            retrieved.getSentTimeMillis() + ""));
 
     contentValues.put(HASH, MessageHash.generateFrom(retrieved.getFrom().serialize(),
-            retrieved.getSentTimeMillis()+ ""));
+            retrieved.getSentTimeMillis() + ""));
 
     if (!contentValues.containsKey(DATE_SENT)) {
       contentValues.put(DATE_SENT, contentValues.getAsLong(DATE_RECEIVED));
@@ -790,10 +790,10 @@ public class MmsDatabase extends MessagingDatabase {
             System.currentTimeMillis());
 
     Log.w(TAG, "Generated incoming mms message HASH : " + MessageHash.generateFrom(Address.fromExternal(context, Util.toIsoString(notification.getFrom().getTextString())).serialize(),
-            System.currentTimeMillis()+ ""));
+            System.currentTimeMillis() + ""));
 
     contentValues.put(HASH, MessageHash.generateFrom(Address.fromExternal(context, Util.toIsoString(notification.getFrom().getTextString())).serialize(),
-            System.currentTimeMillis()+ ""));
+            System.currentTimeMillis() + ""));
 
     if (!contentValues.containsKey(DATE_SENT))
       contentValues.put(DATE_SENT, contentValues.getAsLong(DATE_RECEIVED));
@@ -863,7 +863,7 @@ public class MmsDatabase extends MessagingDatabase {
       Log.w(TAG, "Generated outgoin mms message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
               message.getSentTimeMillis() + ""));
       contentValues.put(HASH, MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
-              message.getSentTimeMillis()+ ""));
+              message.getSentTimeMillis() + ""));
 
     } catch (Exception e) {
       e.printStackTrace();

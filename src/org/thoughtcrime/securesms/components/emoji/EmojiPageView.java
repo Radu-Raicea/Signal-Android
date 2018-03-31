@@ -13,6 +13,7 @@ import android.widget.FrameLayout;
 import android.widget.GridView;
 
 import org.thoughtcrime.securesms.R;
+import org.whispersystems.libsignal.InvalidMessageException;
 
 public class EmojiPageView extends FrameLayout {
   private static final String TAG = EmojiPageView.class.getSimpleName();
@@ -36,7 +37,11 @@ public class EmojiPageView extends FrameLayout {
     grid.setColumnWidth(getResources().getDimensionPixelSize(R.dimen.emoji_drawer_size) + 2 * getResources().getDimensionPixelSize(R.dimen.emoji_drawer_item_padding));
     grid.setOnItemClickListener(new OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (listener != null) listener.onEmojiSelected(((EmojiView)view).getEmoji());
+        if (listener != null) try {
+          listener.onEmojiSelected(((EmojiView)view).getEmoji());
+        } catch (InvalidMessageException e) {
+          e.printStackTrace();
+        }
       }
     });
   }
@@ -101,6 +106,6 @@ public class EmojiPageView extends FrameLayout {
   }
 
   public interface EmojiSelectionListener {
-    void onEmojiSelected(String emoji);
+    void onEmojiSelected(String emoji) throws InvalidMessageException;
   }
 }

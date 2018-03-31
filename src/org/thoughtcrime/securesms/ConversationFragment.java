@@ -738,7 +738,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
                     return true;
                 case R.id.menu_context_emoji:
                     Log.w("Radu", "Emoji button pressed.");
-                    ((ConversationActivity)getActivity()).handleEmojiReaction();
+                    ((ConversationActivity)getActivity()).handleEmojiReaction(getSelectedMessageRecord(), new ReactionsHandler(getContext()));
                     actionMode.finish();
                     return true;
             }

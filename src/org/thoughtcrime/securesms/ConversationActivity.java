@@ -1849,7 +1849,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                    protected Long doInBackground(OutgoingTextMessage... messages) {
 
                      //check if reaction or normal message.
-                     if (initiatingConversation || body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\"")) {
+                     if (initiatingConversation) {
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
 

@@ -519,6 +519,8 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingMediaMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getMmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
+        if (messageRecord == null) return -1;
+
         if (getListAdapter() != null) {
             getListAdapter().setHeaderView(null);
             setLastSeen(0);
@@ -541,7 +543,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     }
 
     public void releaseOutgoingMessage(long id) {
-        if (getListAdapter() != null) {
+        if (getListAdapter() != null && id > -1) {
             getListAdapter().releaseFastRecord(id);
         }
     }

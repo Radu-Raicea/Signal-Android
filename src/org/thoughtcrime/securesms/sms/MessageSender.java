@@ -73,6 +73,7 @@ public class MessageSender {
       allocatedThreadId = threadId;
     }
 
+    //dont insert if reaction
     long messageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), allocatedThreadId,
                                                   message, forceSms, System.currentTimeMillis(), insertListener);
 

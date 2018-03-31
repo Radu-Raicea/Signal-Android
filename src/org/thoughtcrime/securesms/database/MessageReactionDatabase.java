@@ -156,6 +156,10 @@ public class MessageReactionDatabase extends Database {
     public Cursor getMessageReaction(MessageRecord messageRecord) {
         SQLiteDatabase database = databaseHelper.getReadableDatabase();
 
+        String hash = messageRecord.getHash();
+
+        if (hash == null) return null;
+
         return database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " +
                 getMessageType(messageRecord) + " = ?", new String[]{messageRecord.getHash()});
     }

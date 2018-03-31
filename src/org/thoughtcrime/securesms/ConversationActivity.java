@@ -227,7 +227,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private   ImageButton                 attachButton;
   protected ConversationTitleView       titleView;
   private   TextView                    charactersLeft;
-  private   ConversationFragment        fragment;
+  public   ConversationFragment        fragment;
   private   Button                      unblockButton;
   private   Button                      makeDefaultSmsButton;
   private   InputAwareLayout            container;
@@ -770,7 +770,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     inputPanel.setVisibility(View.GONE);
     setEmojiKeyboardListener(messageRecord, handler);
 
-    Log.w("Daniel", "This is the hash: " + messageRecord.getHash());
     // Send syncronization message
     // handleEmojiDisplay(emoji);
     isEmojiReactionMode = false;
@@ -802,10 +801,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         emojiDrawerStub.get().setEmojiEventListener(inputPanel);
         hideKeyboard();
         inputPanel.setVisibility(View.VISIBLE);
-//        final int start = composeText.getSelectionStart();
-//        final int end   = composeText.getSelectionEnd();
-//        composeText.getText().replace(Math.min(start, end), Math.max(start, end), emoji);
-//        composeText.setSelection(start + emoji.length());
       }
     });
   }
@@ -1854,7 +1849,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                    protected Long doInBackground(OutgoingTextMessage... messages) {
 
                      //check if reaction or normal message.
-                     if (initiatingConversation && !(messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+                     if (initiatingConversation || body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\"")) {
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
 

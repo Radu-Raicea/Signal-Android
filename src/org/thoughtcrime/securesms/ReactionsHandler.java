@@ -41,7 +41,7 @@ public class ReactionsHandler {
      * This Method can also be used by Fragments however, the developer should handle the time
      * of the reaction manually
      * @param messageHash
-     * @param hash
+     * @param reaction
      * @param reactionTime
      * @param reactorID
      */
@@ -55,29 +55,31 @@ public class ReactionsHandler {
 
     public List<Reaction> getMessageReactions(MessageRecord record) {
         List<Reaction> results = new ArrayList<>();
-//        Cursor cursor = this.reactionsDb.getMessageReaction(record);
-//
-//        while(cursor.moveToNext()) {
-//            Parcel c = Parcel.obtain();
-//            c.writeString(cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTOR_ID)));
-//            c.setDataPosition(0);
-//            Address address = new Address(c);
-//
-//            // getting the type of the message being reacted
-//            String hashType = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.SMS_HASH))!=null
-//                    ? MessageReactionDatabase.SMS_HASH : MessageReactionDatabase.SMS_HASH;
-//
-//            Reaction reaction = new Reaction(
-//                address,
-//                cursor.getLong(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION_DATE)),
-//                cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION)),
-//                cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTOR_ID)),
-//                hashType,
-//                cursor.getString(cursor.getColumnIndexOrThrow(hashType))
-//            );
-//
-//            results.add(reaction);
-//        }
+        Cursor cursor = this.reactionsDb.getMessageReaction(record);
+
+        if (cursor == null) return results;
+
+        while(cursor.moveToNext()) {
+            Parcel c = Parcel.obtain();
+            c.writeString(cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTOR_ID)));
+            c.setDataPosition(0);
+            Address address = new Address(c);
+
+            // getting the type of the message being reacted
+            String hashType = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.SMS_HASH))!=null
+                    ? MessageReactionDatabase.SMS_HASH : MessageReactionDatabase.SMS_HASH;
+
+            Reaction reaction = new Reaction(
+                address,
+                cursor.getLong(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION_DATE)),
+                cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION)),
+                cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTOR_ID)),
+                hashType,
+                cursor.getString(cursor.getColumnIndexOrThrow(hashType))
+            );
+
+            results.add(reaction);
+        }
 
         return results;
     }

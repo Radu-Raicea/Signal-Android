@@ -10,6 +10,7 @@ import android.util.Pair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.thoughtcrime.securesms.ApplicationContext;
+import org.thoughtcrime.securesms.ConversationActivity;
 import org.thoughtcrime.securesms.ReactionsHandler;
 import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.attachments.PointerAttachment;
@@ -646,14 +647,15 @@ public class PushDecryptJob extends ContextJob {
     if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
       threadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body).second;
     } else if (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\"")) {
-//      threadId = null;
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipient);
       ReactionsHandler handler = new ReactionsHandler(context);
       ObjectMapper mapper = new ObjectMapper();
       Map<String,String> map = mapper.readValue(body, Map.class);
 
       //add reaction to db
-      handler.reactToMessage(map.get("hash"), map.get("reaction"), Long.parseLong(map.get("time")), recipient.getAddress()); // IT WILL CRASH AT THE parseLong
+       handler.reactToMessage(map.get("hash"), map.get("emoji"), Long.parseLong(map.get("time")), recipient.getAddress()); // IT WILL CRASH AT THE parseLong
+//        ConversationActivity activity = (ConversationActivity) context;
+//        activity.fragment.getListAdapter().notifyDataSetChanged();
     } else {
       IncomingTextMessage textMessage = new IncomingTextMessage(Address.fromExternal(context, envelope.getSource()),
                                                                 envelope.getSourceDevice(),

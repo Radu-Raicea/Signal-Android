@@ -69,10 +69,10 @@ public class ReactionsHandler {
 
             Long reactionDate = cursor.getLong(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION_DATE));
             String reaction = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION));
-            String reactorId = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTOR_ID));
+            String reactionId = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.ID));
 
             String messageType = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.SMS_HASH)) != null
-                    ? MessageReactionDatabase.SMS_HASH : MessageReactionDatabase.SMS_HASH;
+                    ? MessageReactionDatabase.SMS_HASH : MessageReactionDatabase.MMS_HASH;
 
             String messageHash = cursor.getString(cursor.getColumnIndexOrThrow(messageType));
 
@@ -80,7 +80,7 @@ public class ReactionsHandler {
                 reactor,
                 reactionDate,
                 reaction,
-                reactorId,
+                reactionId,
                 messageType,
                 messageHash
             );
@@ -110,15 +110,15 @@ public class ReactionsHandler {
         private Address reactor;
         private Long    reactionDate;
         private String  reaction;
-        private String  reactorId;
+        private String  reactionId;
         private String  messageType;
         private String  messageHash;
 
-        public Reaction(Address reactor, Long reactionDate, String reaction, String reactorId, String messageType, String messageHash) {
+        public Reaction(Address reactor, Long reactionDate, String reaction, String reactionId, String messageType, String messageHash) {
             this.reactor      = reactor;
             this.reactionDate = reactionDate;
             this.reaction     = reaction;
-            this.reactorId    = reactorId;
+            this.reactionId   = reactionId;
             this.messageType  = messageType;
             this.messageHash  = messageHash;
         }
@@ -135,8 +135,8 @@ public class ReactionsHandler {
             return reaction;
         }
 
-        public String getReactorId() {
-            return reactorId;
+        public String getReactionId() {
+            return reactionId;
         }
 
         public String getMessageType() {

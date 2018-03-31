@@ -11,7 +11,9 @@ import org.thoughtcrime.securesms.database.MessageReactionDatabase;
 import org.thoughtcrime.securesms.database.model.MessageRecord;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -89,7 +91,20 @@ public class ReactionsHandler {
         return results;
     }
 
-    // TODO compute reaction results
+    public Map<String, Integer> getReactionCounts(List<Reaction> messageReactions) {
+        Map<String, Integer> reactionCounts = new HashMap<>();
+
+        for (Reaction reactionObj : messageReactions) {
+            String reaction = reactionObj.getReaction();
+            if (reactionCounts.containsKey(reaction)) {
+                reactionCounts.put(reaction, reactionCounts.get(reaction) + 1);
+            } else {
+                reactionCounts.put(reaction, 1);
+            }
+        }
+
+        return reactionCounts;
+    }
 
     private class Reaction {
         private Address reactor;

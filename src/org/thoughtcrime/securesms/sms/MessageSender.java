@@ -81,9 +81,9 @@ public class MessageSender {
 
     String messageBody = message.getMessageBody();
 
-    if (messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\"")) {
-      database.deleteMessage(messageId);
-    }
+//    if (messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\"")) {
+//      database.deleteMessage(messageId);
+//    }
 
     return allocatedThreadId;
   }

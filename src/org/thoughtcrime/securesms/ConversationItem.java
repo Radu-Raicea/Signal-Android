@@ -218,7 +218,7 @@ public class ConversationItem extends LinearLayout
     setMinimumWidth();
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
-    setReactions(messageRecord);
+    // setReactions(messageRecord);
   }
 
   @Override

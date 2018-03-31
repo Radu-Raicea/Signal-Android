@@ -650,10 +650,10 @@ public class PushDecryptJob extends ContextJob {
       ReactionsHandler handler = new ReactionsHandler(context);
       ObjectMapper mapper = new ObjectMapper();
       Map<String,String> map = mapper.readValue(body, Map.class);
-      Log.w("Radu", map.get("hash"));
-      Log.w("Radu", map.get("reaction"));
-      Log.w("Radu", map.get("reactionTime"));
-      handler.reactToMessage(map.get("hash"), map.get("reaction"), Long.parseLong(map.get("reactionTime")), recipient.getAddress()); // IT WILL CRASH AT THE parseLong
+//      Log.w("Radu", "this is the hash " + map.get("hash"));
+//      Log.w("Radu","this is the reaction " + map.get("reaction"));
+//      Log.w("Radu", "this is the time " + map.get("time"));
+      handler.reactToMessage(map.get("hash"), map.get("reaction"), Long.parseLong(map.get("time")), recipient.getAddress()); // IT WILL CRASH AT THE parseLong
     } else {
       IncomingTextMessage textMessage = new IncomingTextMessage(Address.fromExternal(context, envelope.getSource()),
                                                                 envelope.getSourceDevice(),

@@ -51,7 +51,8 @@ public class MessageReactionDatabase extends Database {
         String      type;
         ContentValues values = new ContentValues();
 
-        type = db.rawQuery("SELECT ? FROM ? WHERE ? = ? ", new String[] {REACTOR_ID, TABLE_NAME, SMS_HASH, hash})
+        type = db.rawQuery("SELECT " + MmsSmsColumns.HASH + " FROM " + SmsDatabase.TABLE_NAME
+                + " WHERE " + MmsSmsColumns.HASH + " = ?", new String[] {hash})
                 .getCount() > 0 ? SMS_HASH : MMS_HASH;
 
         values.put(type, hash);

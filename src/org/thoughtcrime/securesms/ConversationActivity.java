@@ -1842,11 +1842,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                .withPermanentDenialDialog(getString(R.string.ConversationActivity_signal_needs_sms_permission_in_order_to_send_an_sms))
                .onAllGranted(() -> {
                  this.composeText.setText("");
-                 final long id;
 
-                 if (! (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\""))) {
-                    id = fragment.stageOutgoingMessage(message);
+                 long tempId = -1;
+                 String msgBody = message.getMessageBody();
+                 if (! (msgBody.length() >= 19 && msgBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+                    tempId = fragment.stageOutgoingMessage(message);
                  }
+
+                 final long id = tempId;
 
 
                  new AsyncTask<OutgoingTextMessage, Void, Long>() {
@@ -1858,7 +1861,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
 
-                     if (! (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+                     String messageBody = messages[0].getMessageBody();
+
+                     if (! (messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
                         return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
                      }
                      return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.refreshView());

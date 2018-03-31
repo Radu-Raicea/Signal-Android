@@ -1842,7 +1842,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                .withPermanentDenialDialog(getString(R.string.ConversationActivity_signal_needs_sms_permission_in_order_to_send_an_sms))
                .onAllGranted(() -> {
                  this.composeText.setText("");
-                 final long id = fragment.stageOutgoingMessage(message);
+                 final long id;
+
+                 if (! (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+                    id = fragment.stageOutgoingMessage(message);
+                 }
+
 
                  new AsyncTask<OutgoingTextMessage, Void, Long>() {
                    @Override
@@ -1853,7 +1858,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
 
-                     return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
+                     if (! (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+                        return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
+                     }
+                     return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.refreshView());
                    }
 
                    @Override

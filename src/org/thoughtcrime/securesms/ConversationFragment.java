@@ -548,6 +548,10 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
     }
 
+    public void refreshView() {
+//        getListAdapter().notifyDataSetChanged();
+    }
+
     private void scrollToLastSeenPosition(final int lastSeenPosition) {
         if (lastSeenPosition > 0) {
             list.post(() -> ((LinearLayoutManager) list.getLayoutManager()).scrollToPositionWithOffset(lastSeenPosition, list.getHeight()));

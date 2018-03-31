@@ -60,6 +60,8 @@ public class MessageReactionDatabase extends Database {
         values.put(REACTOR_ID, reactorID.serialize());
         values.put(REACTION_DATE, reactionDate);
         insertOrUpdate(values, type);
+
+//        notifyConversationListeners(threadId);
     }
 
     public void reactToMessage(MessageRecord messageRecord, String reaction, Long reactionDate) {

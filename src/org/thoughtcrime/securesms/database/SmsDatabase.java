@@ -659,9 +659,10 @@ public class SmsDatabase extends MessagingDatabase {
       DatabaseFactory.getThreadDatabase(context).setLastSeen(threadId);
     }
 
+    //if not reaction
     DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
-
     notifyConversationListeners(threadId);
+    //end if
 
     if (!message.isIdentityVerified() && !message.isIdentityDefault()) {
       jobManager.add(new TrimThreadJob(context, threadId));

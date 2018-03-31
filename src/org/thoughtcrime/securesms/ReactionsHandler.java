@@ -57,28 +57,33 @@ public class ReactionsHandler {
 
     public List<Reaction> getMessageReactions(MessageRecord record) {
         List<Reaction> results = new ArrayList<>();
-        Cursor cursor = this.reactionsDb.getMessageReaction(record);
+        Cursor         cursor  = this.reactionsDb.getMessageReaction(record);
 
-        while(cursor.moveToNext()) {
+        while (cursor.moveToNext()) {
             Parcel c = Parcel.obtain();
             c.writeString(cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTOR_ID)));
             c.setDataPosition(0);
-            Address address = new Address(c);
+            Address reactor = new Address(c);
 
-            // getting the type of the message being reacted
-            String hashType = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.SMS_HASH))!=null
+            Long reactionDate = cursor.getLong(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION_DATE));
+            String reaction = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION));
+            String reactorId = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTOR_ID));
+
+            String messageType = cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.SMS_HASH)) != null
                     ? MessageReactionDatabase.SMS_HASH : MessageReactionDatabase.SMS_HASH;
 
-            Reaction reaction = new Reaction(
-                address,
-                cursor.getLong(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION_DATE)),
-                cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTION)),
-                cursor.getString(cursor.getColumnIndexOrThrow(MessageReactionDatabase.REACTOR_ID)),
-                hashType,
-                cursor.getString(cursor.getColumnIndexOrThrow(hashType))
+            String messageHash = cursor.getString(cursor.getColumnIndexOrThrow(messageType));
+
+            Reaction reactionObj = new Reaction (
+                reactor,
+                reactionDate,
+                reaction,
+                reactorId,
+                messageType,
+                messageHash
             );
 
-            results.add(reaction);
+            results.add(reactionObj);
         }
 
         return results;
@@ -88,35 +93,35 @@ public class ReactionsHandler {
 
     private class Reaction {
         private Address reactor;
-        private Long reactionTime;
-        private String reaction;
-        private String reactionId;
-        private String messageType;
-        private String messageHash;
+        private Long    reactionDate;
+        private String  reaction;
+        private String  reactorId;
+        private String  messageType;
+        private String  messageHash;
 
-        public Reaction(Address reactor, Long reactionTime, String reaction, String reactionId, String messageType, String messageHash) {
-            this.reactor = reactor;
-            this.reactionTime = reactionTime;
-            this.reaction = reaction;
-            this.reactionId = reactionId;
-            this.messageType = messageType;
-            this.messageHash = messageHash;
+        public Reaction(Address reactor, Long reactionDate, String reaction, String reactorId, String messageType, String messageHash) {
+            this.reactor      = reactor;
+            this.reactionDate = reactionDate;
+            this.reaction     = reaction;
+            this.reactorId    = reactorId;
+            this.messageType  = messageType;
+            this.messageHash  = messageHash;
         }
 
         public Address getReactor() {
             return reactor;
         }
 
-        public Long getReactionTime() {
-            return reactionTime;
+        public Long getReactionDate() {
+            return reactionDate;
         }
 
         public String getReaction() {
             return reaction;
         }
 
-        public String getReactionId() {
-            return reactionId;
+        public String getReactorId() {
+            return reactorId;
         }
 
         public String getMessageType() {

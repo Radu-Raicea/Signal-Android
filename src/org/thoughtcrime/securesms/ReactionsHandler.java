@@ -44,9 +44,10 @@ public class ReactionsHandler {
      * @param reaction
      * @param reactionTime
      * @param reactorID
+     * @param threadId
      */
-    public void reactToMessage(String messageHash, String reaction, Long reactionTime, Address reactorID) {
-        this.reactionsDb.reactToMessage(messageHash, reaction, reactionTime, reactorID);
+    public void reactToMessage(String messageHash, String reaction, Long reactionTime, Address reactorID, Long threadId) {
+        this.reactionsDb.reactToMessage(messageHash, reaction, reactionTime, reactorID, threadId);
     }
 
     public boolean deleteReaction(MessageRecord record) {

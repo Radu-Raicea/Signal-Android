@@ -5,10 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Message;
 import android.os.Parcel;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import org.thoughtcrime.securesms.database.model.MessageRecord;
 
@@ -46,7 +44,7 @@ public class MessageReactionDatabase extends Database {
     }
 
     // NOT TESTED
-    public void reactToMessage(String hash, String reaction, Long reactionDate, Address reactorID) {
+    public void reactToMessage(String hash, String reaction, Long reactionDate, Address reactorID, Long threadId) {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         String      type;
         ContentValues values = new ContentValues();
@@ -60,6 +58,7 @@ public class MessageReactionDatabase extends Database {
         values.put(REACTOR_ID, reactorID.serialize());
         values.put(REACTION_DATE, reactionDate);
         insertOrUpdate(values, type);
+        notifyConversationListeners(threadId);
     }
 
     public void reactToMessage(MessageRecord messageRecord, String reaction, Long reactionDate) {

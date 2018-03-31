@@ -10,7 +10,6 @@ import android.util.Pair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.thoughtcrime.securesms.ApplicationContext;
-import org.thoughtcrime.securesms.ConversationActivity;
 import org.thoughtcrime.securesms.ReactionsHandler;
 import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.attachments.PointerAttachment;
@@ -653,7 +652,7 @@ public class PushDecryptJob extends ContextJob {
       Map<String,String> map = mapper.readValue(body, Map.class);
 
       //add reaction to db
-       handler.reactToMessage(map.get("hash"), map.get("emoji"), Long.parseLong(map.get("time")), recipient.getAddress()); // IT WILL CRASH AT THE parseLong
+       handler.reactToMessage(map.get("hash"), map.get("emoji"), Long.parseLong(map.get("time")), recipient.getAddress(),threadId ); // IT WILL CRASH AT THE parseLong
 //        ConversationActivity activity = (ConversationActivity) context;
 //        activity.fragment.getListAdapter().notifyDataSetChanged();
     } else {

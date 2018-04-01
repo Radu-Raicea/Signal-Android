@@ -31,6 +31,9 @@ import android.util.Pair;
 import com.annimon.stream.Stream;
 
 import org.thoughtcrime.securesms.ApplicationContext;
+import org.thoughtcrime.securesms.crypto.MasterCipher;
+import org.thoughtcrime.securesms.crypto.MasterSecret;
+import org.thoughtcrime.securesms.crypto.MasterSecretUnion;
 import org.thoughtcrime.securesms.database.documents.IdentityKeyMismatch;
 import org.thoughtcrime.securesms.database.documents.IdentityKeyMismatchList;
 import org.thoughtcrime.securesms.database.model.DisplayRecord;
@@ -45,6 +48,7 @@ import org.thoughtcrime.securesms.util.JsonUtils;
 import org.thoughtcrime.securesms.util.MessageHash;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobManager;
+import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.io.IOException;
@@ -608,7 +612,7 @@ public class SmsDatabase extends MessagingDatabase {
 
   protected long insertMessageOutbox(long threadId, OutgoingTextMessage message,
                                      long type, boolean forceSms, long date,
-                                     InsertListener insertListener)
+                                     InsertListener insertListener, MasterSecretUnion masterSecret)
   {
     if      (message.isKeyExchange())   type |= Types.KEY_EXCHANGE_BIT;
     else if (message.isSecureMessage()) type |= (Types.SECURE_MESSAGE_BIT | Types.PUSH_MESSAGE_BIT);
@@ -659,10 +663,21 @@ public class SmsDatabase extends MessagingDatabase {
       DatabaseFactory.getThreadDatabase(context).setLastSeen(threadId);
     }
 
-    //if not reaction
-    DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
-    notifyConversationListeners(threadId);
-    //end if
+    Cursor c = DatabaseFactory.getSmsDatabase(context).getMessage(messageId);
+    c.moveToFirst();
+    MasterCipher masterCipher = new MasterCipher(masterSecret.getMasterSecret().get());
+    String body = "";
+
+    try {
+      body = masterCipher.decryptBody(c.getString(c.getColumnIndexOrThrow("body")));
+    } catch (InvalidMessageException e) {
+      e.printStackTrace();
+    }
+
+    if (! (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+      DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
+      notifyConversationListeners(threadId);
+    }
 
     if (!message.isIdentityVerified() && !message.isIdentityDefault()) {
       jobManager.add(new TrimThreadJob(context, threadId));

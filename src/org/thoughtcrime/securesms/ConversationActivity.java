@@ -772,8 +772,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     // Send syncronization message
     // handleEmojiDisplay(emoji);
-    isEmojiReactionMode = false;
-
   }
 
   private void setEmojiKeyboardListener(MessageRecord messageRecord, ReactionsHandler handler) {
@@ -1709,7 +1707,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     boolean refreshFragment = (threadId != this.threadId);
     this.threadId = threadId;
 
-    if (fragment == null || !fragment.isVisible() || isFinishing()) {
+    if (isEmojiReactionMode || fragment == null || !fragment.isVisible() || isFinishing()) {
+      isEmojiReactionMode = false;
       return;
     }
 
@@ -1843,20 +1842,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                .onAllGranted(() -> {
                  this.composeText.setText("");
 
-                 long tempId = -1;
-                 String msgBody = message.getMessageBody();
-                 if (! (msgBody.length() >= 19 && msgBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
-                    tempId = fragment.stageOutgoingMessage(message);
-                 }
+                 final long id = fragment.stageOutgoingMessage(message);
 
-                 final long id = tempId;
-
-
+                 Log.w(TAG, "processing ID  " + id);
+                 Log.w(TAG, "processing message ID  " );
                  new AsyncTask<OutgoingTextMessage, Void, Long>() {
                    @Override
                    protected Long doInBackground(OutgoingTextMessage... messages) {
 
-                     //check if reaction or normal message.
                      if (initiatingConversation) {
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
@@ -1867,6 +1860,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                         return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
                      }
                      return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.refreshView());
+
                    }
 
                    @Override

@@ -519,7 +519,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingMediaMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getMmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-        if (messageRecord == null) return -1;
+        //if (messageRecord == null) return -1;
 
         if (getListAdapter() != null) {
             getListAdapter().setHeaderView(null);
@@ -533,17 +533,18 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingTextMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getSmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-        if (getListAdapter() != null) {
-            getListAdapter().setHeaderView(null);
-            setLastSeen(0);
-            getListAdapter().addFastRecord(messageRecord);
+        if (! (messageRecord.getBody().getBody().length() >= 19 && messageRecord.getBody().getBody().substring(0, 19).equals("{\"type\": \"reaction\""))) {
+            if (getListAdapter() != null) {
+                getListAdapter().setHeaderView(null);
+                setLastSeen(0);
+                getListAdapter().addFastRecord(messageRecord);
+            }
         }
-
         return messageRecord.getId();
     }
 
     public void releaseOutgoingMessage(long id) {
-        if (getListAdapter() != null && id > -1) {
+        if (getListAdapter() != null) {
             getListAdapter().releaseFastRecord(id);
         }
     }

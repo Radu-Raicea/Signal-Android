@@ -76,7 +76,7 @@ public class EncryptingSmsDatabase extends SmsDatabase {
       type   |= Types.ENCRYPTION_ASYMMETRIC_BIT;
     }
 
-    return insertMessageOutbox(threadId, message, type, forceSms, timestamp, insertListener);
+    return insertMessageOutbox(threadId, message, type, forceSms, timestamp, insertListener, masterSecret);
   }
 
   public Optional<InsertResult> insertMessageInbox(@NonNull MasterSecretUnion masterSecret,

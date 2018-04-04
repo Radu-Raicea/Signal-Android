@@ -363,7 +363,6 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
 
         this.showToast(outputMessage);
-        Log.w(TAG, "This is the hash: " + message.getHash());
     }
 
     private void handleDeleteMessages(final Set<MessageRecord> messageRecords) {
@@ -519,8 +518,6 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingMediaMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getMmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-        //if (messageRecord == null) return -1;
-
         if (getListAdapter() != null) {
             getListAdapter().setHeaderView(null);
             setLastSeen(0);
@@ -533,7 +530,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingTextMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getSmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-        if (! (messageRecord.getBody().getBody().length() >= 19 && messageRecord.getBody().getBody().substring(0, 19).equals("{\"type\": \"reaction\""))) {
+        if (!(messageRecord.getBody().getBody().length() >= 19 && messageRecord.getBody().getBody().substring(0, 19).equals("{\"type\": \"reaction\""))) {
             if (getListAdapter() != null) {
                 getListAdapter().setHeaderView(null);
                 setLastSeen(0);
@@ -549,8 +546,9 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
     }
 
+    // Interface place holder
     public void refreshView() {
-//        getListAdapter().notifyDataSetChanged();
+
     }
 
     private void scrollToLastSeenPosition(final int lastSeenPosition) {
@@ -665,8 +663,6 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
                 list.getAdapter().notifyDataSetChanged();
 
                 actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(actionModeCallback);
-
-
             }
         }
     }
@@ -744,7 +740,6 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
                     actionMode.finish();
                     return true;
                 case R.id.menu_context_emoji:
-                    Log.w("Radu", "Emoji button pressed.");
                     ((ConversationActivity)getActivity()).handleEmojiReaction(getSelectedMessageRecord(), new ReactionsHandler(getContext()));
                     actionMode.finish();
                     return true;

@@ -74,7 +74,6 @@ public class MessageSender {
       allocatedThreadId = threadId;
     }
 
-    //dont insert if reaction
     long messageId = database.insertMessageOutbox(new MasterSecretUnion(masterSecret), allocatedThreadId,
                                                   message, forceSms, System.currentTimeMillis(), insertListener);
 
@@ -114,14 +113,6 @@ public class MessageSender {
       Log.w(TAG, e);
       return threadId;
     }
-  }
-
-  public static long sendReactionMessage(final Context context,
-                          final MasterSecret masterSecret,
-                          final OutgoingTextMessage message,
-                          final long threadId)
-  {
-    return 1;
   }
 
   public static void resendGroupMessage(Context context, MessageRecord messageRecord, Address filterAddress) {

@@ -43,7 +43,6 @@ public class MessageReactionDatabase extends Database {
         super(context, databaseHelper);
     }
 
-    // NOT TESTED
     public void reactToMessage(String hash, String reaction, Long reactionDate, Address reactorID, Long threadId) {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         String      type;

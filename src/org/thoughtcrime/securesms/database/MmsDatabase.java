@@ -680,12 +680,6 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(EXPIRES_IN, retrieved.getExpiresIn());
     contentValues.put(READ, retrieved.isExpirationUpdate() ? 1 : 0);
 
-    Log.w(TAG, "Generating incoming mms message Hash from number+time: " + retrieved.getFrom().serialize() + "-" +
-            retrieved.getSentTimeMillis());
-
-    Log.w(TAG, "Generated incoming mms message HASH : " + MessageHash.generateFrom(retrieved.getFrom().serialize(),
-            retrieved.getSentTimeMillis() + ""));
-
     contentValues.put(HASH, MessageHash.generateFrom(retrieved.getFrom().serialize(),
             retrieved.getSentTimeMillis() + ""));
 
@@ -786,12 +780,6 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(READ, Util.isDefaultSmsProvider(context) ? 0 : 1);
     contentValues.put(SUBSCRIPTION_ID, subscriptionId);
 
-    Log.w(TAG, "Generating incoming mms message Hash from number+time: " +Address.fromExternal(context, Util.toIsoString(notification.getFrom().getTextString())).serialize() + "-" +
-            System.currentTimeMillis());
-
-    Log.w(TAG, "Generated incoming mms message HASH : " + MessageHash.generateFrom(Address.fromExternal(context, Util.toIsoString(notification.getFrom().getTextString())).serialize(),
-            System.currentTimeMillis() + ""));
-
     contentValues.put(HASH, MessageHash.generateFrom(Address.fromExternal(context, Util.toIsoString(notification.getFrom().getTextString())).serialize(),
             System.currentTimeMillis() + ""));
 
@@ -854,14 +842,7 @@ public class MmsDatabase extends MessagingDatabase {
     contentValues.put(DELIVERY_RECEIPT_COUNT, Stream.of(earlyDeliveryReceipts.values()).mapToLong(Long::longValue).sum());
     contentValues.put(READ_RECEIPT_COUNT, Stream.of(earlyReadReceipts.values()).mapToLong(Long::longValue).sum());
 
-
-
-
     try {
-      Log.w(TAG, "Generating outgoing mms message Hash from number+time: " + DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize() + "-" +
-              message.getSentTimeMillis());
-      Log.w(TAG, "Generated outgoin mms message HASH : " + MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
-              message.getSentTimeMillis() + ""));
       contentValues.put(HASH, MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
               message.getSentTimeMillis() + ""));
 

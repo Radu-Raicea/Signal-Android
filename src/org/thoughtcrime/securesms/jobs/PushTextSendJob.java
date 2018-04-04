@@ -57,11 +57,9 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
       deliver(record);
 
       String messageBody = record.getDisplayBody().toString();
-      //if reaction, delete
       if (messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\"")) {
         database.deleteMessage(messageId);
       } else {
-        //else eveyrthing else
         database.markAsSent(messageId, true);
 
         if (record.getExpiresIn() > 0) {

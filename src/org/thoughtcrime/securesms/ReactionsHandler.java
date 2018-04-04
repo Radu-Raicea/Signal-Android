@@ -1,6 +1,5 @@
 package org.thoughtcrime.securesms;
 
-
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Parcel;
@@ -23,32 +22,28 @@ public class ReactionsHandler {
     }
 
     /**
-     * NOT TEST
      * This method only used by the conversation fragment since it will automatically
-     * compute the reactorID's to the user itself, Please uses another method if the reaction made
-     * by the recipient. such method can be accessed directly from the MessageReactionDB class
+     * set the reactorID's to the user's id itself, Please use the other overloaded method if the reaction made
+     * by the recipient of the reaction.
      * The reaction time will be set to the current system time in milliseconds
      * @param record
      * @param reaction
      */
-    public void reactToMessage(MessageRecord record, String reaction, Long time) {
+    public void addReactionToSenderDB(MessageRecord record, String reaction, Long time) {
         this.reactionsDb.reactToMessage(record, reaction, time);
     }
 
     /**
-     * NOT TESTED
-     * This method is ONLY used by JobReceivers since when a reaction received, there
-     * is no active MessageRecord Message object, all what is required the MessageHash being reacted,
-     * reaction, the reactionDate.
-     * This Method can also be used by Fragments however, the developer should handle the time
-     * of the reaction manually
+     * This method is ONLY used by JobReceivers since when a reaction is received, there
+     * is no active MessageRecord Message object. The jobReceiver will be able to extract message
+     * hash, time, ids and reactions from reactions received
      * @param messageHash
      * @param reaction
      * @param reactionTime
      * @param reactorID
      * @param threadId
      */
-    public void reactToMessage(String messageHash, String reaction, Long reactionTime, Address reactorID, Long threadId) {
+    public void addReactionToReceiverDB(String messageHash, String reaction, Long reactionTime, Address reactorID, Long threadId) {
         this.reactionsDb.reactToMessage(messageHash, reaction, reactionTime, reactorID, threadId);
     }
 

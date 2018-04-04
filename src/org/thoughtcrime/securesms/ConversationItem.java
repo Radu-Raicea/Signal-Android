@@ -535,8 +535,9 @@ public class ConversationItem extends LinearLayout
   private void setReactions(final MessageRecord messageRecord) {
     LinearLayout reactionsList = (LinearLayout) findViewById(R.id.reactions_list);
 
-    if(((LinearLayout) reactionsList).getChildCount() > 0)
+    if(((LinearLayout) reactionsList).getChildCount() > 0) {
       ((LinearLayout) reactionsList).removeAllViews();
+    }
 
     ReactionsHandler handler = new ReactionsHandler(getContext());
     List<ReactionsHandler.Reaction> reactions = handler.getMessageReactions(messageRecord);
@@ -544,7 +545,6 @@ public class ConversationItem extends LinearLayout
     for(ReactionsHandler.Reaction reaction : reactions) {
       TextView tv = new TextView(context);
 
-      //set reaction text here
       tv.setText(reaction.getReaction());
       tv.setBackgroundResource(R.drawable.reaction_bubble);
 

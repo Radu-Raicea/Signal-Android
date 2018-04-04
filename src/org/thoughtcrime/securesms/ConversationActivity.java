@@ -227,7 +227,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private   ImageButton                 attachButton;
   protected ConversationTitleView       titleView;
   private   TextView                    charactersLeft;
-  public   ConversationFragment        fragment;
+  private   ConversationFragment        fragment;
   private   Button                      unblockButton;
   private   Button                      makeDefaultSmsButton;
   private   InputAwareLayout            container;
@@ -761,24 +761,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     startActivity(intent);
   }
 
-  public void handleEmojiReaction(MessageRecord messageRecord, ReactionsHandler handler){
-
+  public void handleEmojiReaction(MessageRecord messageRecord, ReactionsHandler handler) {
     isEmojiReactionMode = true;
 
     onEmojiToggle();
     container.show(composeText, emojiDrawerStub.get()); //incase toggle doesn't work
     inputPanel.setVisibility(View.GONE);
     setEmojiKeyboardListener(messageRecord, handler);
-
-    // Send syncronization message
-    // handleEmojiDisplay(emoji);
   }
 
   private void setEmojiKeyboardListener(MessageRecord messageRecord, ReactionsHandler handler) {
     this.emojiDrawerStub.get().setEmojiEventListener(new EmojiDrawer.EmojiEventListener() {
       @Override
       public void onKeyEvent(KeyEvent keyEvent) {
-        Log.w("Daniel", "event: " + keyEvent + "code:" + keyEvent.getKeyCode());
+        Log.i("Daniel", "event: " + keyEvent + "code:" + keyEvent.getKeyCode());
       }
 
       @Override
@@ -786,13 +782,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         Long time = currentTimeMillis();
 
         //insert new reaction into db
-        handler.reactToMessage(messageRecord, emoji, time);
+        handler.addReactionToSenderDB(messageRecord, emoji, time);
 
         //resets the local view to render new reaction
         fragment.getListAdapter().notifyDataSetChanged();
 
-        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" + emoji + "\", \"time\": \"" + time.toString() + "\"}";
-        sendTextMessage(false,0,-1, false, body);
+        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" +
+                emoji + "\", \"time\": \"" + time.toString() + "\"}";
+        sendTextMessage(false, 0, -1, false, body);
 
         container.showSoftkey(composeText);
         inputPanel.setEmojiDrawer(emojiDrawerStub.get());
@@ -844,7 +841,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
   }
-
 
   private void handleLeavePushGroup() {
     if (getRecipient() == null) {
@@ -1844,23 +1840,19 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
                  final long id = fragment.stageOutgoingMessage(message);
 
-                 Log.w(TAG, "processing ID  " + id);
-                 Log.w(TAG, "processing message ID  " );
                  new AsyncTask<OutgoingTextMessage, Void, Long>() {
                    @Override
                    protected Long doInBackground(OutgoingTextMessage... messages) {
-
                      if (initiatingConversation) {
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
 
                      String messageBody = messages[0].getMessageBody();
 
-                     if (! (messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+                     if (!(messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
                         return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
                      }
                      return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.refreshView());
-
                    }
 
                    @Override

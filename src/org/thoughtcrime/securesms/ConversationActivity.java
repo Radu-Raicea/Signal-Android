@@ -116,6 +116,7 @@ import org.thoughtcrime.securesms.database.MmsSmsColumns.Types;
 import org.thoughtcrime.securesms.database.RecipientDatabase.RegisteredState;
 import org.thoughtcrime.securesms.database.ThreadDatabase;
 import org.thoughtcrime.securesms.database.identity.IdentityRecordList;
+import org.thoughtcrime.securesms.database.model.MessageRecord;
 import org.thoughtcrime.securesms.events.ReminderUpdateEvent;
 import org.thoughtcrime.securesms.jobs.MultiDeviceBlockedUpdateJob;
 import org.thoughtcrime.securesms.jobs.RetrieveProfileJob;
@@ -174,6 +175,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static java.lang.System.currentTimeMillis;
 import static org.thoughtcrime.securesms.TransportOption.Type;
 import static org.thoughtcrime.securesms.database.GroupDatabase.GroupRecord;
 import static org.whispersystems.libsignal.SessionCipher.SESSION_LOCK;
@@ -258,6 +260,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private boolean    isMmsEnabled          = true;
   private boolean    isSecurityInitialized = false;
   private boolean    isSearchMode          = false;
+  private boolean    isEmojiReactionMode   = false;
 
   private final IdentityRecordList identityRecords = new IdentityRecordList();
   private final DynamicTheme       dynamicTheme    = new DynamicTheme();
@@ -756,6 +759,45 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     intent.putExtra(PinnedMessageActivity.ADDRESS_EXTRA, recipient.getAddress());
     intent.putExtra("THREADID", getThreadId());
     startActivity(intent);
+  }
+
+  public void handleEmojiReaction(MessageRecord messageRecord, ReactionsHandler handler) {
+    isEmojiReactionMode = true;
+
+    onEmojiToggle();
+    container.show(composeText, emojiDrawerStub.get()); //incase toggle doesn't work
+    inputPanel.setVisibility(View.GONE);
+    setEmojiKeyboardListener(messageRecord, handler);
+  }
+
+  private void setEmojiKeyboardListener(MessageRecord messageRecord, ReactionsHandler handler) {
+    this.emojiDrawerStub.get().setEmojiEventListener(new EmojiDrawer.EmojiEventListener() {
+      @Override
+      public void onKeyEvent(KeyEvent keyEvent) {
+        Log.i("Daniel", "event: " + keyEvent + "code:" + keyEvent.getKeyCode());
+      }
+
+      @Override
+      public void onEmojiSelected(String emoji) throws InvalidMessageException {
+        Long time = currentTimeMillis();
+
+        //insert new reaction into db
+        handler.addReactionToSenderDB(messageRecord, emoji, time);
+
+        //resets the local view to render new reaction
+        fragment.getListAdapter().notifyDataSetChanged();
+
+        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" +
+                emoji + "\", \"time\": \"" + time.toString() + "\"}";
+        sendTextMessage(false, 0, -1, false, body);
+
+        container.showSoftkey(composeText);
+        inputPanel.setEmojiDrawer(emojiDrawerStub.get());
+        emojiDrawerStub.get().setEmojiEventListener(inputPanel);
+        hideKeyboard();
+        inputPanel.setVisibility(View.VISIBLE);
+      }
+    });
   }
 
   private void handleSearch(MenuItem item) {
@@ -1661,7 +1703,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     boolean refreshFragment = (threadId != this.threadId);
     this.threadId = threadId;
 
-    if (fragment == null || !fragment.isVisible() || isFinishing()) {
+    if (isEmojiReactionMode || fragment == null || !fragment.isVisible() || isFinishing()) {
+      isEmojiReactionMode = false;
       return;
     }
 
@@ -1701,7 +1744,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       } else if (attachmentManager.isAttachmentPresent() || recipient.isGroupRecipient() || recipient.getAddress().isEmail()) {
         sendMediaMessage(forceSms, expiresIn, subscriptionId, initiating);
       } else {
-        sendTextMessage(forceSms, expiresIn, subscriptionId, initiating);
+        sendTextMessage(forceSms, expiresIn, subscriptionId, initiating, null);
       }
     } catch (RecipientFormattingException ex) {
       Toast.makeText(ConversationActivity.this,
@@ -1768,11 +1811,17 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     return future;
   }
 
-  private void sendTextMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final boolean initiatingConversation)
+  private void sendTextMessage(final boolean forceSms, final long expiresIn, final int subscriptionId, final boolean initiatingConversation, String body)
       throws InvalidMessageException
   {
     final Context context     = getApplicationContext();
-    final String  messageBody = getMessage();
+    String messageBody;
+
+    if (body != null) {
+      messageBody = body;
+    } else {
+      messageBody = getMessage();
+    }
 
     OutgoingTextMessage message;
 
@@ -1788,6 +1837,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                .withPermanentDenialDialog(getString(R.string.ConversationActivity_signal_needs_sms_permission_in_order_to_send_an_sms))
                .onAllGranted(() -> {
                  this.composeText.setText("");
+
                  final long id = fragment.stageOutgoingMessage(message);
 
                  new AsyncTask<OutgoingTextMessage, Void, Long>() {
@@ -1797,7 +1847,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
 
-                     return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
+                     String messageBody = messages[0].getMessageBody();
+
+                     if (!(messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+                        return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
+                     }
+                     return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.refreshView());
                    }
 
                    @Override

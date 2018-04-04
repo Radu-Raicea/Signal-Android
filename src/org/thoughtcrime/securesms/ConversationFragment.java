@@ -231,6 +231,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
             menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
             menu.findItem(R.id.menu_context_pin_message).setVisible(false);
             menu.findItem(R.id.menu_context_unpin_message).setVisible(false);
+            menu.findItem(R.id.menu_context_emoji).setVisible(false);
         } else {
             MessageRecord messageRecord = messageRecords.iterator().next();
 
@@ -245,6 +246,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
             menu.findItem(R.id.menu_context_copy).setVisible(!actionMessage);
 
             setCorrectPinVisibility(menu, messageRecord, actionMessage);
+            setCorrectEmojiVisibility(menu, messageRecord, actionMessage);
         }
     }
 
@@ -258,7 +260,15 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
     }
 
-    private ConversationAdapter getListAdapter() {
+    private void setCorrectEmojiVisibility(Menu menu, MessageRecord messageRecord, boolean actionMessage) {
+        if (messageRecord.hasEmojiReaction()) {
+            menu.findItem(R.id.menu_context_emoji).setVisible(false);
+        } else {
+            menu.findItem(R.id.menu_context_emoji).setVisible(!actionMessage);
+        }
+    }
+
+    public ConversationAdapter getListAdapter() {
         return (ConversationAdapter) list.getAdapter();
     }
 
@@ -520,12 +530,13 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingTextMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getSmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-        if (getListAdapter() != null) {
-            getListAdapter().setHeaderView(null);
-            setLastSeen(0);
-            getListAdapter().addFastRecord(messageRecord);
+        if (!(messageRecord.getBody().getBody().length() >= 19 && messageRecord.getBody().getBody().substring(0, 19).equals("{\"type\": \"reaction\""))) {
+            if (getListAdapter() != null) {
+                getListAdapter().setHeaderView(null);
+                setLastSeen(0);
+                getListAdapter().addFastRecord(messageRecord);
+            }
         }
-
         return messageRecord.getId();
     }
 
@@ -533,6 +544,11 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         if (getListAdapter() != null) {
             getListAdapter().releaseFastRecord(id);
         }
+    }
+
+    // Interface place holder
+    public void refreshView() {
+
     }
 
     private void scrollToLastSeenPosition(final int lastSeenPosition) {
@@ -721,6 +737,10 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
                 case R.id.menu_context_unpin_message:
                     handlePinOrUnpinMessage(getSelectedMessageRecord(), false,
                             new PinnedMessageHandler(getContext()));
+                    actionMode.finish();
+                    return true;
+                case R.id.menu_context_emoji:
+                    ((ConversationActivity)getActivity()).handleEmojiReaction(getSelectedMessageRecord(), new ReactionsHandler(getContext()));
                     actionMode.finish();
                     return true;
             }

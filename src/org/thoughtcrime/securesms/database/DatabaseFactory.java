@@ -49,6 +49,7 @@ import org.thoughtcrime.securesms.util.DelimiterUtil;
 import org.thoughtcrime.securesms.util.Hex;
 import org.thoughtcrime.securesms.util.JsonUtils;
 import org.thoughtcrime.securesms.util.MediaUtil;
+import org.thoughtcrime.securesms.util.MessageHash;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.whispersystems.libsignal.IdentityKey;
@@ -117,7 +118,8 @@ public class DatabaseFactory {
   private static final int MORE_RECIPIENT_FIELDS                           = 47;
   private static final int INTRODUCED_PINNED_MESSAGES                      = 48;
   private static final int INTRODUCED_NICKNAMES                            = 49;
-  private static final int DATABASE_VERSION                                = 49;
+  private static final int INTRODUCED_MESSAGE_REACTION                     = 50;
+  private static final int DATABASE_VERSION                                = 50;
 
   private static final String DATABASE_NAME    = "messages.db";
   private static final Object lock             = new Object();
@@ -140,6 +142,7 @@ public class DatabaseFactory {
   private final RecipientDatabase recipientDatabase;
   private final ContactsDatabase contactsDatabase;
   private final GroupReceiptDatabase groupReceiptDatabase;
+  private final MessageReactionDatabase messageReactionDatabase;
 
   public static DatabaseFactory getInstance(Context context) {
     synchronized (lock) {
@@ -206,22 +209,27 @@ public class DatabaseFactory {
     return getInstance(context).groupReceiptDatabase;
   }
 
+  public static MessageReactionDatabase getMessageReactionDatabase(Context context) {
+    return getInstance(context).messageReactionDatabase;
+  }
+
   private DatabaseFactory(Context context) {
-    this.databaseHelper       = new DatabaseHelper(context, DATABASE_NAME, null, DATABASE_VERSION);
-    this.sms                  = new SmsDatabase(context, databaseHelper);
-    this.encryptingSms        = new EncryptingSmsDatabase(context, databaseHelper);
-    this.mms                  = new MmsDatabase(context, databaseHelper);
-    this.attachments          = new AttachmentDatabase(context, databaseHelper);
-    this.media                = new MediaDatabase(context, databaseHelper);
-    this.thread               = new ThreadDatabase(context, databaseHelper);
-    this.mmsSmsDatabase       = new MmsSmsDatabase(context, databaseHelper);
-    this.identityDatabase     = new IdentityDatabase(context, databaseHelper);
-    this.draftDatabase        = new DraftDatabase(context, databaseHelper);
-    this.pushDatabase         = new PushDatabase(context, databaseHelper);
-    this.groupDatabase        = new GroupDatabase(context, databaseHelper);
-    this.recipientDatabase    = new RecipientDatabase(context, databaseHelper);
-    this.groupReceiptDatabase = new GroupReceiptDatabase(context, databaseHelper);
-    this.contactsDatabase     = new ContactsDatabase(context);
+    this.databaseHelper           = new DatabaseHelper(context, DATABASE_NAME, null, DATABASE_VERSION);
+    this.sms                      = new SmsDatabase(context, databaseHelper);
+    this.encryptingSms            = new EncryptingSmsDatabase(context, databaseHelper);
+    this.mms                      = new MmsDatabase(context, databaseHelper);
+    this.attachments              = new AttachmentDatabase(context, databaseHelper);
+    this.media                    = new MediaDatabase(context, databaseHelper);
+    this.thread                   = new ThreadDatabase(context, databaseHelper);
+    this.mmsSmsDatabase           = new MmsSmsDatabase(context, databaseHelper);
+    this.identityDatabase         = new IdentityDatabase(context, databaseHelper);
+    this.draftDatabase            = new DraftDatabase(context, databaseHelper);
+    this.pushDatabase             = new PushDatabase(context, databaseHelper);
+    this.groupDatabase            = new GroupDatabase(context, databaseHelper);
+    this.recipientDatabase        = new RecipientDatabase(context, databaseHelper);
+    this.groupReceiptDatabase     = new GroupReceiptDatabase(context, databaseHelper);
+    this.contactsDatabase         = new ContactsDatabase(context);
+    this.messageReactionDatabase  = new MessageReactionDatabase(context, databaseHelper);
   }
 
   public void reset(Context context) {
@@ -240,6 +248,7 @@ public class DatabaseFactory {
     this.groupDatabase.reset(databaseHelper);
     this.recipientDatabase.reset(databaseHelper);
     this.groupReceiptDatabase.reset(databaseHelper);
+    this.messageReactionDatabase.reset(databaseHelper);
     old.close();
   }
 
@@ -554,6 +563,7 @@ public class DatabaseFactory {
       db.execSQL(GroupDatabase.CREATE_TABLE);
       db.execSQL(RecipientDatabase.CREATE_TABLE);
       db.execSQL(GroupReceiptDatabase.CREATE_TABLE);
+      db.execSQL(MessageReactionDatabase.CREATE_TABLE);
 
       executeStatements(db, SmsDatabase.CREATE_INDEXS);
       executeStatements(db, MmsDatabase.CREATE_INDEXS);
@@ -1424,6 +1434,38 @@ public class DatabaseFactory {
 
       if (oldVersion < INTRODUCED_NICKNAMES) {
         db.execSQL("ALTER TABLE recipient_preferences ADD COLUMN nick_name TEXT DEFAULT NULL;");
+      }
+
+      if(oldVersion < INTRODUCED_MESSAGE_REACTION) {
+        db.execSQL(MessageReactionDatabase.CREATE_TABLE);
+        db.execSQL("ALTER TABLE sms ADD COLUMN hash TEXT;");
+        db.execSQL("ALTER TABLE mms ADD COLUMN hash TEXT;");
+
+        Cursor smsCursor = db.rawQuery("SELECT _id, address, date_sent FROM sms", null);
+        while (smsCursor.moveToNext()) {
+          String address = smsCursor.getString(smsCursor.getColumnIndex("address"));
+          String date = smsCursor.getString(smsCursor.getColumnIndex("date_sent"));
+          String id = smsCursor.getString(smsCursor.getColumnIndex("_id"));
+          String hash = MessageHash.generateFrom(address, date);
+
+          ContentValues cv = new ContentValues();
+          cv.put("hash", hash);
+          db.update("sms", cv, "_id="+id, null);
+        }
+        smsCursor.close();
+
+        Cursor mmsCursor = db.rawQuery("SELECT _id, address, date FROM mms", null);
+        while (mmsCursor.moveToNext()) {
+          String address = mmsCursor.getString(mmsCursor.getColumnIndex("address"));
+          String date = mmsCursor.getString(mmsCursor.getColumnIndex("date"));
+          String id = mmsCursor.getString(mmsCursor.getColumnIndex("_id"));
+          String hash = MessageHash.generateFrom(address, date);
+
+          ContentValues cv = new ContentValues();
+          cv.put("hash", hash);
+          db.update("mms", cv, "_id="+id, null);
+        }
+        mmsCursor.close();
       }
 
       db.setTransactionSuccessful();

@@ -55,13 +55,18 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
       Log.w(TAG, "Sending message: " + messageId);
 
       deliver(record);
-      database.markAsSent(messageId, true);
 
-      if (record.getExpiresIn() > 0) {
-        database.markExpireStarted(messageId);
-        expirationManager.scheduleDeletion(record.getId(), record.isMms(), record.getExpiresIn());
+      String messageBody = record.getDisplayBody().toString();
+      if (messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\"")) {
+        database.deleteMessage(messageId);
+      } else {
+        database.markAsSent(messageId, true);
+
+        if (record.getExpiresIn() > 0) {
+          database.markExpireStarted(messageId);
+          expirationManager.scheduleDeletion(record.getId(), record.isMms(), record.getExpiresIn());
+        }
       }
-
     } catch (InsecureFallbackApprovalException e) {
       Log.w(TAG, e);
       database.markAsPendingInsecureSmsFallback(record.getId());

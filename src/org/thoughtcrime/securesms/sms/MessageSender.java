@@ -17,6 +17,7 @@
 package org.thoughtcrime.securesms.sms;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
@@ -59,7 +60,7 @@ public class MessageSender {
                           final OutgoingTextMessage message,
                           final long threadId,
                           final boolean forceSms,
-                          final SmsDatabase.InsertListener insertListener)
+                          @Nullable final SmsDatabase.InsertListener insertListener)
   {
     EncryptingSmsDatabase database    = DatabaseFactory.getEncryptingSmsDatabase(context);
     Recipient             recipient   = message.getRecipient();
@@ -77,6 +78,8 @@ public class MessageSender {
                                                   message, forceSms, System.currentTimeMillis(), insertListener);
 
     sendTextMessage(context, recipient, forceSms, keyExchange, messageId, message.getExpiresIn());
+
+    String messageBody = message.getMessageBody();
 
     return allocatedThreadId;
   }

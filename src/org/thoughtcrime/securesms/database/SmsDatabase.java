@@ -31,6 +31,9 @@ import android.util.Pair;
 import com.annimon.stream.Stream;
 
 import org.thoughtcrime.securesms.ApplicationContext;
+import org.thoughtcrime.securesms.crypto.MasterCipher;
+import org.thoughtcrime.securesms.crypto.MasterSecret;
+import org.thoughtcrime.securesms.crypto.MasterSecretUnion;
 import org.thoughtcrime.securesms.database.documents.IdentityKeyMismatch;
 import org.thoughtcrime.securesms.database.documents.IdentityKeyMismatchList;
 import org.thoughtcrime.securesms.database.model.DisplayRecord;
@@ -42,8 +45,10 @@ import org.thoughtcrime.securesms.sms.IncomingGroupMessage;
 import org.thoughtcrime.securesms.sms.IncomingTextMessage;
 import org.thoughtcrime.securesms.sms.OutgoingTextMessage;
 import org.thoughtcrime.securesms.util.JsonUtils;
+import org.thoughtcrime.securesms.util.MessageHash;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobManager;
+import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.io.IOException;
@@ -81,7 +86,8 @@ public class SmsDatabase extends MessagingDatabase {
     DELIVERY_RECEIPT_COUNT + " INTEGER DEFAULT 0," + SUBJECT + " TEXT, " + BODY + " TEXT, " +
     MISMATCHED_IDENTITIES + " TEXT DEFAULT NULL, " + SERVICE_CENTER + " TEXT, " + SUBSCRIPTION_ID + " INTEGER DEFAULT -1, " +
     EXPIRES_IN + " INTEGER DEFAULT 0, " + EXPIRE_STARTED + " INTEGER DEFAULT 0, " + NOTIFIED + " DEFAULT 0, " +
-    READ_RECEIPT_COUNT + " INTEGER DEFAULT 0, " + PINNED + " BOOLEAN DEFAULT 0 );";
+    READ_RECEIPT_COUNT + " INTEGER DEFAULT 0, " + PINNED + " BOOLEAN DEFAULT 0, " +
+    HASH + " TEXT);";
 
   public static final String[] CREATE_INDEXS = {
     "CREATE INDEX IF NOT EXISTS sms_thread_id_index ON " + TABLE_NAME + " (" + THREAD_ID + ");",
@@ -99,7 +105,7 @@ public class SmsDatabase extends MessagingDatabase {
       PROTOCOL, READ, STATUS, TYPE,
       REPLY_PATH_PRESENT, SUBJECT, BODY, SERVICE_CENTER, DELIVERY_RECEIPT_COUNT,
       MISMATCHED_IDENTITIES, SUBSCRIPTION_ID, EXPIRES_IN, EXPIRE_STARTED,
-      NOTIFIED, READ_RECEIPT_COUNT
+      NOTIFIED, READ_RECEIPT_COUNT, HASH
   };
 
   private static final EarlyReceiptCache earlyDeliveryReceiptCache = new EarlyReceiptCache();
@@ -564,6 +570,9 @@ public class SmsDatabase extends MessagingDatabase {
     values.put(TYPE, type);
     values.put(THREAD_ID, threadId);
 
+    values.put(HASH, MessageHash.generateFrom(message.getSender().serialize(),
+            message.getSentTimestampMillis() + ""));
+
     if (message.isPush() && isDuplicate(message, threadId)) {
       Log.w(TAG, "Duplicate message (" + message.getSentTimestampMillis() + "), ignoring...");
       return Optional.absent();
@@ -599,7 +608,7 @@ public class SmsDatabase extends MessagingDatabase {
 
   protected long insertMessageOutbox(long threadId, OutgoingTextMessage message,
                                      long type, boolean forceSms, long date,
-                                     InsertListener insertListener)
+                                     InsertListener insertListener, MasterSecretUnion masterSecret)
   {
     if      (message.isKeyExchange())   type |= Types.KEY_EXCHANGE_BIT;
     else if (message.isSecureMessage()) type |= (Types.SECURE_MESSAGE_BIT | Types.PUSH_MESSAGE_BIT);
@@ -625,6 +634,12 @@ public class SmsDatabase extends MessagingDatabase {
     contentValues.put(EXPIRES_IN, message.getExpiresIn());
     contentValues.put(DELIVERY_RECEIPT_COUNT, Stream.of(earlyDeliveryReceipts.values()).mapToLong(Long::longValue).sum());
     contentValues.put(READ_RECEIPT_COUNT, Stream.of(earlyReadReceipts.values()).mapToLong(Long::longValue).sum());
+    try {
+      contentValues.put(HASH, MessageHash.generateFrom(DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize(),
+              date + ""));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     SQLiteDatabase db        = databaseHelper.getWritableDatabase();
     long           messageId = db.insert(TABLE_NAME, ADDRESS, contentValues);
@@ -638,9 +653,21 @@ public class SmsDatabase extends MessagingDatabase {
       DatabaseFactory.getThreadDatabase(context).setLastSeen(threadId);
     }
 
-    DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
+    Cursor c = DatabaseFactory.getSmsDatabase(context).getMessage(messageId);
+    c.moveToFirst();
+    MasterCipher masterCipher = new MasterCipher(masterSecret.getMasterSecret().get());
+    String body = "";
 
-    notifyConversationListeners(threadId);
+    try {
+      body = masterCipher.decryptBody(c.getString(c.getColumnIndexOrThrow("body")));
+    } catch (InvalidMessageException e) {
+      e.printStackTrace();
+    }
+
+    if (! (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+      DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
+      notifyConversationListeners(threadId);
+    }
 
     if (!message.isIdentityVerified() && !message.isIdentityDefault()) {
       jobManager.add(new TrimThreadJob(context, threadId));
@@ -813,7 +840,7 @@ public class SmsDatabase extends MessagingDatabase {
                                   0, message.isSecureMessage() ? MmsSmsColumns.Types.getOutgoingEncryptedMessageType() : MmsSmsColumns.Types.getOutgoingSmsMessageType(),
                                   threadId, 0, new LinkedList<IdentityKeyMismatch>(),
                                   message.getSubscriptionId(), message.getExpiresIn(),
-                                  System.currentTimeMillis(), 0);
+                                  System.currentTimeMillis(), 0, null);
     }
   }
 
@@ -852,6 +879,7 @@ public class SmsDatabase extends MessagingDatabase {
       int     subscriptionId       = cursor.getInt(cursor.getColumnIndexOrThrow(SmsDatabase.SUBSCRIPTION_ID));
       long    expiresIn            = cursor.getLong(cursor.getColumnIndexOrThrow(SmsDatabase.EXPIRES_IN));
       long    expireStarted        = cursor.getLong(cursor.getColumnIndexOrThrow(SmsDatabase.EXPIRE_STARTED));
+      String  hash                 = cursor.getString(cursor.getColumnIndexOrThrow(SmsDatabase.HASH));
 
       if (!TextSecurePreferences.isReadReceiptsEnabled(context)) {
         readReceiptCount = 0;
@@ -866,7 +894,7 @@ public class SmsDatabase extends MessagingDatabase {
                                   addressDeviceId,
                                   dateSent, dateReceived, deliveryReceiptCount, type,
                                   threadId, status, mismatches, subscriptionId,
-                                  expiresIn, expireStarted, readReceiptCount);
+                                  expiresIn, expireStarted, readReceiptCount, hash);
     }
 
     private List<IdentityKeyMismatch> getMismatches(String document) {

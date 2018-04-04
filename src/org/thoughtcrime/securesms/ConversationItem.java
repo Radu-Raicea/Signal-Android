@@ -125,6 +125,7 @@ public class ConversationItem extends LinearLayout
   private AvatarImageView    contactPhoto;
   private DeliveryStatusView deliveryStatusIndicator;
   private AlertView          alertView;
+  private LinearLayout       reactionsList;
 
   private @NonNull  Set<MessageRecord>  batchSelected = new HashSet<>();
   private @NonNull  Recipient           conversationRecipient;
@@ -177,6 +178,7 @@ public class ConversationItem extends LinearLayout
     this.documentViewStub        = new Stub<>(findViewById(R.id.document_view_stub));
     this.expirationTimer         =            findViewById(R.id.expiration_indicator);
     this.groupSenderHolder       =            findViewById(R.id.group_sender_holder);
+    this.reactionsList           =            findViewById(R.id.reactions_list);
 
     setOnClickListener(new ClickListener(null));
 
@@ -216,6 +218,7 @@ public class ConversationItem extends LinearLayout
     setMinimumWidth();
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
+    setReactions(messageRecord);
   }
 
   @Override
@@ -526,6 +529,26 @@ public class ConversationItem extends LinearLayout
       }
     } else {
       this.expirationTimer.setVisibility(View.GONE);
+    }
+  }
+
+  private void setReactions(final MessageRecord messageRecord) {
+    LinearLayout reactionsList = (LinearLayout) findViewById(R.id.reactions_list);
+
+    if(((LinearLayout) reactionsList).getChildCount() > 0) {
+      ((LinearLayout) reactionsList).removeAllViews();
+    }
+
+    ReactionsHandler handler = new ReactionsHandler(getContext());
+    List<ReactionsHandler.Reaction> reactions = handler.getMessageReactions(messageRecord);
+
+    for(ReactionsHandler.Reaction reaction : reactions) {
+      TextView tv = new TextView(context);
+
+      tv.setText(reaction.getReaction());
+      tv.setBackgroundResource(R.drawable.reaction_bubble);
+
+      reactionsList.addView(tv);
     }
   }
 

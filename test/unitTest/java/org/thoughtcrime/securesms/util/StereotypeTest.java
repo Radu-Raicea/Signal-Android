@@ -5,23 +5,23 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class StereotypeTest {
-    public String JSON(String type) {
+    private String JSON(String type) {
         return "{\"type\":\""+ type + "\"}";
     }
 
     @Test
-    public void testReturnsInvalidWhenError() {
+    public void testReturnsUnknownWhenError() {
         assertEquals(
             Stereotype.fromBody("bad json"),
-            Stereotype.INVALID
+            Stereotype.UNKNOWN
         );
     }
 
     @Test
-    public void testReturnsInvalidWhenUnkown() {
+    public void testReturnsUnknownWhenUnkown() {
         assertEquals(
             Stereotype.fromBody(JSON("unkown type")),
-            Stereotype.INVALID
+            Stereotype.UNKNOWN
         );
     }
 

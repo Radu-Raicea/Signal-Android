@@ -20,11 +20,10 @@ public class StereotypeTest {
     @Test
     public void testReturnsUnknownWhenUnkown() {
         assertEquals(
-            Stereotype.fromBody(JSON("unkown type")),
+            Stereotype.fromBody(JSON("unknown type")),
             Stereotype.UNKNOWN
         );
     }
-
 
     @Test
     public void testCanParseReaction() {

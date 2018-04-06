@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class Stereotype {
     public static final String REACTION = "reaction";
+    public static final String REPLY = "reply";
     public static final String UNKNOWN = "";
 
     private Stereotype() {}
@@ -25,7 +26,7 @@ public class Stereotype {
 
         switch(type) {
             case REACTION:
-         // case OTHERONE:
+            case REPLY:
                 return type;
             default:
                 return UNKNOWN;

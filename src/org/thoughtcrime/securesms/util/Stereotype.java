@@ -9,8 +9,8 @@ import java.util.Map;
 
 public class Stereotype {
     public static final String REACTION = "reaction";
-    public static final String COMMENT = "comment";
-    public static final String UNKNOWN = "";
+    public static final String COMMENT  = "comment";
+    public static final String UNKNOWN  = "";
 
     private Stereotype() {}
 

@@ -788,9 +788,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         //resets the local view to render new reaction
         fragment.getListAdapter().notifyDataSetChanged();
 
+        String myAddress = "";
+        IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(getApplicationContext());
+        try {
+          myAddress = identityDatabase.getMyIdentity().getAddress().serialize();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+
         String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" +
-                emoji + "\", \"time\": \"" + time.toString() + "\"}";
-        sendTextMessage(false, 0, -1, false, body);
+                emoji + "\", \"time\": \"" + time.toString() + "\",  \"address\": \"" + myAddress + "\" }";
+
+        if(recipient.getAddress().isGroup()) {
+          sendMediaMessage(false, body, new SlideDeck(), 0,-1, false);
+        } else sendTextMessage(false, 0, -1, false, body);
 
         container.showSoftkey(composeText);
         inputPanel.setEmojiDrawer(emojiDrawerStub.get());
@@ -1796,7 +1807,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
                        DatabaseFactory.getRecipientDatabase(context).setProfileSharing(recipient, true);
                      }
 
-                     return MessageSender.send(context, masterSecret, outgoingMessage, threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
+                     if (!Stereotype.fromBody(body).equals(Stereotype.REACTION)) {
+                       return MessageSender.send(context, masterSecret, outgoingMessage, threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
+                     }
+                     return MessageSender.send(context, masterSecret, outgoingMessage, threadId, forceSms, () -> fragment.refreshView());
                    }
 
                    @Override

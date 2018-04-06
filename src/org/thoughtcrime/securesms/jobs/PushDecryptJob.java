@@ -651,7 +651,7 @@ public class PushDecryptJob extends ContextJob {
       ReactionsHandler handler = new ReactionsHandler(context);
       ObjectMapper mapper = new ObjectMapper();
       Map<String,String> map = mapper.readValue(body, Map.class);
-      handler.addReactionToReceiverDB(map.get("hash"), map.get("emoji"), Long.parseLong(map.get("time")), recipient.getAddress(),threadId );
+      handler.addReactionToReceiverDB(map.get("hash"), map.get("emoji"), Long.parseLong(map.get("time")), map.get("address"),threadId );
     } else {
       IncomingTextMessage textMessage = new IncomingTextMessage(Address.fromExternal(context, envelope.getSource()),
                                                                 envelope.getSourceDevice(),

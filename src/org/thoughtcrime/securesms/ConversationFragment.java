@@ -519,12 +519,14 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingMediaMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getMmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-        if (getListAdapter() != null) {
-            getListAdapter().setHeaderView(null);
-            setLastSeen(0);
-            getListAdapter().addFastRecord(messageRecord);
+        String messageBody = messageRecord.getBody().getBody();
+        if ((Stereotype.fromBody(messageBody).equals(Stereotype.UNKNOWN))) {
+            if (getListAdapter() != null) {
+                getListAdapter().setHeaderView(null);
+                setLastSeen(0);
+                getListAdapter().addFastRecord(messageRecord);
+            }
         }
-
         return messageRecord.getId();
     }
 

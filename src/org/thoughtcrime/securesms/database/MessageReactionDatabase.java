@@ -43,7 +43,7 @@ public class MessageReactionDatabase extends Database {
         super(context, databaseHelper);
     }
 
-    public void reactToMessage(String hash, String reaction, Long reactionDate, Address reactorID, Long threadId) {
+    public void reactToMessage(String hash, String reaction, Long reactionDate, String reactorID, Long threadId) {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         String      type;
         ContentValues values = new ContentValues();
@@ -54,7 +54,7 @@ public class MessageReactionDatabase extends Database {
 
         values.put(type, hash);
         values.put(REACTION, reaction);
-        values.put(REACTOR_ID, reactorID.serialize());
+        values.put(REACTOR_ID, reactorID);
         values.put(REACTION_DATE, reactionDate);
         insertOrUpdate(values, type);
         notifyConversationListeners(threadId);

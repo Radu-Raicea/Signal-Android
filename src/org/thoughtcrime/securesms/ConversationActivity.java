@@ -158,6 +158,7 @@ import org.thoughtcrime.securesms.util.GroupUtil;
 import org.thoughtcrime.securesms.util.IdentityUtil;
 import org.thoughtcrime.securesms.util.MediaUtil;
 import org.thoughtcrime.securesms.util.ServiceUtil;
+import org.thoughtcrime.securesms.util.Stereotype;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.ViewUtil;
@@ -1083,7 +1084,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     final String    draftText      = getIntent().getStringExtra(TEXT_EXTRA);
     final Uri       draftMedia     = getIntent().getData();
     final MediaType draftMediaType = MediaType.from(getIntent().getType());
-    
+
     if (draftText != null)                            composeText.setText(draftText);
     if (draftMedia != null && draftMediaType != null) setMedia(draftMedia, draftMediaType);
 
@@ -1849,7 +1850,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
                      String messageBody = messages[0].getMessageBody();
 
-                     if (!(messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+                     if (!Stereotype.fromBody(messageBody).equals(Stereotype.REACTION)) {
                         return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
                      }
                      return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.refreshView());

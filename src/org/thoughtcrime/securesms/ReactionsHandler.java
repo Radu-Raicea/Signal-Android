@@ -43,7 +43,7 @@ public class ReactionsHandler {
      * @param reactorID
      * @param threadId
      */
-    public void addReactionToReceiverDB(String messageHash, String reaction, Long reactionTime, Address reactorID, Long threadId) {
+    public void addReactionToReceiverDB(String messageHash, String reaction, Long reactionTime, String reactorID, Long threadId) {
         this.reactionsDb.reactToMessage(messageHash, reaction, reactionTime, reactorID, threadId);
     }
 

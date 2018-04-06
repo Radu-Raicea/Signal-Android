@@ -61,6 +61,7 @@ import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFormattingException;
 import org.thoughtcrime.securesms.util.JsonUtils;
 import org.thoughtcrime.securesms.util.MessageHash;
+import org.thoughtcrime.securesms.util.Stereotype;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.whispersystems.jobqueue.JobManager;
@@ -930,8 +931,10 @@ public class MmsDatabase extends MessagingDatabase {
         insertListener.onComplete();
       }
 
-      notifyConversationListeners(contentValues.getAsLong(THREAD_ID));
-      DatabaseFactory.getThreadDatabase(context).update(contentValues.getAsLong(THREAD_ID), true);
+      if(Stereotype.fromBody(body).equals(Stereotype.UNKNOWN)) {
+        notifyConversationListeners(contentValues.getAsLong(THREAD_ID));
+        DatabaseFactory.getThreadDatabase(context).update(contentValues.getAsLong(THREAD_ID), true);
+      }
     }
   }
 

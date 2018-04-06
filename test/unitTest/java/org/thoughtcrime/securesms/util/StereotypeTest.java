@@ -32,4 +32,12 @@ public class StereotypeTest {
             Stereotype.REACTION
         );
     }
+
+    @Test
+    public void testCanParseComment() {
+        assertEquals(
+            Stereotype.fromBody(JSON("comment")),
+            Stereotype.COMMENT
+        );
+    }
 }

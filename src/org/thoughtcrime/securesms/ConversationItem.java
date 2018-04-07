@@ -46,6 +46,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.flexbox.FlexboxLayout;
+
 import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.components.AlertView;
 import org.thoughtcrime.securesms.components.AudioView;
@@ -125,7 +127,7 @@ public class ConversationItem extends LinearLayout
   private AvatarImageView    contactPhoto;
   private DeliveryStatusView deliveryStatusIndicator;
   private AlertView          alertView;
-  private LinearLayout       reactionsList;
+  private FlexboxLayout       reactionsList;
 
   private @NonNull  Set<MessageRecord>  batchSelected = new HashSet<>();
   private @NonNull  Recipient           conversationRecipient;
@@ -533,20 +535,30 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setReactions(final MessageRecord messageRecord) {
-    LinearLayout reactionsList = (LinearLayout) findViewById(R.id.reactions_list);
+    FlexboxLayout reactionsList = (FlexboxLayout) findViewById(R.id.reactions_list);
 
-    if(((LinearLayout) reactionsList).getChildCount() > 0) {
-      ((LinearLayout) reactionsList).removeAllViews();
+    if(((FlexboxLayout) reactionsList).getChildCount() > 0) {
+      reactionsList.removeAllViews();
     }
 
     ReactionsHandler handler = new ReactionsHandler(getContext());
     List<ReactionsHandler.Reaction> reactions = handler.getMessageReactions(messageRecord);
-
     for(ReactionsHandler.Reaction reaction : reactions) {
       TextView tv = new TextView(context);
 
       tv.setText(reaction.getReaction());
       tv.setBackgroundResource(R.drawable.reaction_bubble);
+      tv.setBackgroundColor(Color.TRANSPARENT);
+      tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
+      tv.setOnClickListener((view)->{
+        Log.i("reaction","reaction " + reaction.getReaction() + " clicked");
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+        builder.setMessage(reaction.getReactor().serialize() + " at " + reaction.getReactionDate());
+        builder.setCancelable(true);
+
+        builder.setNegativeButton(R.string.no, (dialog, id) -> dialog.cancel());
+        builder.create().show();
+      });
 
       reactionsList.addView(tv);
     }

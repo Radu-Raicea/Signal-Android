@@ -550,14 +550,16 @@ public class ConversationItem extends LinearLayout
       tv.setBackgroundResource(R.drawable.reaction_bubble);
       tv.setBackgroundColor(Color.TRANSPARENT);
       tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
-      tv.setOnClickListener((view)->{
-        Log.i("reaction","reaction " + reaction.getReaction() + " clicked");
+      tv.setOnLongClickListener((view)->{
+        Log.i("reaction","reaction " + reaction.getReaction() + " long clicked");
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
         builder.setMessage(reaction.getReactor().serialize() + " at " + reaction.getReactionDate());
         builder.setCancelable(true);
 
         builder.setNegativeButton(R.string.no, (dialog, id) -> dialog.cancel());
         builder.create().show();
+
+        return true;
       });
 
       reactionsList.addView(tv);

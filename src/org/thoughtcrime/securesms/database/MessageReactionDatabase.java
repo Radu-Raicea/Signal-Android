@@ -67,23 +67,20 @@ public class MessageReactionDatabase extends Database {
         messageType = getMessageType(messageRecord);
         values.put(messageType, messageRecord.getHash());
 
-        Address address;
-        if (messageRecord.isOutgoing()) {
-            try {
-                address = DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Parcel p = Parcel.obtain();
-                p.writeString("Me");
-                p.setDataPosition(0);
-                address = new Address(p);
-            }
-        } else {
-            address = messageRecord.getRecipient().getAddress();
+        String address;
+
+        try {
+            address = DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().serialize();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Parcel p = Parcel.obtain();
+            p.writeString("Me");
+            p.setDataPosition(0);
+            address = new Address(p).serialize();
         }
 
         values.put(REACTION, reaction);
-        values.put(REACTOR_ID, address.serialize());
+        values.put(REACTOR_ID, address);
         values.put(REACTION_DATE, reactionDate);
         insertOrUpdate(values, messageType);
     }

@@ -16,6 +16,7 @@ import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.service.ExpiringMessageManager;
 import org.thoughtcrime.securesms.transport.InsecureFallbackApprovalException;
 import org.thoughtcrime.securesms.transport.RetryLaterException;
+import org.thoughtcrime.securesms.util.Stereotype;
 import org.whispersystems.libsignal.util.guava.Optional;
 import org.whispersystems.signalservice.api.SignalServiceMessageSender;
 import org.whispersystems.signalservice.api.crypto.UntrustedIdentityException;
@@ -57,7 +58,7 @@ public class PushTextSendJob extends PushSendJob implements InjectableType {
       deliver(record);
 
       String messageBody = record.getDisplayBody().toString();
-      if (messageBody.length() >= 19 && messageBody.substring(0, 19).equals("{\"type\": \"reaction\"")) {
+      if (!Stereotype.fromBody(messageBody).equals(Stereotype.UNKNOWN)) {
         database.deleteMessage(messageId);
       } else {
         database.markAsSent(messageId, true);

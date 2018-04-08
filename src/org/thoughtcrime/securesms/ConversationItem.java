@@ -57,6 +57,7 @@ import org.thoughtcrime.securesms.components.DocumentView;
 import org.thoughtcrime.securesms.components.ExpirationTimerView;
 import org.thoughtcrime.securesms.components.ThumbnailView;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
+import org.thoughtcrime.securesms.database.Address;
 import org.thoughtcrime.securesms.database.AttachmentDatabase;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
 import org.thoughtcrime.securesms.database.MmsDatabase;
@@ -87,6 +88,7 @@ import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.dualsim.SubscriptionInfoCompat;
 import org.thoughtcrime.securesms.util.dualsim.SubscriptionManagerCompat;
 import org.thoughtcrime.securesms.util.views.Stub;
+import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.util.HashSet;
@@ -127,7 +129,7 @@ public class ConversationItem extends LinearLayout
   private AvatarImageView    contactPhoto;
   private DeliveryStatusView deliveryStatusIndicator;
   private AlertView          alertView;
-  private FlexboxLayout       reactionsList;
+  private FlexboxLayout      reactionsList;
 
   private @NonNull  Set<MessageRecord>  batchSelected = new HashSet<>();
   private @NonNull  Recipient           conversationRecipient;
@@ -560,6 +562,31 @@ public class ConversationItem extends LinearLayout
         builder.create().show();
 
         return true;
+      });
+      tv.setOnClickListener((view)->{
+        Log.i("reaction","reaction " + reaction.getReaction() + " clicked");
+
+        String address = "";
+
+        try {
+          address = DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().toString();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+
+        for(ReactionsHandler.Reaction reaction_check : reactions) {
+          if (reaction.getReaction() == reaction_check.getReaction() && reaction.getReactor().serialize().equals(address)) {
+            Toast.makeText(context, "You have already reacted with this emoji", Toast.LENGTH_SHORT).show();
+            return;
+          }
+        }
+
+        try {
+          ((ConversationActivity) context).handleNewReaction(messageRecord, new ReactionsHandler(getContext()), reaction.getReaction());
+        } catch (InvalidMessageException e) {
+          e.printStackTrace();
+        }
+
       });
 
       reactionsList.addView(tv);

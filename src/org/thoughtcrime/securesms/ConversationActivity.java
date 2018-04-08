@@ -790,7 +790,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     });
   }
 
-  private void handleNewReaction(MessageRecord messageRecord, ReactionsHandler handler, String emoji) throws InvalidMessageException {
+  public void handleNewReaction(MessageRecord messageRecord, ReactionsHandler handler, String emoji) throws InvalidMessageException {
     Long time = currentTimeMillis();
 
     //insert new reaction into db

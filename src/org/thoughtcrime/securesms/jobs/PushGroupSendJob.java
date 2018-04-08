@@ -88,7 +88,7 @@ public class PushGroupSendJob extends PushSendJob implements InjectableType {
     try {
       deliver(masterSecret, message, filterAddress == null ? null : Address.fromSerialized(filterAddress));
 
-      if (Stereotype.fromBody(message.getBody()).equals(Stereotype.UNKNOWN)) {
+      if (!Stereotype.fromBody(message.getBody()).equals(Stereotype.UNKNOWN)) {
         database.delete(messageId);
       } else {
         database.markAsSent(messageId, true);

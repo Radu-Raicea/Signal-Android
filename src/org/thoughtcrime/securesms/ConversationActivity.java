@@ -779,17 +779,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       @Override
       public void onEmojiSelected(String emoji) throws InvalidMessageException {
-        Long time = currentTimeMillis();
-
-        //insert new reaction into db
-        handler.addReactionToSenderDB(messageRecord, emoji, time);
-
-        //resets the local view to render new reaction
-        fragment.getListAdapter().notifyDataSetChanged();
-
-        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" +
-                emoji + "\", \"time\": \"" + time.toString() + "\"}";
-        sendTextMessage(false, 0, -1, false, body);
+        handleNewReaction(messageRecord, handler, emoji);
 
         container.showSoftkey(composeText);
         inputPanel.setEmojiDrawer(emojiDrawerStub.get());
@@ -798,6 +788,20 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         inputPanel.setVisibility(View.VISIBLE);
       }
     });
+  }
+
+  private void handleNewReaction(MessageRecord messageRecord, ReactionsHandler handler, String emoji) throws InvalidMessageException {
+    Long time = currentTimeMillis();
+
+    //insert new reaction into db
+    handler.addReactionToSenderDB(messageRecord, emoji, time);
+
+    //resets the local view to render new reaction
+    fragment.getListAdapter().notifyDataSetChanged();
+
+    String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" +
+            emoji + "\", \"time\": \"" + time.toString() + "\"}";
+    sendTextMessage(false, 0, -1, false, body);
   }
 
   private void handleSearch(MenuItem item) {

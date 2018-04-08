@@ -575,7 +575,7 @@ public class ConversationItem extends LinearLayout
         }
 
         for(ReactionsHandler.Reaction reaction_check : reactions) {
-          if (reaction.getReaction() == reaction_check.getReaction() && reaction.getReactor().serialize().equals(address)) {
+          if (reaction.getReaction().equals(reaction_check.getReaction()) && reaction_check.getReactor().serialize().equals(address)) {
             Toast.makeText(context, "You have already reacted with this emoji", Toast.LENGTH_SHORT).show();
             return;
           }

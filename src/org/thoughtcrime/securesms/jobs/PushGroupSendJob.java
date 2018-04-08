@@ -27,6 +27,7 @@ import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.recipients.RecipientFormattingException;
 import org.thoughtcrime.securesms.transport.UndeliverableMessageException;
 import org.thoughtcrime.securesms.util.GroupUtil;
+import org.thoughtcrime.securesms.util.Stereotype;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.jobqueue.requirements.NetworkRequirement;
 import org.whispersystems.libsignal.util.guava.Optional;
@@ -87,14 +88,18 @@ public class PushGroupSendJob extends PushSendJob implements InjectableType {
     try {
       deliver(masterSecret, message, filterAddress == null ? null : Address.fromSerialized(filterAddress));
 
-      database.markAsSent(messageId, true);
-      markAttachmentsUploaded(messageId, message.getAttachments());
+      if (Stereotype.fromBody(message.getBody()).equals(Stereotype.UNKNOWN)) {
+        database.delete(messageId);
+      } else {
+        database.markAsSent(messageId, true);
+        markAttachmentsUploaded(messageId, message.getAttachments());
 
-      if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
-        database.markExpireStarted(messageId);
-        ApplicationContext.getInstance(context)
-                          .getExpiringMessageManager()
-                          .scheduleDeletion(messageId, true, message.getExpiresIn());
+        if (message.getExpiresIn() > 0 && !message.isExpirationUpdate()) {
+          database.markExpireStarted(messageId);
+          ApplicationContext.getInstance(context)
+                  .getExpiringMessageManager()
+                  .scheduleDeletion(messageId, true, message.getExpiresIn());
+        }
       }
     } catch (InvalidNumberException | RecipientFormattingException | UndeliverableMessageException e) {
       Log.w(TAG, e);

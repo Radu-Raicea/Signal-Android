@@ -74,6 +74,7 @@ import com.google.protobuf.ByteString;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONObject;
 import org.thoughtcrime.securesms.audio.AudioRecorder;
 import org.thoughtcrime.securesms.audio.AudioSlidePlayer;
 import org.thoughtcrime.securesms.color.MaterialColor;
@@ -172,8 +173,10 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static java.lang.System.currentTimeMillis;
@@ -796,8 +799,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           e.printStackTrace();
         }
 
-        String body = "{\"type\": \"reaction\", \"hash\": \"" + messageRecord.getHash() + "\", \"emoji\": \"" +
-                emoji + "\", \"time\": \"" + time.toString() + "\",  \"address\": \"" + myAddress + "\" }";
+        Map<String, String> map = new HashMap<>();
+        map.put("type", "reaction");
+        map.put("hash", messageRecord.getHash());
+        map.put("emoji", emoji);
+        map.put("time", time.toString());
+        map.put("address", myAddress);
+
+        String body = new JSONObject(map).toString();
 
         if(recipient.getAddress().isGroup()) {
           sendMediaMessage(false, body, new SlideDeck(), 0,-1, false);

@@ -54,6 +54,7 @@ import org.thoughtcrime.securesms.sms.OutgoingTextMessage;
 import org.thoughtcrime.securesms.util.Base64;
 import org.thoughtcrime.securesms.util.GroupUtil;
 import org.thoughtcrime.securesms.util.IdentityUtil;
+import org.thoughtcrime.securesms.util.Stereotype;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobParameters;
 import org.whispersystems.libsignal.DuplicateMessageException;
@@ -645,7 +646,7 @@ public class PushDecryptJob extends ContextJob {
 
     if (smsMessageId.isPresent() && !message.getGroupInfo().isPresent()) {
       threadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body).second;
-    } else if (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\"")) {
+    } else if (Stereotype.fromBody(body).equals(Stereotype.REACTION)) {
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipient);
       ReactionsHandler handler = new ReactionsHandler(context);
       ObjectMapper mapper = new ObjectMapper();

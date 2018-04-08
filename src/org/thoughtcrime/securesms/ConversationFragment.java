@@ -71,6 +71,7 @@ import org.thoughtcrime.securesms.sms.MessageSender;
 import org.thoughtcrime.securesms.sms.OutgoingTextMessage;
 import org.thoughtcrime.securesms.util.SaveAttachmentTask;
 import org.thoughtcrime.securesms.util.SaveAttachmentTask.Attachment;
+import org.thoughtcrime.securesms.util.Stereotype;
 import org.thoughtcrime.securesms.util.StickyHeaderDecoration;
 import org.thoughtcrime.securesms.util.ViewUtil;
 import org.thoughtcrime.securesms.util.task.ProgressDialogAsyncTask;
@@ -530,7 +531,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingTextMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getSmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-        if (!(messageRecord.getBody().getBody().length() >= 19 && messageRecord.getBody().getBody().substring(0, 19).equals("{\"type\": \"reaction\""))) {
+        if (!Stereotype.fromBody(messageRecord.getBody().getBody()).equals(Stereotype.REACTION)) {
             if (getListAdapter() != null) {
                 getListAdapter().setHeaderView(null);
                 setLastSeen(0);

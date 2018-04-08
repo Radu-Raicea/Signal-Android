@@ -46,6 +46,7 @@ import org.thoughtcrime.securesms.sms.IncomingTextMessage;
 import org.thoughtcrime.securesms.sms.OutgoingTextMessage;
 import org.thoughtcrime.securesms.util.JsonUtils;
 import org.thoughtcrime.securesms.util.MessageHash;
+import org.thoughtcrime.securesms.util.Stereotype;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.whispersystems.jobqueue.JobManager;
 import org.whispersystems.libsignal.InvalidMessageException;
@@ -466,7 +467,7 @@ public class SmsDatabase extends MessagingDatabase {
 
     jobManager.add(new TrimThreadJob(context, record.getThreadId()));
     reader.close();
-    
+
     return new Pair<>(newMessageId, record.getThreadId());
   }
 
@@ -664,7 +665,7 @@ public class SmsDatabase extends MessagingDatabase {
       e.printStackTrace();
     }
 
-    if (! (body.length() >= 19 && body.substring(0, 19).equals("{\"type\": \"reaction\""))) {
+    if (!Stereotype.fromBody(body).equals(Stereotype.REACTION)) {
       DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
       notifyConversationListeners(threadId);
     }

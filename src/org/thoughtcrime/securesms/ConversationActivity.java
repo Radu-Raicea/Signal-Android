@@ -570,7 +570,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   @Override
   public void onBackPressed() {
-    if (container.isInputOpen()) {
+    if (container.getCurrentInput() == emojiDrawerStub.get()) {
+      container.showSoftkey(composeText);
+      revertNormalState();
+      isEmojiReactionMode = false;
+    } else if (container.isInputOpen()) {
       container.hideCurrentInput(composeText);
     } else if (isSearchMode) {
       hideSearchMode();
@@ -792,6 +796,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         inputPanel.setVisibility(View.VISIBLE);
       }
     });
+  }
+
+  private void revertNormalState() {
+    inputPanel.setEmojiDrawer(emojiDrawerStub.get());
+    emojiDrawerStub.get().setEmojiEventListener(inputPanel);
+    inputPanel.setVisibility(View.VISIBLE);
+    linMessage.setVisibility(View.VISIBLE);
   }
 
   public void handleNewReaction(MessageRecord messageRecord, ReactionsHandler handler, String emoji) throws InvalidMessageException {

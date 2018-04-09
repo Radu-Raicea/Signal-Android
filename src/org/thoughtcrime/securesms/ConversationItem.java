@@ -61,6 +61,7 @@ import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.database.Address;
 import org.thoughtcrime.securesms.database.AttachmentDatabase;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
+import org.thoughtcrime.securesms.database.IdentityDatabase;
 import org.thoughtcrime.securesms.database.MmsDatabase;
 import org.thoughtcrime.securesms.database.MmsSmsDatabase;
 import org.thoughtcrime.securesms.database.SmsDatabase;
@@ -553,10 +554,11 @@ public class ConversationItem extends LinearLayout
 
     for (ReactionsHandler.Reaction reaction : reactions) {
       TextView tv = new TextView(context);
-      String longClickText = reaction.getReactor().serialize() + " at " + reaction.getReactionDate();
+      String reactionDate = DateUtils.getExtendedRelativeTimeSpanString(context, new Locale("en", "CA"), reaction.getReactionDate());
+      String longClickText = getMessageSenderName(reaction.getReactor()) + " at " + reactionDate;
+      int count = reactionCounts.get(reaction.getReaction());
 
       if (!reactionsToDisplay.containsKey(reaction.getReaction())) {
-        int count = reactionCounts.get(reaction.getReaction());
         String reactionStr;
 
         if (count > 1) {
@@ -611,10 +613,17 @@ public class ConversationItem extends LinearLayout
       tv.setOnLongClickListener((view) -> {
         Log.i("reaction","reaction " + reaction.getReaction() + " long clicked");
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
-        builder.setMessage(reactionsToDisplay.get(reaction.getReaction()));
-        builder.setCancelable(true);
 
-        builder.setNegativeButton(R.string.no, (dialog, id) -> dialog.cancel());
+        if (count > 1) {
+          builder.setMessage(reactionCounts.get(reaction.getReaction()) + " people reacted with " +
+                  reaction.getReaction() + "\n\n" + reactionsToDisplay.get(reaction.getReaction()));
+        } else {
+          builder.setMessage(reactionCounts.get(reaction.getReaction()) + " person reacted with " +
+                  reaction.getReaction() + "\n\n" + reactionsToDisplay.get(reaction.getReaction()));
+        }
+
+        builder.setCancelable(true);
+        builder.setNegativeButton(R.string.ok, (dialog, id) -> dialog.cancel());
         builder.create().show();
 
         return true;
@@ -622,6 +631,39 @@ public class ConversationItem extends LinearLayout
 
       reactionsList.addView(tv);
     }
+  }
+
+  private String getMessageSenderName(Address senderAddress) {
+    String messageSenderName = "";
+
+    IdentityDatabase identityDatabase  = DatabaseFactory.getIdentityDatabase(context);
+    Address myAddress = null;
+
+    try {
+      myAddress = identityDatabase.getMyIdentity().getAddress();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    if (myAddress.serialize().equals(senderAddress.serialize())) {
+      messageSenderName = "Me";
+    } else {
+      messageSenderName = messageRecord.getRecipient().getName();
+      if (messageRecord.getRecipient().getAddress().isGroup()) {
+        for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
+          if (participant.getAddress().serialize().equals(senderAddress.serialize())) {
+            messageSenderName = participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
+            break;
+          }
+        }
+      } else {
+        if (messageSenderName == null) {
+          messageSenderName = messageRecord.getRecipient().getAddress().toString();
+        }
+      }
+    }
+
+    return messageSenderName;
   }
 
   private void setFailedStatusIcons() {

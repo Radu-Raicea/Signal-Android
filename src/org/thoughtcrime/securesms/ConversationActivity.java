@@ -807,15 +807,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   public void handleNewReaction(MessageRecord messageRecord, ReactionsHandler handler, String emoji) throws InvalidMessageException {
     Long time = currentTimeMillis();
-
-    //insert new reaction into db
     handler.addReactionToSenderDB(messageRecord, emoji, time);
 
-    //resets the local view to render new reaction
+    // Resets the local view to render new reaction
     fragment.getListAdapter().notifyDataSetChanged();
 
-    String myAddress = "";
     IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(getApplicationContext());
+
+    String myAddress = "";
     try {
       myAddress = identityDatabase.getMyIdentity().getAddress().serialize();
     } catch (Exception e) {
@@ -831,7 +830,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     String body = new JSONObject(map).toString();
 
-    if(recipient.getAddress().isGroup()) {
+    if (recipient.getAddress().isGroup()) {
       sendMediaMessage(false, body, new SlideDeck(), 0,-1, false);
     } else sendTextMessage(false, 0, -1, false, body);
   }
@@ -844,7 +843,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     upArrow.setOnClickListener(new NextSearchResultListener());
     downArrow.setOnClickListener(new PreviousSearchResultListener());
 
-    if(!this.isSearchMode) {
+    if (!this.isSearchMode) {
       showSearchMode(bottomPanel, searchView);
       this.isSearchMode = !isSearchMode;
     } else {

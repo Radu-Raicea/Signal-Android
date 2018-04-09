@@ -265,7 +265,7 @@ public class ConversationItem extends LinearLayout
     int index = tempString.indexOf(highlight, start);
 
     while (index > -1) {
-      if(!messageRecord.isOutgoing()) {
+      if (!messageRecord.isOutgoing()) {
         color = Color.parseColor("#E1BEE7");
       } else {
         color = Color.YELLOW;
@@ -543,7 +543,7 @@ public class ConversationItem extends LinearLayout
   private void setReactions(final MessageRecord messageRecord) {
     FlexboxLayout reactionsList = (FlexboxLayout) findViewById(R.id.reactions_list);
 
-    if(((FlexboxLayout) reactionsList).getChildCount() > 0) {
+    if (((FlexboxLayout) reactionsList).getChildCount() > 0) {
       reactionsList.removeAllViews();
     }
 
@@ -607,7 +607,6 @@ public class ConversationItem extends LinearLayout
         } catch (InvalidMessageException e) {
           e.printStackTrace();
         }
-
       });
 
       tv.setOnLongClickListener((view) -> {

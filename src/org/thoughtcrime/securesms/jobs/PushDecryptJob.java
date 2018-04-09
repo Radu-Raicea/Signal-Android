@@ -10,6 +10,7 @@ import android.util.Pair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.thoughtcrime.securesms.ApplicationContext;
+import org.thoughtcrime.securesms.RepliesHandler;
 import org.thoughtcrime.securesms.ReactionsHandler;
 import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.attachments.PointerAttachment;
@@ -648,10 +649,18 @@ public class PushDecryptJob extends ContextJob {
       threadId = database.updateBundleMessageBody(masterSecret, smsMessageId.get(), body).second;
     } else if (Stereotype.fromBody(body).equals(Stereotype.REACTION)) {
       threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipient);
-      ReactionsHandler handler = new ReactionsHandler(context);
-      ObjectMapper mapper = new ObjectMapper();
-      Map<String,String> map = mapper.readValue(body, Map.class);
+      ReactionsHandler      handler = new ReactionsHandler(context);
+      ObjectMapper          mapper  = new ObjectMapper();
+      Map<String,String>    map     = mapper.readValue(body, Map.class);
+
       handler.addReactionToReceiverDB(map.get("hash"), map.get("emoji"), Long.parseLong(map.get("time")), map.get("address"),threadId );
+    } else if (Stereotype.fromBody(body).equals(Stereotype.REPLY)) {
+        threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipient);
+        RepliesHandler      handler = new RepliesHandler(context);
+        ObjectMapper        mapper  = new ObjectMapper();
+        Map<String, String> map     = mapper.readValue(body, Map.class);
+
+        handler.receiveReply(map.get("hash"), map.get("reply"), Long.parseLong(map.get("time")), map.get("address"), threadId);
     } else {
       IncomingTextMessage textMessage = new IncomingTextMessage(Address.fromExternal(context, envelope.getSource()),
                                                                 envelope.getSourceDevice(),

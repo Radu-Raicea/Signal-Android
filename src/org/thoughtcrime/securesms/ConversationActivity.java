@@ -255,16 +255,19 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private   ImageView              upArrow;
   private   ImageView              downArrow;
 
-  private Recipient  recipient;
-  private long       threadId;
-  private int        distributionType;
-  private boolean    archived;
-  private boolean    isSecureText;
-  private boolean    isDefaultSms          = true;
-  private boolean    isMmsEnabled          = true;
-  private boolean    isSecurityInitialized = false;
-  private boolean    isSearchMode          = false;
-  private boolean    isEmojiReactionMode   = false;
+  private Recipient     recipient;
+  private long          threadId;
+  private int           distributionType;
+  private boolean       archived;
+  private boolean       isSecureText;
+  private boolean       isDefaultSms          = true;
+  private boolean       isMmsEnabled          = true;
+  private boolean       isSecurityInitialized = false;
+  private boolean       isSearchMode          = false;
+  private boolean       isEmojiReactionMode   = false;
+  private boolean       isReplyMode           = false;
+  private MessageRecord record                = null;
+
 
   private final IdentityRecordList identityRecords = new IdentityRecordList();
   private final DynamicTheme       dynamicTheme    = new DynamicTheme();
@@ -572,6 +575,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   public void onBackPressed() {
     if (container.isInputOpen()) {
       container.hideCurrentInput(composeText);
+      isReplyMode = false;
     } else if (isSearchMode) {
       hideSearchMode();
       Toast.makeText(this, getString(R.string.ConversationActivity_search_mode_off),
@@ -603,6 +607,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     startActivity(intent);
     finish();
+  }
+
+  public void handleReplyMode(MessageRecord record) {
+    this.record = record;
+    this.isReplyMode = true;
+    this.showKeyboard();
   }
 
   private void handleSelectMessageExpiration() {
@@ -788,7 +798,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         //insert new reaction into db
         handler.addReactionToSenderDB(messageRecord, emoji, time);
 
-        //resets the local view to render new reaction
         fragment.getListAdapter().notifyDataSetChanged();
 
         String myAddress = "";
@@ -800,7 +809,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         }
 
         Map<String, String> map = new HashMap<>();
-        map.put("type", "reaction");
+        map.put("type", Stereotype.REACTION);
         map.put("hash", messageRecord.getHash());
         map.put("emoji", emoji);
         map.put("time", time.toString());
@@ -860,6 +869,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (view != null) {
       InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+  }
+
+  public void showKeyboard() {
+    View view = this.getCurrentFocus();
+    if (view != null) {
+      InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+      imm.showSoftInput(view, 0);
     }
   }
 
@@ -1724,8 +1741,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     boolean refreshFragment = (threadId != this.threadId);
     this.threadId = threadId;
 
-    if (isEmojiReactionMode || fragment == null || !fragment.isVisible() || isFinishing()) {
+    if (isEmojiReactionMode || fragment == null || !fragment.isVisible() || isFinishing() || isReplyMode) {
       isEmojiReactionMode = false;
+      isReplyMode = false;
       return;
     }
 
@@ -1873,7 +1891,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
                      String messageBody = messages[0].getMessageBody();
 
-                     if (!Stereotype.fromBody(messageBody).equals(Stereotype.REACTION)) {
+                     if (Stereotype.fromBody(messageBody).equals(Stereotype.UNKNOWN)) {
                         return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
                      }
                      return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.refreshView());
@@ -2101,7 +2119,32 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private class SendButtonListener implements OnClickListener, TextView.OnEditorActionListener {
     @Override
     public void onClick(View v) {
-      sendMessage();
+      if (isReplyMode) {
+        Address myAddress = null;
+        try {
+          RepliesHandler repliesHandler = new RepliesHandler(getApplicationContext());
+          IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(getBaseContext());
+          myAddress = identityDatabase.getMyIdentity().getAddress();
+          Long time = System.currentTimeMillis();
+
+          repliesHandler.replyToMessageBySender(record, getMessage(), time);
+
+          Map<String, String> replyBody = new HashMap<>();
+          replyBody.put("type", Stereotype.REPLY);
+          replyBody.put("hash", record.getHash());
+          replyBody.put("reply", getMessage());
+          replyBody.put("time", time.toString());
+          replyBody.put("address", myAddress.serialize());
+
+          String body = new JSONObject(replyBody).toString();
+
+          // TODO check if it group chat reply
+          sendTextMessage(false, 0, -1, false, body);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+      else sendMessage();
     }
 
     @Override

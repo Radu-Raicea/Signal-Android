@@ -39,10 +39,12 @@ import android.text.util.Linkify;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,10 +57,13 @@ import org.thoughtcrime.securesms.components.DocumentView;
 import org.thoughtcrime.securesms.components.ExpirationTimerView;
 import org.thoughtcrime.securesms.components.ThumbnailView;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
+import org.thoughtcrime.securesms.database.Address;
 import org.thoughtcrime.securesms.database.AttachmentDatabase;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
+import org.thoughtcrime.securesms.database.IdentityDatabase;
 import org.thoughtcrime.securesms.database.MmsDatabase;
 import org.thoughtcrime.securesms.database.MmsSmsDatabase;
+import org.thoughtcrime.securesms.database.RecipientDatabase;
 import org.thoughtcrime.securesms.database.SmsDatabase;
 import org.thoughtcrime.securesms.database.documents.IdentityKeyMismatch;
 import org.thoughtcrime.securesms.database.model.MediaMmsMessageRecord;
@@ -91,6 +96,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
+import static android.widget.RelativeLayout.ALIGN_PARENT_LEFT;
+import static android.widget.RelativeLayout.ALIGN_PARENT_RIGHT;
 
 /**
  * A view that displays an individual conversation item within a conversation
@@ -126,6 +134,7 @@ public class ConversationItem extends LinearLayout
   private DeliveryStatusView deliveryStatusIndicator;
   private AlertView          alertView;
   private LinearLayout       reactionsList;
+  private LinearLayout       commentsList;
 
   private @NonNull  Set<MessageRecord>  batchSelected = new HashSet<>();
   private @NonNull  Recipient           conversationRecipient;
@@ -179,6 +188,7 @@ public class ConversationItem extends LinearLayout
     this.expirationTimer         =            findViewById(R.id.expiration_indicator);
     this.groupSenderHolder       =            findViewById(R.id.group_sender_holder);
     this.reactionsList           =            findViewById(R.id.reactions_list);
+    this.reactionsList           =            findViewById(R.id.replies_list);
 
     setOnClickListener(new ClickListener(null));
 
@@ -219,6 +229,7 @@ public class ConversationItem extends LinearLayout
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
     setReactions(messageRecord);
+    setReplies(messageRecord);
   }
 
   @Override
@@ -550,6 +561,65 @@ public class ConversationItem extends LinearLayout
 
       reactionsList.addView(tv);
     }
+  }
+
+  private void setReplies(final MessageRecord messageRecord) {
+    LinearLayout      replyList      = (LinearLayout) findViewById(R.id.replies_list);
+    IdentityDatabase  identityDatabase  = DatabaseFactory.getIdentityDatabase(context);
+    RecipientDatabase recipientDatabase = DatabaseFactory.getRecipientDatabase(context);
+
+    Address myAddress = null;
+
+    if (((LinearLayout) replyList).getChildCount() > 0)
+      ((LinearLayout) replyList).removeAllViews();
+
+    RepliesHandler             handler  = new RepliesHandler(getContext());
+    List<RepliesHandler.Reply> replies = handler.getMessageReplies(messageRecord);
+
+    for (RepliesHandler.Reply reply : replies) {
+      LayoutInflater inflater        = LayoutInflater.from(getContext());
+      View           theInflatedView = inflater.inflate(R.layout.pinned_conversation_item, this, false);
+
+      if (myAddress == null) {
+        try {
+          myAddress = identityDatabase.getMyIdentity().getAddress();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+
+        TextView tvReceipient = theInflatedView.findViewById(R.id.pinned_message_recipient);
+        TextView tvMessage    = theInflatedView.findViewById(R.id.pinned_message_body);
+        TextView tvTime       = theInflatedView.findViewById(R.id.conversation_item_date);
+
+        tvMessage.setText(reply.getReply());
+        tvTime.setText(DateUtils.getExtendedRelativeTimeSpanString(context, new Locale("en", "CA"),
+                reply.getReplyDate()));
+
+        // check if it is me replying
+        if (myAddress.serialize().equals(reply.getReplierAddress().serialize())) {
+          tvReceipient.setText("Me");
+          this.setReplyViewOrientation(messageRecord,
+                  theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_RIGHT);
+          // this is someone else replying
+        } else {
+          String messageSenderName = messageRecord.getRecipient().getName();
+          if (messageSenderName == null) {
+            messageSenderName = messageRecord.getRecipient().getAddress().toString();
+          }
+          tvReceipient.setText(messageSenderName);
+          this.setReplyViewOrientation(messageRecord,
+                  theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_LEFT);
+        }
+        theInflatedView.setBackgroundColor(Color.parseColor("#E0E0E0"));
+        replyList.addView(theInflatedView);
+      }
+  }
+
+  private void setReplyViewOrientation(MessageRecord record, View theInflatedView, int alignParentRight) {
+    RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) theInflatedView.getLayoutParams();
+    lp.addRule(alignParentRight);
+    theInflatedView.setLayoutParams(lp);
   }
 
   private void setFailedStatusIcons() {

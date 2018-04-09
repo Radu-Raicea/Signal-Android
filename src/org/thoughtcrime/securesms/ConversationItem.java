@@ -34,6 +34,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.BackgroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
@@ -91,7 +92,7 @@ import org.thoughtcrime.securesms.util.views.Stub;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -548,64 +549,78 @@ public class ConversationItem extends LinearLayout
     ReactionsHandler handler = new ReactionsHandler(getContext());
     List<ReactionsHandler.Reaction> reactions = handler.getMessageReactions(messageRecord);
     Map<String, Integer> reactionCounts = handler.getReactionCounts(reactions);
-    List<String> reactionsDisplayed = new ArrayList<>();
+    Map<String, String> reactionsToDisplay = new HashMap<>();
 
     for (ReactionsHandler.Reaction reaction : reactions) {
-      if (!reactionsDisplayed.contains(reaction.getReaction())) {
+      TextView tv = new TextView(context);
+      String longClickText = reaction.getReactor().serialize() + " at " + reaction.getReactionDate();
+
+      if (!reactionsToDisplay.containsKey(reaction.getReaction())) {
         int count = reactionCounts.get(reaction.getReaction());
-        TextView tv = new TextView(context);
-        String reactionBubbleText;
+        String reactionStr;
 
         if (count > 1) {
-          reactionBubbleText = reaction.getReaction() + count;
+          reactionStr = reaction.getReaction();
+          String countStr = Integer.toString(count) + " ";
+          SpannableString ss1 = new SpannableString(reactionStr);
+          SpannableString ss2 = new SpannableString(countStr);
+          ss2.setSpan(new RelativeSizeSpan(0.5f), 0, ss2.length(), 0);
+          CharSequence finalText = TextUtils.concat(ss1, ss2);
+          tv.setText(finalText);
         } else {
-          reactionBubbleText = reaction.getReaction();
+          reactionStr = reaction.getReaction() + " ";
+          tv.setText(reactionStr);
         }
 
-        tv.setText(reactionBubbleText);
         tv.setBackgroundResource(R.drawable.reaction_bubble);
         tv.setBackgroundColor(Color.TRANSPARENT);
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
-        tv.setOnLongClickListener((view)->{
-          Log.i("reaction","reaction " + reaction.getReaction() + " long clicked");
-          android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
-          builder.setMessage(reaction.getReactor().serialize() + " at " + reaction.getReactionDate());
-          builder.setCancelable(true);
 
-          builder.setNegativeButton(R.string.no, (dialog, id) -> dialog.cancel());
-          builder.create().show();
-
-          return true;
-        });
-        tv.setOnClickListener((view)->{
-          Log.i("reaction","reaction " + reaction.getReaction() + " clicked");
-
-          String address = "";
-
-          try {
-            address = DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().toString();
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-
-          for(ReactionsHandler.Reaction reaction_check : reactions) {
-            if (reaction.getReaction().equals(reaction_check.getReaction()) && reaction_check.getReactor().serialize().equals(address)) {
-              Toast.makeText(context, "You have already reacted with this emoji", Toast.LENGTH_SHORT).show();
-              return;
-            }
-          }
-
-          try {
-            ((ConversationActivity) context).handleNewReaction(messageRecord, new ReactionsHandler(getContext()), reaction.getReaction());
-          } catch (InvalidMessageException e) {
-            e.printStackTrace();
-          }
-
-        });
-
-        reactionsList.addView(tv);
-        reactionsDisplayed.add(reaction.getReaction());
+      } else {
+        longClickText = reactionsToDisplay.get(reaction.getReaction()) + "\n" + longClickText;
       }
+
+      reactionsToDisplay.put(reaction.getReaction(), longClickText);
+
+      tv.setOnClickListener((view) -> {
+        Log.i("reaction","reaction " + reaction.getReaction() + " clicked");
+
+        String address = "";
+
+        try {
+          address = DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().toString();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+
+        for (ReactionsHandler.Reaction reaction_check : reactions) {
+          if (reaction.getReaction().equals(reaction_check.getReaction()) && reaction_check.getReactor().serialize().equals(address)) {
+            Toast.makeText(context, "You have already reacted with this emoji", Toast.LENGTH_SHORT).show();
+            return;
+          }
+        }
+
+        try {
+          ((ConversationActivity) context).handleNewReaction(messageRecord, new ReactionsHandler(getContext()), reaction.getReaction());
+        } catch (InvalidMessageException e) {
+          e.printStackTrace();
+        }
+
+      });
+
+      tv.setOnLongClickListener((view) -> {
+        Log.i("reaction","reaction " + reaction.getReaction() + " long clicked");
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+        builder.setMessage(reactionsToDisplay.get(reaction.getReaction()));
+        builder.setCancelable(true);
+
+        builder.setNegativeButton(R.string.no, (dialog, id) -> dialog.cancel());
+        builder.create().show();
+
+        return true;
+      });
+
+      reactionsList.addView(tv);
     }
   }
 

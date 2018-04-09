@@ -1,7 +1,5 @@
 package org.thoughtcrime.securesms.util;
 
-import android.icu.text.SymbolTable;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -9,7 +7,7 @@ import java.util.Map;
 
 public class Stereotype {
     public static final String REACTION = "reaction";
-    public static final String COMMENT  = "comment";
+    public static final String REPLY    = "reply";
     public static final String UNKNOWN  = "";
 
     private Stereotype() {}
@@ -26,7 +24,7 @@ public class Stereotype {
 
         switch(type) {
             case REACTION:
-            case COMMENT:
+            case REPLY:
                 return type;
             default:
                 return UNKNOWN;

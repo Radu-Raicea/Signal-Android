@@ -604,9 +604,18 @@ public class ConversationItem extends LinearLayout
           // this is someone else replying
         } else {
           String messageSenderName = messageRecord.getRecipient().getName();
+          if(messageRecord.getRecipient().getAddress().isGroup()) {
+            for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
+                if (participant.getAddress().serialize().equals(reply.getReplierAddress().serialize())) {
+                  messageSenderName = participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
+                  break;
+              }
+            }
+          } else {
+
           if (messageSenderName == null) {
             messageSenderName = messageRecord.getRecipient().getAddress().toString();
-          }
+           }}
           tvReceipient.setText(messageSenderName);
           this.setReplyViewOrientation(messageRecord,
                   theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_LEFT);

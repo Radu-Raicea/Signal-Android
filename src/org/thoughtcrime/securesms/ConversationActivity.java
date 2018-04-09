@@ -2139,7 +2139,10 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           String body = new JSONObject(replyBody).toString();
 
           // TODO check if it group chat reply
-          sendTextMessage(false, 0, -1, false, body);
+
+          if(recipient.getAddress().isGroup()){
+              sendMediaMessage(false, body, new SlideDeck(), 0,-1, false);
+            } else sendTextMessage(false, 0, -1, false, body);
         } catch (Exception e) {
           e.printStackTrace();
         }

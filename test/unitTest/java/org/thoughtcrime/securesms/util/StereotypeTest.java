@@ -36,8 +36,8 @@ public class StereotypeTest {
     @Test
     public void testCanParseComment() {
         assertEquals(
-            Stereotype.fromBody(JSON("comment")),
-            Stereotype.COMMENT
+            Stereotype.fromBody(JSON("reply")),
+            Stereotype.REPLY
         );
     }
 }

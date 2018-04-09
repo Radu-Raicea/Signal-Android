@@ -33,6 +33,8 @@ public class ChatsPreferenceFragment extends ListSummaryPreferenceFragment {
         .setOnPreferenceChangeListener(new MediaDownloadChangeListener());
     findPreference(TextSecurePreferences.MEDIA_DOWNLOAD_ROAMING_PREF)
         .setOnPreferenceChangeListener(new MediaDownloadChangeListener());
+    findPreference(TextSecurePreferences.COMPRESSION_OPTIONS_PREF)
+            .setOnPreferenceChangeListener(new MediaDownloadChangeListener());
     findPreference(TextSecurePreferences.MESSAGE_BODY_TEXT_SIZE_PREF)
         .setOnPreferenceChangeListener(new ListSummaryListener());
 
@@ -63,6 +65,8 @@ public class ChatsPreferenceFragment extends ListSummaryPreferenceFragment {
         .setSummary(getSummaryForMediaPreference(TextSecurePreferences.getWifiMediaDownloadAllowed(getActivity())));
     findPreference(TextSecurePreferences.MEDIA_DOWNLOAD_ROAMING_PREF)
         .setSummary(getSummaryForMediaPreference(TextSecurePreferences.getRoamingMediaDownloadAllowed(getActivity())));
+    findPreference(TextSecurePreferences.COMPRESSION_OPTIONS_PREF)
+        .setSummary(getCompressionOptions(TextSecurePreferences.getCompressionOptions(getActivity())));
   }
 
   private CharSequence getSummaryForMediaPreference(Set<String> allowedNetworks) {
@@ -76,6 +80,20 @@ public class ChatsPreferenceFragment extends ListSummaryPreferenceFragment {
 
     return outValues.isEmpty() ? getResources().getString(R.string.preferences__none)
                                : TextUtils.join(", ", outValues);
+  }
+
+  private CharSequence getCompressionOptions(Set<String> allowedValues) {
+    String[]     compressionKeys = getResources().getStringArray(R.array.compression_download_entries);
+    String[]     compressionValues = getResources().getStringArray(R.array.compression_download_values);
+
+    List<String> outValues = new ArrayList<>(allowedValues.size());
+
+    for (int i=0; i < compressionKeys.length; i++) {
+      if (allowedValues.contains(compressionKeys[i])) outValues.add(compressionValues[i]);
+    }
+
+    return outValues.isEmpty() ? getResources().getString(R.string.preferences__none)
+            : TextUtils.join(", ", outValues);
   }
 
   private class TrimNowClickListener implements Preference.OnPreferenceClickListener {

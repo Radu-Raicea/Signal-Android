@@ -105,6 +105,7 @@ public class TextSecurePreferences {
   public  static final String MEDIA_DOWNLOAD_MOBILE_PREF       = "pref_media_download_mobile";
   public  static final String MEDIA_DOWNLOAD_WIFI_PREF         = "pref_media_download_wifi";
   public  static final String MEDIA_DOWNLOAD_ROAMING_PREF      = "pref_media_download_roaming";
+  public  static final String COMPRESSION_OPTIONS_PREF         = "pref_media_compression";
 
   public  static final String SYSTEM_EMOJI_PREF                = "pref_system_emoji";
   private static final String MULTI_DEVICE_PROVISIONED_PREF    = "pref_multi_device";
@@ -694,6 +695,10 @@ public class TextSecurePreferences {
 
   public static @NonNull Set<String> getRoamingMediaDownloadAllowed(Context context) {
     return getMediaDownloadAllowed(context, MEDIA_DOWNLOAD_ROAMING_PREF, R.array.pref_media_download_roaming_default);
+  }
+
+  public static @NonNull Set<String> getCompressionOptions(Context context) {
+    return getMediaDownloadAllowed(context, COMPRESSION_OPTIONS_PREF , R.array.compression_default);
   }
 
   private static @NonNull Set<String> getMediaDownloadAllowed(Context context, String key, @ArrayRes int defaultValuesRes) {

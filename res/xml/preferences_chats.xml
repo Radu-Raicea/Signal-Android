@@ -30,6 +30,14 @@
     <PreferenceCategory android:layout="@layout/preference_divider"/>
 
     <PreferenceCategory android:title="@string/preferences_chats__chats">
+        <MultiSelectListPreference
+            android:title="@string/preferences_chats__compression"
+            android:key="pref_media_compression"
+            android:defaultValue="@array/compression_default"
+            android:persistent="true"
+            android:entries="@array/compression_download_values"
+            android:entryValues="@array/compression_download_entries" />
+
         <org.thoughtcrime.securesms.preferences.widgets.SignalListPreference
                 android:key="pref_message_body_text_size"
                 android:title="@string/preferences_chats__message_text_size"

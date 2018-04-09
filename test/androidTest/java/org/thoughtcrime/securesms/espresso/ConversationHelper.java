@@ -146,5 +146,11 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
 
         return new SearchHelper(new HelperSecret());
     }
+
+    public ReactionHelper goToReactions() {
+        onView(withId(R.id.menu_context_emoji)).perform(click());
+
+        return new ReactionHelper(new HelperSecret());
+    }
 }
 

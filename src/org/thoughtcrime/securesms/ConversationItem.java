@@ -94,6 +94,7 @@ import org.whispersystems.libsignal.util.guava.Optional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -545,10 +546,22 @@ public class ConversationItem extends LinearLayout
 
     ReactionsHandler handler = new ReactionsHandler(getContext());
     List<ReactionsHandler.Reaction> reactions = handler.getMessageReactions(messageRecord);
-    for(ReactionsHandler.Reaction reaction : reactions) {
-      TextView tv = new TextView(context);
+    Map<String, Integer> reactionCounts = handler.getReactionCounts(reactions);
 
-      tv.setText(reaction.getReaction());
+    for (Map.Entry<String, Integer> entry : reactionCounts.entrySet()) {
+      String reaction = entry.getKey();
+      Integer count = entry.getValue();
+
+      TextView tv = new TextView(context);
+      String reactionBubbleText;
+
+      if (count > 1) {
+        reactionBubbleText = reaction + count;
+      } else {
+        reactionBubbleText = reaction;
+      }
+
+      tv.setText(reactionBubbleText);
       tv.setBackgroundResource(R.drawable.reaction_bubble);
       tv.setBackgroundColor(Color.TRANSPARENT);
       tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);

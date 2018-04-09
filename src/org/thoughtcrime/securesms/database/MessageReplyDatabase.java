@@ -11,7 +11,7 @@ import android.support.annotation.NonNull;
 import org.thoughtcrime.securesms.database.model.MessageRecord;
 
 public class MessageReplyDatabase extends Database {
-    private static final String TAG = MessageReactionDatabase.class.getSimpleName();
+    private static final String TAG = MessageReplyDatabase.class.getSimpleName();
 
     public static final String TABLE_NAME = "replies";
     public static final String ID         = "id";
@@ -77,7 +77,7 @@ public class MessageReplyDatabase extends Database {
                 new String[]{});
     }
 
-    public void replyToMessage(MessageRecord record, String comment, Long time) {
+    public void replyToMessage(MessageRecord record, String reply, Long time) {
         String        messageType;
         ContentValues values = new ContentValues();
 
@@ -85,9 +85,8 @@ public class MessageReplyDatabase extends Database {
         values.put(messageType, record.getHash());
 
         Address address;
-        if (record.isOutgoing()) {
-            try {
-                address = DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress();
+        try {
+            address = DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress();
             } catch (Exception e) {
                 e.printStackTrace();
                 Parcel p = Parcel.obtain();
@@ -95,11 +94,8 @@ public class MessageReplyDatabase extends Database {
                 p.setDataPosition(0);
                 address = new Address(p);
             }
-        } else {
-            address = record.getRecipient().getAddress();
-        }
 
-        values.put(REPLY, comment);
+        values.put(REPLY, reply);
         values.put(REPLIER_ID, address.serialize());
         values.put(REPLY_DATE, time);
 
@@ -108,7 +104,7 @@ public class MessageReplyDatabase extends Database {
         db.insert(TABLE_NAME, null, values);
     }
 
-    public void replyToMessage(String hash, String reaction, Long reactionTime, Address reactorID, Long threadId) {
+    public void replyToMessage(String hash, String reply, Long replyTime, String replierAddress, Long threadId) {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         String      type;
         ContentValues values = new ContentValues();
@@ -118,9 +114,9 @@ public class MessageReplyDatabase extends Database {
                 .getCount() > 0 ? SMS_HASH : MMS_HASH;
 
         values.put(type, hash);
-        values.put(REPLY, reaction);
-        values.put(REPLIER_ID, reactorID.serialize());
-        values.put(REPLY_DATE, reactionTime);
+        values.put(REPLY, reply);
+        values.put(REPLIER_ID, replierAddress);
+        values.put(REPLY_DATE, replyTime);
 
         db.insert(TABLE_NAME, null, values);
 
@@ -138,6 +134,4 @@ public class MessageReplyDatabase extends Database {
                 getMessageType(record) + " = ?" , new String[]{record.getHash()});
 
     }
-
-
 }

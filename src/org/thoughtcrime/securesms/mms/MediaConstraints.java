@@ -7,16 +7,22 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
+import com.iceteck.silicompressorr.SiliCompressor;
 import org.thoughtcrime.securesms.attachments.Attachment;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.mms.DecryptableStreamUriLoader.DecryptableUri;
 import org.thoughtcrime.securesms.util.BitmapDecodingException;
 import org.thoughtcrime.securesms.util.BitmapUtil;
 import org.thoughtcrime.securesms.util.MediaUtil;
+import org.thoughtcrime.securesms.util.Util;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 
 public abstract class MediaConstraints {
   private static final String TAG = MediaConstraints.class.getSimpleName();
@@ -83,4 +89,36 @@ public abstract class MediaConstraints {
       throw new IOException(e);
     }
   }
+
+ public MediaStream compressFile(@NonNull Context context, @NonNull MasterSecret masterSecret, @NonNull Attachment attachment) throws IOException, URISyntaxException {
+   if (!MediaUtil.isVideo(attachment) && !MediaUtil.isImage(attachment) && !MediaUtil.isGif(attachment)) {
+           throw new UnsupportedOperationException("File type not video or image or gif! Cannot compress");
+   }
+   String filePath = null;
+   if(MediaUtil.isVideo(attachment) || MediaUtil.isImage(attachment) || MediaUtil.isGif(attachment)) {
+     Log.w("COMPRESSION", "Compressing media file.");
+     String directory = context.getCacheDir().toString() + "/tempFile" + attachment.getContentType().replace('/', '.');
+     InputStream is = PartAuthority.getAttachmentStream(context, masterSecret, attachment.getDataUri());
+     byte[] byteStream = Util.readFully(is);
+
+     FileOutputStream outputStream = new FileOutputStream(directory);
+     outputStream.write(byteStream);
+
+     if(MediaUtil.isVideo(attachment)) {
+       filePath = SiliCompressor.with(context).compressVideo(directory ,context.getCacheDir().toString());
+       Log.w("VIDEO", "Compressing video file.");
+     }
+     else{
+       filePath = SiliCompressor.with(context).compress(directory ,context.getCacheDir());
+       Log.w("IMAGE", "Compressing image file.");
+     }
+     outputStream.close();
+     is.close();
+     new File(directory).delete();
+     return new MediaStream(new FileInputStream(filePath),attachment.getContentType());
+   }
+
+   return new MediaStream(new FileInputStream(filePath), attachment.getContentType());
+ }
+
 }

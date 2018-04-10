@@ -214,11 +214,13 @@
     <string-array name="compression_download_entries">
         <item>image</item>
         <item>video</item>
+        <item>gif</item>
     </string-array>
 
     <string-array name="compression_download_values">
         <item>@string/arrays__images</item>
         <item>@string/arrays__video</item>
+        <item>@string/arrays__gif</item>
     </string-array>
 
   <string-array name="pref_media_download_mobile_data_default">
@@ -236,8 +238,6 @@
   <string-array name="pref_media_download_roaming_default" />
 
     <string-array name="compression_default">
-        <item>image</item>
-        <item>video</item>
     </string-array>
 
     <!-- RedPhone -->

@@ -1067,6 +1067,7 @@
     <string name="arrays__images">Images</string>
     <string name="arrays__audio">Audio</string>
     <string name="arrays__video">Video</string>
+    <string name="arrays__gif">Gif</string>
     <string name="arrays__documents">Documents</string>
 
     <string name="arrays__small">Small</string>

@@ -116,12 +116,6 @@
                 app:scaleEmojis="true"
                 tools:text="boop"/>
 
-            <LinearLayout
-                android:id="@+id/reactions_list"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"></LinearLayout>
-
             <LinearLayout android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
                           android:paddingTop="2dip"
@@ -198,6 +192,17 @@
                           tools:text="from SIM1"/>
             </LinearLayout>
         </LinearLayout>
+
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/reactions_list"
+            android:layout_width="200sp"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/body_bubble"
+            android:layout_below="@+id/body_bubble"
+            android:gravity="left"
+            android:orientation="horizontal"
+            app:flexWrap="wrap" >
+        </com.google.android.flexbox.FlexboxLayout>
 
         <org.thoughtcrime.securesms.components.AlertView
                 android:id="@+id/indicators_parent"

@@ -34,6 +34,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.BackgroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
@@ -46,6 +47,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.flexbox.FlexboxLayout;
+
 import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.components.AlertView;
 import org.thoughtcrime.securesms.components.AudioView;
@@ -55,8 +58,10 @@ import org.thoughtcrime.securesms.components.DocumentView;
 import org.thoughtcrime.securesms.components.ExpirationTimerView;
 import org.thoughtcrime.securesms.components.ThumbnailView;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
+import org.thoughtcrime.securesms.database.Address;
 import org.thoughtcrime.securesms.database.AttachmentDatabase;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
+import org.thoughtcrime.securesms.database.IdentityDatabase;
 import org.thoughtcrime.securesms.database.MmsDatabase;
 import org.thoughtcrime.securesms.database.MmsSmsDatabase;
 import org.thoughtcrime.securesms.database.SmsDatabase;
@@ -85,11 +90,14 @@ import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.dualsim.SubscriptionInfoCompat;
 import org.thoughtcrime.securesms.util.dualsim.SubscriptionManagerCompat;
 import org.thoughtcrime.securesms.util.views.Stub;
+import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -125,7 +133,7 @@ public class ConversationItem extends LinearLayout
   private AvatarImageView    contactPhoto;
   private DeliveryStatusView deliveryStatusIndicator;
   private AlertView          alertView;
-  private LinearLayout       reactionsList;
+  private FlexboxLayout      reactionsList;
 
   private @NonNull  Set<MessageRecord>  batchSelected = new HashSet<>();
   private @NonNull  Recipient           conversationRecipient;
@@ -257,7 +265,7 @@ public class ConversationItem extends LinearLayout
     int index = tempString.indexOf(highlight, start);
 
     while (index > -1) {
-      if(!messageRecord.isOutgoing()) {
+      if (!messageRecord.isOutgoing()) {
         color = Color.parseColor("#E1BEE7");
       } else {
         color = Color.YELLOW;
@@ -533,23 +541,128 @@ public class ConversationItem extends LinearLayout
   }
 
   private void setReactions(final MessageRecord messageRecord) {
-    LinearLayout reactionsList = (LinearLayout) findViewById(R.id.reactions_list);
+    FlexboxLayout reactionsList = (FlexboxLayout) findViewById(R.id.reactions_list);
 
-    if(((LinearLayout) reactionsList).getChildCount() > 0) {
-      ((LinearLayout) reactionsList).removeAllViews();
+    if (((FlexboxLayout) reactionsList).getChildCount() > 0) {
+      reactionsList.removeAllViews();
     }
 
     ReactionsHandler handler = new ReactionsHandler(getContext());
     List<ReactionsHandler.Reaction> reactions = handler.getMessageReactions(messageRecord);
+    Map<String, Integer> reactionCounts = handler.getReactionCounts(reactions);
+    Map<String, String> reactionsToDisplay = new HashMap<>();
 
-    for(ReactionsHandler.Reaction reaction : reactions) {
+    for (ReactionsHandler.Reaction reaction : reactions) {
       TextView tv = new TextView(context);
+      String reactionDate = DateUtils.getExtendedRelativeTimeSpanString(context, new Locale("en", "CA"), reaction.getReactionDate());
+      String longClickText = getMessageSenderName(reaction.getReactor()) + " at " + reactionDate;
+      int count = reactionCounts.get(reaction.getReaction());
 
-      tv.setText(reaction.getReaction());
-      tv.setBackgroundResource(R.drawable.reaction_bubble);
+      if (!reactionsToDisplay.containsKey(reaction.getReaction())) {
+        String reactionStr;
+
+        if (count > 1) {
+          reactionStr = reaction.getReaction();
+          String countStr = Integer.toString(count) + " ";
+          SpannableString ss1 = new SpannableString(reactionStr);
+          SpannableString ss2 = new SpannableString(countStr);
+          ss2.setSpan(new RelativeSizeSpan(0.5f), 0, ss2.length(), 0);
+          CharSequence finalText = TextUtils.concat(ss1, ss2);
+          tv.setText(finalText);
+        } else {
+          reactionStr = reaction.getReaction() + " ";
+          tv.setText(reactionStr);
+        }
+
+        tv.setBackgroundResource(R.drawable.reaction_bubble);
+        tv.setBackgroundColor(Color.TRANSPARENT);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
+
+      } else {
+        longClickText = reactionsToDisplay.get(reaction.getReaction()) + "\n" + longClickText;
+      }
+
+      reactionsToDisplay.put(reaction.getReaction(), longClickText);
+
+      tv.setOnClickListener((view) -> {
+        Log.i("reaction","reaction " + reaction.getReaction() + " clicked");
+
+        String address = "";
+
+        try {
+          address = DatabaseFactory.getIdentityDatabase(context).getMyIdentity().getAddress().toString();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+
+        for (ReactionsHandler.Reaction reaction_check : reactions) {
+          if (reaction.getReaction().equals(reaction_check.getReaction()) && reaction_check.getReactor().serialize().equals(address)) {
+            Toast.makeText(context, "You have already reacted with this emoji", Toast.LENGTH_SHORT).show();
+            return;
+          }
+        }
+
+        try {
+          ((ConversationActivity) context).handleNewReaction(messageRecord, new ReactionsHandler(getContext()), reaction.getReaction());
+        } catch (InvalidMessageException e) {
+          e.printStackTrace();
+        }
+      });
+
+      tv.setOnLongClickListener((view) -> {
+        Log.i("reaction","reaction " + reaction.getReaction() + " long clicked");
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+
+        if (count > 1) {
+          builder.setMessage(reactionCounts.get(reaction.getReaction()) + " people reacted with " +
+                  reaction.getReaction() + "\n\n" + reactionsToDisplay.get(reaction.getReaction()));
+        } else {
+          builder.setMessage(reactionCounts.get(reaction.getReaction()) + " person reacted with " +
+                  reaction.getReaction() + "\n\n" + reactionsToDisplay.get(reaction.getReaction()));
+        }
+
+        builder.setCancelable(true);
+        builder.setNegativeButton(R.string.ok, (dialog, id) -> dialog.cancel());
+        builder.create().show();
+
+        return true;
+      });
 
       reactionsList.addView(tv);
     }
+  }
+
+  private String getMessageSenderName(Address senderAddress) {
+    String messageSenderName = "";
+
+    IdentityDatabase identityDatabase  = DatabaseFactory.getIdentityDatabase(context);
+    Address myAddress = null;
+
+    try {
+      myAddress = identityDatabase.getMyIdentity().getAddress();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    if (myAddress.serialize().equals(senderAddress.serialize())) {
+      messageSenderName = "Me";
+    } else {
+      messageSenderName = messageRecord.getRecipient().getName();
+      if (messageRecord.getRecipient().getAddress().isGroup()) {
+        for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
+          if (participant.getAddress().serialize().equals(senderAddress.serialize())) {
+            messageSenderName = participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
+            break;
+          }
+        }
+      } else {
+        if (messageSenderName == null) {
+          messageSenderName = messageRecord.getRecipient().getAddress().toString();
+        }
+      }
+    }
+
+    return messageSenderName;
   }
 
   private void setFailedStatusIcons() {

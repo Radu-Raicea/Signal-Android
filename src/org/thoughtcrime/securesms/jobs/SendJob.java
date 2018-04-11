@@ -15,13 +15,16 @@ import org.thoughtcrime.securesms.mms.MediaStream;
 import org.thoughtcrime.securesms.mms.MmsException;
 import org.thoughtcrime.securesms.transport.UndeliverableMessageException;
 import org.thoughtcrime.securesms.util.MediaUtil;
+import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 import org.whispersystems.jobqueue.JobParameters;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public abstract class SendJob extends MasterSecretJob {
 
@@ -63,14 +66,10 @@ public abstract class SendJob extends MasterSecretJob {
 
     for (Attachment attachment : attachments) {
       try {
-        //if (isCompressionMode) {
-          if (MediaUtil.isVideo(attachment) || MediaUtil.isImage(attachment) || MediaUtil.isGif(attachment)) {
-            MediaStream compressedFile = constraints.compressFile(context, masterSecret, attachment);
-            Log.w("SENDING", "Sending Compressed file.");
-            results.add(attachmentDatabase.updateAttachmentData(masterSecret, attachment, compressedFile));
-            Log.w("SENT", "Compressed file sent.");
-          }
-        //}
+        if (satisfiesCompression(attachment)) {
+          MediaStream compressedFile = constraints.compressFile(context, masterSecret, attachment);
+          results.add(attachmentDatabase.updateAttachmentData(masterSecret, attachment, compressedFile));
+        }
           else if (constraints.isSatisfied(context, masterSecret, attachment)) {
           results.add(attachment);
         } else if (constraints.canResize(attachment)) {
@@ -85,5 +84,13 @@ public abstract class SendJob extends MasterSecretJob {
     }
 
     return results;
+  }
+
+  public boolean satisfiesCompression(Attachment attachment) {
+    Set compressionOptions = TextSecurePreferences.getCompressionOptions(context);
+
+    return ((MediaUtil.isVideo(attachment) && compressionOptions.contains("video")) ||
+            (MediaUtil.isImage(attachment) && compressionOptions.contains("image")) ||
+            (MediaUtil.isGif(attachment)) && compressionOptions.contains("gif"));
   }
 }

@@ -50,7 +50,7 @@
     - ./gradlew check
     - ./gradlew jacocoTestReport
  after_success:
-    - bash <(curl -s https://codecov.io/bash) -t f20cccfd-5333-476f-9485-5614cbda84ee || echo "Codecov did not collect coverage reports"
+    - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
 
 
 

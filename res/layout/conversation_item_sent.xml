@@ -122,20 +122,6 @@
                     android:textColor="?conversation_item_sent_text_secondary_color"
                     android:visibility="gone" />
 
-
-                <Button
-                    android:id="@+id/comment_button"
-                    style="@style/Widget.AppCompat.Button.Borderless"
-                    android:layout_width="20dp"
-                    android:layout_height="15dp"
-                    android:layout_marginRight="22dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_toEndOf="@+id/indicators_parent"
-                    android:layout_toRightOf="@+id/indicators_parent"
-                    android:layout_weight="1"
-                    android:background="@drawable/ic_message_black_18dp"
-                    android:paddingLeft="10dp" />
-
                 <TextView
                     android:id="@+id/conversation_item_date"
                     android:layout_width="wrap_content"
@@ -212,12 +198,14 @@
 
             </LinearLayout>
 
+
             <LinearLayout
                 android:id="@+id/replies_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
+
             </LinearLayout>
 
             <LinearLayout
@@ -228,7 +216,6 @@
                 android:orientation="horizontal">
             </LinearLayout>
         </LinearLayout>
-
 
         <TextView
             android:id="@+id/indicator_text"

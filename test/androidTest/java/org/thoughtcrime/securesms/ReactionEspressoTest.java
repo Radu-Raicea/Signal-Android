@@ -21,24 +21,48 @@ public class ReactionEspressoTest {
         Helper helper = new Helper(mainActivityRule);
 
         helper
-                .goConversations()
-                .goConversation()
+            .goConversations()
+            .goConversation()
                 .sendMessage("Testing")
                 .selectMessage(0)
                 .assertId(R.id.menu_context_emoji);
     }
 
     @Test
-    public void canExecuteReaction() {
+    public void canSendReaction() {
         Helper helper = new Helper(mainActivityRule);
 
         helper
-                .goConversations()
-                .goConversation()
+            .goConversations()
+            .goConversation()
                 .sendMessage("Testing")
-                .selectMessage(0)
-                .goToReactions();
+                .sendReaction(0, 1);
     }
 
+    @Test
+    public void reactionIsVisibleInUI() {
+        Helper helper = new Helper(mainActivityRule);
+
+        helper
+            .goConversations()
+            .goConversation()
+                .sendMessage("Testing")
+                .sendReaction(0, 2)
+                .assertEmojiAt(2, 0);
+    }
+
+    @Test
+    public void multipleReactionsAreVisibleInUI() {
+        Helper helper = new Helper(mainActivityRule);
+
+        helper
+            .goConversations()
+            .goConversation()
+                .sendMessage("Testing")
+                .sendReaction(0, 3)
+                .sendReaction(0, 4)
+                .assertEmojiAt(4, 0)
+                .assertEmojiAt(3, 0);
+    }
 }
 

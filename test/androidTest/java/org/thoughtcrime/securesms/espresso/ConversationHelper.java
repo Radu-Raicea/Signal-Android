@@ -18,6 +18,7 @@ import static org.thoughtcrime.securesms.espresso.ViewActions.longClickPercent;
 import static org.thoughtcrime.securesms.espresso.ViewActions.pressAndHoldAction;
 import static org.thoughtcrime.securesms.espresso.ViewActions.releaseAction;
 import static org.thoughtcrime.securesms.espresso.ViewActions.waitFor;
+import static org.thoughtcrime.securesms.espresso.ViewMatchers.nthChildOf;
 
 public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
     ConversationHelper(HelperSecret s) {}
@@ -59,6 +60,31 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
             .perform(releaseAction());
         onView(isRoot())
             .perform(waitFor(1000));
+
+        return this;
+    }
+
+    public ConversationHelper sendReaction(int position, int emoji) {
+        this.unselectMessage();
+
+        this.selectMessage(position);
+
+        int index = emoji % 16;
+
+        onView(withId(R.id.menu_context_emoji))
+            .perform(click());
+        onView(
+            nthChildOf(nthChildOf(
+                withId(R.id.tabs), 0),1))
+            .perform(click());
+        onView(
+            nthChildOf(nthChildOf(nthChildOf(nthChildOf(
+                withId(R.id.emoji_pager),1),0),0), index))
+            .perform(click());
+
+        this.messageSelected = false;
+
+        pressBack();
 
         return this;
     }
@@ -145,12 +171,6 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
             .perform(click());
 
         return new SearchHelper(new HelperSecret());
-    }
-
-    public ReactionHelper goToReactions() {
-        onView(withId(R.id.menu_context_emoji)).perform(click());
-
-        return new ReactionHelper(new HelperSecret());
     }
 }
 

@@ -15,6 +15,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.dicedmelon.gradle:jacoco-android:0.1.2'
         classpath 'com.novoda:gradle-static-analysis-plugin:0.5.2'
         classpath files('libs/gradle-witness.jar')
     }
@@ -23,6 +24,7 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'witness'
 apply plugin: 'com.novoda.static-analysis'
+apply plugin: 'jacoco-android'
 
 repositories {
     maven {
@@ -319,6 +321,7 @@ android {
 
     buildTypes {
         debug {
+            testCoverageEnabled true
             useProguard false
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
@@ -492,4 +495,3 @@ if (propFile.canRead()){
     println 'signing.properties not found'
     android.buildTypes.release.signingConfig = null
 }
-

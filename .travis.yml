@@ -39,32 +39,18 @@
   - $HOME/.gradle/wrapper     #Cache the gradle
   - $HOME/.android/build-cache
 
- addons:
-  apt_packages:
-  - pandoc
-  artifacts:
-    paths:
-    - $(git ls-files -o | grep build/outputs | tr "\n" ":")
-
  before_install:
      - chmod +x gradlew
      - yes | sdkmanager "platforms;android-27"
-     - pip install --user codecov
 
  script:
     - echo "Travis branch is $TRAVIS_BRANCH"
     - echo "Travis branch is in pull request $TRAVIS_PULL+REQUEST"
     - ./gradlew assemble
     - ./gradlew check
-
+    - ./gradlew build jacocoTestReport
  after_success:
-    - codecov
+    - bash <(curl -s https://codecov.io/bash) -t f20cccfd-5333-476f-9485-5614cbda84ee || echo "Codecov did not collect coverage reports"
 
- after_failure:
-    - pandoc build/reports/tests/index.html -t plain | sed -n '/^Failed tests/,/default-package/p'
-
- after_script:
-    - for f in build/outputs/lint-results.html; do pandoc $f -t plain; done
-    - for f in build/outputs/lint-results.html; do pandoc $f -t plain; done
 
 

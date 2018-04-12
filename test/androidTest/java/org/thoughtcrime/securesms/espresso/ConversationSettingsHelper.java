@@ -16,10 +16,10 @@ import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.thoughtcrime.securesms.espresso.ViewActions.waitFor;
 
-public class PreferencesHelper extends BaseHelper<PreferencesHelper>{
-    public PreferencesHelper(HelperSecret s) {}
+public class ConversationSettingsHelper extends BaseHelper<ConversationSettingsHelper> {
+    public ConversationSettingsHelper(HelperSecret s) {}
 
-    public PreferencesHelper resetNickname() {
+    public ConversationSettingsHelper resetNickname() {
         try {
             onView(withText(R.string.RecipientPreferenceActivity_resetnickname))
                 .check(matches(isDisplayed()));
@@ -33,10 +33,10 @@ public class PreferencesHelper extends BaseHelper<PreferencesHelper>{
                 .perform(click());
         }
 
-        return new PreferencesHelper(new HelperSecret());
+        return new ConversationSettingsHelper(new HelperSecret());
     }
 
-    public PreferencesHelper setNickname(String message) {
+    public ConversationSettingsHelper setNickname(String message) {
         try {
             onView(withText(R.string.RecipientPreferenceActivity_setnickname))
                 .check(matches(isDisplayed()));
@@ -54,7 +54,7 @@ public class PreferencesHelper extends BaseHelper<PreferencesHelper>{
                 .perform(click());
         }
 
-        return new PreferencesHelper(new HelperSecret());
+        return new ConversationSettingsHelper(new HelperSecret());
     }
 
     /* NAVIGATION */

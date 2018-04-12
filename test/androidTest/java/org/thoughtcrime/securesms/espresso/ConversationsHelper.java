@@ -79,4 +79,13 @@ public class ConversationsHelper extends BaseHelper<ConversationsHelper> {
 
         return new ConversationHelper(new HelperSecret());
     }
+
+    public SettingsHelper goSettings() {
+        openActionBarOverflowOrOptionsMenu(InstrumentationRegistry.getTargetContext());
+
+        onView(withText(R.string.text_secure_normal__menu_settings))
+            .perform(click());
+
+        return new SettingsHelper(new HelperSecret());
+    }
 }

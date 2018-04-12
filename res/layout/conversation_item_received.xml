@@ -114,7 +114,7 @@
                 android:textColorLink="?conversation_item_received_text_primary_color"
                 android:textSize="@dimen/conversation_item_body_text_size"
                 app:scaleEmojis="true"
-                tools:text="boop"/>
+                tools:text="boop" />
 
             <LinearLayout android:layout_width="wrap_content"
                           android:layout_height="wrap_content"
@@ -191,11 +191,19 @@
                           tools:visibility="visible"
                           tools:text="from SIM1"/>
             </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/replies_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+            </LinearLayout>
         </LinearLayout>
 
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/reactions_list"
-            android:layout_width="200sp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignRight="@+id/body_bubble"
             android:layout_below="@+id/body_bubble"

@@ -186,13 +186,23 @@
                            tools:visibility="visible"/>
 
             </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/replies_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+            </LinearLayout>
         </LinearLayout>
 
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/reactions_list"
-            android:layout_width="200sp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignRight="@+id/body_bubble"
+            android:layout_alignLeft="@+id/body_bubble"
             android:layout_below="@+id/body_bubble"
             android:gravity="right"
             android:orientation="horizontal"

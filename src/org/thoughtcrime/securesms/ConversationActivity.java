@@ -573,7 +573,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
   @Override
   public void onBackPressed() {
-    if (container.isInputOpen()) {
+    if (container.getCurrentInput() == emojiDrawerStub.get()) {
+      container.showSoftkey(composeText);
+      revertNormalState();
+      isEmojiReactionMode = false;
+    } else if (container.isInputOpen()) {
       container.hideCurrentInput(composeText);
       isReplyMode = false;
     } else if (isSearchMode) {
@@ -793,33 +797,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
       @Override
       public void onEmojiSelected(String emoji) throws InvalidMessageException {
-        Long time = currentTimeMillis();
-
-        //insert new reaction into db
-        handler.addReactionToSenderDB(messageRecord, emoji, time);
-
-        fragment.getListAdapter().notifyDataSetChanged();
-
-        String myAddress = "";
-        IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(getApplicationContext());
-        try {
-          myAddress = identityDatabase.getMyIdentity().getAddress().serialize();
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-
-        Map<String, String> map = new HashMap<>();
-        map.put("type", Stereotype.REACTION);
-        map.put("hash", messageRecord.getHash());
-        map.put("emoji", emoji);
-        map.put("time", time.toString());
-        map.put("address", myAddress);
-
-        String body = new JSONObject(map).toString();
-
-        if(recipient.getAddress().isGroup()) {
-          sendMediaMessage(false, body, new SlideDeck(), 0,-1, false);
-        } else sendTextMessage(false, 0, -1, false, body);
+        handleNewReaction(messageRecord, handler, emoji);
 
         container.showSoftkey(composeText);
         inputPanel.setEmojiDrawer(emojiDrawerStub.get());
@@ -830,6 +808,43 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     });
   }
 
+  private void revertNormalState() {
+    inputPanel.setEmojiDrawer(emojiDrawerStub.get());
+    emojiDrawerStub.get().setEmojiEventListener(inputPanel);
+    inputPanel.setVisibility(View.VISIBLE);
+    linMessage.setVisibility(View.VISIBLE);
+  }
+
+  public void handleNewReaction(MessageRecord messageRecord, ReactionsHandler handler, String emoji) throws InvalidMessageException {
+    Long time = currentTimeMillis();
+    handler.addReactionToSenderDB(messageRecord, emoji, time);
+
+    // Resets the local view to render new reaction
+    fragment.getListAdapter().notifyDataSetChanged();
+
+    IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(getApplicationContext());
+
+    String myAddress = "";
+    try {
+      myAddress = identityDatabase.getMyIdentity().getAddress().serialize();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    Map<String, String> map = new HashMap<>();
+    map.put("type", "reaction");
+    map.put("hash", messageRecord.getHash());
+    map.put("emoji", emoji);
+    map.put("time", time.toString());
+    map.put("address", myAddress);
+
+    String body = new JSONObject(map).toString();
+
+    if (recipient.getAddress().isGroup()) {
+      sendMediaMessage(false, body, new SlideDeck(), 0,-1, false);
+    } else sendTextMessage(false, 0, -1, false, body);
+  }
+
   private void handleSearch(MenuItem item) {
     bottomPanel = (InputPanel)findViewById(R.id.bottom_panel);
     searchView = (SearchView)findViewById(R.id.custom_search);
@@ -838,7 +853,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     upArrow.setOnClickListener(new NextSearchResultListener());
     downArrow.setOnClickListener(new PreviousSearchResultListener());
 
-    if(!this.isSearchMode) {
+    if (!this.isSearchMode) {
       showSearchMode(bottomPanel, searchView);
       this.isSearchMode = !isSearchMode;
     } else {

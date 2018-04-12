@@ -27,6 +27,9 @@ import com.google.android.gms.security.ProviderInstaller;
 
 import org.greenrobot.eventbus.util.ExceptionToResourceMapping;
 import org.thoughtcrime.securesms.crypto.PRNGFixes;
+import org.thoughtcrime.securesms.database.DatabaseFactory;
+import org.thoughtcrime.securesms.database.MessageReactionDatabase;
+import org.thoughtcrime.securesms.database.MessageReplyDatabase;
 import org.thoughtcrime.securesms.dependencies.AxolotlStorageModule;
 import org.thoughtcrime.securesms.dependencies.InjectableType;
 import org.thoughtcrime.securesms.dependencies.SignalCommunicationModule;
@@ -91,6 +94,17 @@ public class ApplicationContext extends MultiDexApplication implements Dependenc
     initializeCircumvention();
     initializeWebRtc();
     initializeStethoLibrary();
+    initializeDatabaseCleanup();
+  }
+
+  private void initializeDatabaseCleanup() {
+    MessageReplyDatabase messageReplyDatabase = DatabaseFactory.getMessageReplyDatabase(getApplicationContext());
+    messageReplyDatabase.removeDanglingMmsReplies();
+    messageReplyDatabase.removeDanglingSmsReplies();
+
+    MessageReactionDatabase messageReactionDatabase = DatabaseFactory.getMessageReactionDatabase(getApplicationContext());
+    messageReactionDatabase.removeDanglingMmsReactions();
+    messageReactionDatabase.removeDanglingSmsReactions();
   }
 
   private void initializeStethoLibrary() {

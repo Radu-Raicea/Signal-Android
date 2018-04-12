@@ -240,37 +240,34 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   protected Stub<ReminderView>          reminderView;
   private   Stub<UnverifiedBannerView>  unverifiedBannerView;
   private   Stub<GroupShareProfileView> groupShareProfileView;
-
-  private   AttachmentTypeSelector attachmentTypeSelector;
-  private   AttachmentManager      attachmentManager;
-  private   AudioRecorder          audioRecorder;
-  private   BroadcastReceiver      securityUpdateReceiver;
-  private   Stub<EmojiDrawer>     emojiDrawerStub;
-  protected HidingLinearLayout    quickAttachmentToggle;
-  private   QuickAttachmentDrawer quickAttachmentDrawer;
-  private   InputPanel            inputPanel;
-  private   LinearLayout          linMessage;
-  private   LinearLayout          linSearch;
-  private   InputPanel            bottomPanel;
-  private   SearchView            searchView;
-  private   ImageView             upArrow;
-  private   ImageView             downArrow;
-  private   LinearLayout          linReply;
-  private   EditText              replyEdit;
-
-  private Recipient     recipient;
-  private long          threadId;
-  private int           distributionType;
-  private boolean       archived;
-  private boolean       isSecureText;
-  private boolean       isDefaultSms          = true;
-  private boolean       isMmsEnabled          = true;
-  private boolean       isSecurityInitialized = false;
-  private boolean       isSearchMode          = false;
-  private boolean       isEmojiReactionMode   = false;
-  private boolean       isReplyMode           = false;
-  private MessageRecord record                = null;
-
+  private   AttachmentTypeSelector      attachmentTypeSelector;
+  private   AttachmentManager           attachmentManager;
+  private   AudioRecorder               audioRecorder;
+  private   BroadcastReceiver           securityUpdateReceiver;
+  private   Stub<EmojiDrawer>           emojiDrawerStub;
+  protected HidingLinearLayout          quickAttachmentToggle;
+  private   QuickAttachmentDrawer       quickAttachmentDrawer;
+  private   InputPanel                  inputPanel;
+  private   LinearLayout                linMessage;
+  private   LinearLayout                linSearch;
+  private   InputPanel                  bottomPanel;
+  private   SearchView                  searchView;
+  private   ImageView                   upArrow;
+  private   ImageView                   downArrow;
+  private   LinearLayout                linReply;
+  private   EditText                    replyEdit;
+  private   Recipient                   recipient;
+  private   long                        threadId;
+  private   int                         distributionType;
+  private   boolean                     archived;
+  private   boolean                     isSecureText;
+  private   boolean                     isDefaultSms          = true;
+  private   boolean                     isMmsEnabled          = true;
+  private   boolean                     isSecurityInitialized = false;
+  private   boolean                     isSearchMode          = false;
+  private   boolean                     isEmojiReactionMode   = false;
+  private   boolean                     isReplyMode           = false;
+  private   MessageRecord               record                = null;
 
   private final IdentityRecordList identityRecords = new IdentityRecordList();
   private final DynamicTheme       dynamicTheme    = new DynamicTheme();
@@ -630,8 +627,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       replyEdit.setOnEditorActionListener(new ReplyInitiatedListener());
 
       if (!this.isReplyMode) {
-        // We use the same input keyboard as search
-        showReplyMode(bottomPanel, replyEdit);
+        showReplyMode(bottomPanel);
         this.isReplyMode = true;
       } else {
         hideReplyMode();
@@ -901,19 +897,19 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     fragment.resetAdapterSearchHandler();
   }
 
-  public void showReplyMode(InputPanel i, EditText s) {
+  public void showReplyMode(InputPanel inputPanel) {
     hideKeyboard();
     linMessage.setVisibility(View.GONE);
-    i.setVisibility(View.GONE);
+    inputPanel.setVisibility(View.GONE);
     linReply.setVisibility(View.VISIBLE);
   }
 
-  public void showSearchMode(InputPanel i, SearchView s) {
+  public void showSearchMode(InputPanel inputPanel, SearchView searchView) {
     hideKeyboard();
     linMessage.setVisibility(View.GONE);
-    i.setVisibility(View.GONE);
+    inputPanel.setVisibility(View.GONE);
     linSearch.setVisibility(View.VISIBLE);
-    s.setIconified(false);
+    searchView.setIconified(false);
   }
 
   private void hideKeyboard() {
@@ -2235,9 +2231,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           replyBody.put("address", myAddress.serialize());
 
           String body = new JSONObject(replyBody).toString();
-
-          // TODO check if it group chat reply
-
+            
           if (recipient.getAddress().isGroup()) {
             sendMediaMessage(false, body, new SlideDeck(), 0, -1, false);
           } else sendTextMessage(false, 0, -1, false, body);

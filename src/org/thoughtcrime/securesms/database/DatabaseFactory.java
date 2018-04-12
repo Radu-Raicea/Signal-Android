@@ -113,14 +113,14 @@ public class DatabaseFactory {
   private static final int PROFILE_SHARING_APPROVAL                        = 42;
   private static final int UNSEEN_NUMBER_OFFER                             = 43;
   private static final int READ_RECEIPTS                                   = 44;
-  private static final int GROUP_RECEIPT_TRACKING      = 45;
-  private static final int UNREAD_COUNT_VERSION        = 46;
-  private static final int MORE_RECIPIENT_FIELDS       = 47;
-  private static final int INTRODUCED_PINNED_MESSAGES  = 48;
-  private static final int INTRODUCED_NICKNAMES        = 49;
-  private static final int INTRODUCED_MESSAGE_REACTION = 50;
-  private static final int INTRODUCED_MESSAGE_REPLIES  = 51;
-  private static final int DATABASE_VERSION            = 51;
+  private static final int GROUP_RECEIPT_TRACKING                          = 45;
+  private static final int UNREAD_COUNT_VERSION                            = 46;
+  private static final int MORE_RECIPIENT_FIELDS                           = 47;
+  private static final int INTRODUCED_PINNED_MESSAGES                      = 48;
+  private static final int INTRODUCED_NICKNAMES                            = 49;
+  private static final int INTRODUCED_MESSAGE_REACTION                     = 50;
+  private static final int INTRODUCED_MESSAGE_REPLIES                      = 51;
+  private static final int DATABASE_VERSION                                = 51;
 
   private static final String DATABASE_NAME    = "messages.db";
   private static final Object lock             = new Object();

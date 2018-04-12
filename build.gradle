@@ -15,7 +15,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
-        classpath 'com.dicedmelon.gradle:jacoco-android:0.1.2'
         classpath 'com.novoda:gradle-static-analysis-plugin:0.5.2'
         classpath files('libs/gradle-witness.jar')
     }
@@ -24,7 +23,7 @@ buildscript {
 apply plugin: 'com.android.application'
 apply plugin: 'witness'
 apply plugin: 'com.novoda.static-analysis'
-apply plugin: 'jacoco-android'
+apply plugin: 'jacoco'
 
 repositories {
     maven {
@@ -132,6 +131,7 @@ dependencies {
     testCompile 'org.powermock:powermock-api-mockito:1.5.6'
     testCompile 'org.powermock:powermock-module-junit4-rule:1.5.6'
     testCompile 'org.powermock:powermock-classloading-xstream:1.5.6'
+    androidTestUtil 'com.android.support.test:orchestrator:1.0.1'
     androidTestCompile 'com.android.support:multidex:1.0.2'
     androidTestCompile 'com.android.support:multidex-instrumentation:1.0.2'
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
@@ -234,6 +234,9 @@ dependencyVerification {
 }
 
 tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+    jacoco.append = false
+    jacoco.classDumpDir = file("$buildDir/jacoco/classDump")
     testLogging {
         // set options for log level LIFECYCLE
         events TestLogEvent.FAILED,
@@ -351,6 +354,12 @@ android {
             signingConfig signingConfigs.release
         }
     }
+    testOptions {
+        execution 'ANDROID_TEST_ORCHESTRATOR'
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
 
     productFlavors {
         play {
@@ -398,6 +407,50 @@ android {
         abortOnError false
         disable "ResourceType"
     }
+}
+
+task("jacocoDebugReport", type: JacocoReport, dependsOn: "check") {
+    group "Reporting"
+    description "Generate Jacoco coverage reports."
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = ['**/R.class',
+                      '**/R$*.class',
+                      '**/BuildConfig.*',
+                      '**/Manifest*.*',
+                      '**/*$ViewInjector*.*',
+                      '**/*$ViewBinder*.*',
+                      '**/*$Lambda$*.*', // Jacoco can not handle several "$" in class name.
+                      '**/*Module.*', // Modules for Dagger.
+                      '**/*Dagger*.*', // Dagger auto-generated code.
+                      '**/*MembersInjector*.*', // Dagger auto-generated code.
+                      '**/*_Provide*Factory*.*',
+                      '**/*_Factory.*', //Dagger auto-generated code
+                      '**/*Factory.*',
+                      '**/*$*$*.*', // Anonymous classes generated
+                      '**/*Test*.*',
+                      '**/*Mock*.*',
+                      //add libraries
+                      'android/**/*.*',
+                      'com/**/*.*',
+                      'uk/**/*.*',
+                      'io/**/*.*',
+                      //remove what we don't test
+                      'androidTest/**/*.*',
+                      'test/**/*.*',
+                      '**/**_ViewBinding**',
+                      '**/*EventType.*',
+                      '**/**Mocked']
+
+    executionData = files("${buildDir}/jacoco/testPlayDebugUnitTest.exec", "${buildDir}/jacoco/testWebsiteDebugUnitTest.exec")
+    def mainSrc = files(["src/", "test/unitTest/java"])
+    sourceDirectories = files([mainSrc])
+    classDirectories = fileTree(dir: "${buildDir}/intermediates/classes/play/debug", excludes: fileFilter)
+//    classDirectories += fileTree(dir: "${buildDir}/intermediates/classes/website/debug", excludes: fileFilter)
 }
 
 task assembleWebsiteDescriptor << {
@@ -451,7 +504,13 @@ staticAnalysis {
     toolVersion '8.8'
     configFile rootProject.file('tools/checkstyle-module.xml')
     }
-    pmd { }
+    pmd {
+    toolVersion '6.2.0'
+    exclude project.fileTree('test/')
+    ruleSetFiles = rootProject.files('tools/pmd-rules.xml')
+    ruleSets = [] // https://stackoverflow.com/questions/32247190/pmd-exclude-pattern-with-gradle
+    includeVariants { variant -> variant.name.contains('debug') }
+    }
     findbugs {
     toolVersion '3.0.1'
     excludeFilter rootProject.file('tools/findbugs-excludes.xml')

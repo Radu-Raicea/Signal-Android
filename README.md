@@ -1,3 +1,7 @@
+
+[![Build Status](https://travis-ci.org/Radu-Raicea/SignalAndroid.svg?branch=master)](https://travis-ci.org/Radu-Raicea/SignalAndroid)
+[![codecov](https://codecov.io/gh/radu-raicea/SignalAndroid/branch/master/graph/badge.svg)](https://codecov.io/gh/radu-raicea/SignalAndroid)
+
 ## Documentation
 Looking for documentation? Check out the wiki!
 

@@ -28,7 +28,7 @@ public class ReactionsMocks extends BaseUnitTest {
     protected MessageRecord                   messageRecord;
     protected Cursor                          cursor;
     protected Parcel                          parcel;
-    protected String[] reactions;
+    protected String[]                        reactions;
     protected String                          reactionId;
     protected String                          messageHash;
     protected String                          reactorId;

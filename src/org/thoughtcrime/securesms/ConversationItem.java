@@ -649,23 +649,22 @@ public class ConversationItem extends LinearLayout
       e.printStackTrace();
     }
 
-    if (myAddress.serialize().equals(senderAddress.serialize())) {
-      messageSenderName = "Me";
-    } else {
-      messageSenderName = messageRecord.getRecipient().getName();
-      if (messageRecord.getRecipient().getAddress().isGroup()) {
-        for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
-          if (participant.getAddress().serialize().equals(senderAddress.serialize())) {
-            messageSenderName = participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
-            break;
-          }
-        }
-      } else {
-        if (messageSenderName == null) {
-          messageSenderName = messageRecord.getRecipient().getAddress().toString();
+    if (myAddress.serialize().equals(senderAddress.serialize())) return "Me";
+
+    messageSenderName = messageRecord.getRecipient().getName();
+
+    if (messageRecord.getRecipient().getAddress().isGroup()) {
+      for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
+        if (participant.getAddress().serialize().equals(senderAddress.serialize())) {
+          return participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
         }
       }
     }
+
+    if (messageSenderName == null) {
+      messageSenderName = messageRecord.getRecipient().getAddress().toString();
+    }
+
     return messageSenderName;
   }
 

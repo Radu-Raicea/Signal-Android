@@ -2,6 +2,8 @@ package org.thoughtcrime.securesms.database;
 
 import android.net.Uri;
 
+import com.iceteck.silicompressorr.SiliCompressor;
+
 import org.thoughtcrime.securesms.TextSecureTestCase;
 import org.thoughtcrime.securesms.attachments.AttachmentId;
 import org.thoughtcrime.securesms.attachments.DatabaseAttachment;

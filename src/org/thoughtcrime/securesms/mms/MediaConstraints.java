@@ -113,24 +113,26 @@ public abstract class MediaConstraints {
    FileOutputStream outputStream = new FileOutputStream(directory);
    outputStream.write(byteStream);
 
+   String filepath = "";
+
+   if(MediaUtil.isVideo(attachment)) {
+     filepath = compressVideo(context, directory);
+   } else {
+     filepath = compressImage(context, directory);
+   }
+
    outputStream.close();
    is.close();
    new File(directory).delete();
 
-   if(MediaUtil.isVideo(attachment)) {
-     return compressVideo(context, directory, attachment);
-   }
-
-   return compressImage(context, directory, attachment);
+   return new MediaStream(new FileInputStream(filepath), attachment.getContentType());
  }
 
- public MediaStream compressVideo(@NonNull Context context, String directory, Attachment attachment) throws URISyntaxException, FileNotFoundException {
-    String filepath = SiliCompressor.with(context).compressVideo(directory ,context.getCacheDir().toString());
-    return new MediaStream(new FileInputStream(filepath), attachment.getContentType());
- }
+ public String compressVideo(@NonNull Context context, String directory) throws URISyntaxException, FileNotFoundException {
+    return SiliCompressor.with(context).compressVideo(directory ,context.getCacheDir().toString());
+  }
 
-  public MediaStream compressImage(@NonNull Context context, String directory, Attachment attachment) throws URISyntaxException, FileNotFoundException {
-    String filepath = SiliCompressor.with(context).compress(directory ,context.getCacheDir());
-    return new MediaStream(new FileInputStream(filepath), attachment.getContentType());
+  public String compressImage(@NonNull Context context, String directory) throws URISyntaxException, FileNotFoundException {
+    return SiliCompressor.with(context).compress(directory ,context.getCacheDir());
   }
 }

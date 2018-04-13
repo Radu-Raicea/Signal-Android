@@ -356,6 +356,7 @@ android {
     }
     testOptions {
         execution 'ANDROID_TEST_ORCHESTRATOR'
+        unitTests.returnDefaultValues = true
         unitTests {
             includeAndroidResources = true
         }

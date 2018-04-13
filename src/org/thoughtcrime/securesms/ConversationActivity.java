@@ -61,6 +61,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -244,27 +245,32 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private   AttachmentManager      attachmentManager;
   private   AudioRecorder          audioRecorder;
   private   BroadcastReceiver      securityUpdateReceiver;
-  private   Stub<EmojiDrawer>      emojiDrawerStub;
-  protected HidingLinearLayout     quickAttachmentToggle;
-  private   QuickAttachmentDrawer  quickAttachmentDrawer;
-  private   InputPanel             inputPanel;
-  private   LinearLayout           linMessage;
-  private   LinearLayout           linSearch;
-  private   InputPanel             bottomPanel;
-  private   SearchView             searchView;
-  private   ImageView              upArrow;
-  private   ImageView              downArrow;
+  private   Stub<EmojiDrawer>     emojiDrawerStub;
+  protected HidingLinearLayout    quickAttachmentToggle;
+  private   QuickAttachmentDrawer quickAttachmentDrawer;
+  private   InputPanel            inputPanel;
+  private   LinearLayout          linMessage;
+  private   LinearLayout          linSearch;
+  private   InputPanel            bottomPanel;
+  private   SearchView            searchView;
+  private   ImageView             upArrow;
+  private   ImageView             downArrow;
+  private   LinearLayout          linReply;
+  private   EditText              replyEdit;
 
-  private Recipient  recipient;
-  private long       threadId;
-  private int        distributionType;
-  private boolean    archived;
-  private boolean    isSecureText;
-  private boolean    isDefaultSms          = true;
-  private boolean    isMmsEnabled          = true;
-  private boolean    isSecurityInitialized = false;
-  private boolean    isSearchMode          = false;
-  private boolean    isEmojiReactionMode   = false;
+  private Recipient     recipient;
+  private long          threadId;
+  private int           distributionType;
+  private boolean       archived;
+  private boolean       isSecureText;
+  private boolean       isDefaultSms          = true;
+  private boolean       isMmsEnabled          = true;
+  private boolean       isSecurityInitialized = false;
+  private boolean       isSearchMode          = false;
+  private boolean       isEmojiReactionMode   = false;
+  private boolean       isReplyMode           = false;
+  private MessageRecord record                = null;
+
 
   private final IdentityRecordList identityRecords = new IdentityRecordList();
   private final DynamicTheme       dynamicTheme    = new DynamicTheme();
@@ -580,6 +586,11 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
       hideSearchMode();
       Toast.makeText(this, getString(R.string.ConversationActivity_search_mode_off),
               Toast.LENGTH_LONG).show();
+    } else if (isReplyMode) {
+      hideReplyMode();
+      Toast.makeText(this, getString(R.string.ConversationActivity_reply_mode_off),
+              Toast.LENGTH_LONG).show();
+      isReplyMode = false;
     } else {
       super.onBackPressed();
     }
@@ -607,6 +618,25 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     startActivity(intent);
     finish();
+  }
+
+  public void handleReplyMode(MessageRecord record) {
+    if(!isSearchMode) {
+      this.record = record;
+
+      bottomPanel = (InputPanel)findViewById(R.id.bottom_panel);
+      replyEdit = (EditText) findViewById(R.id.custom_reply);
+
+      replyEdit.setOnEditorActionListener(new ReplyInitiatedListener());
+
+      if (!this.isReplyMode) {
+        // We use the same input keyboard as search
+        showReplyMode(bottomPanel, replyEdit);
+        this.isReplyMode = true;
+      } else {
+        hideReplyMode();
+      }
+    }
   }
 
   private void handleSelectMessageExpiration() {
@@ -836,19 +866,29 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   }
 
   private void handleSearch(MenuItem item) {
-    bottomPanel = (InputPanel)findViewById(R.id.bottom_panel);
-    searchView = (SearchView)findViewById(R.id.custom_search);
+    if(!isReplyMode) {
+      bottomPanel = (InputPanel)findViewById(R.id.bottom_panel);
+      searchView = (SearchView)findViewById(R.id.custom_search);
 
-    searchView.setOnQueryTextListener(new SearchInitiatedListener());
-    upArrow.setOnClickListener(new NextSearchResultListener());
-    downArrow.setOnClickListener(new PreviousSearchResultListener());
+      searchView.setOnQueryTextListener(new SearchInitiatedListener());
+      upArrow.setOnClickListener(new NextSearchResultListener());
+      downArrow.setOnClickListener(new PreviousSearchResultListener());
 
-    if (!this.isSearchMode) {
-      showSearchMode(bottomPanel, searchView);
-      this.isSearchMode = !isSearchMode;
-    } else {
-      hideSearchMode();
+      if (!this.isSearchMode) {
+        showSearchMode(bottomPanel, searchView);
+        this.isSearchMode = !isSearchMode;
+      } else {
+        hideSearchMode();
+      }
     }
+  }
+
+  public void hideReplyMode() {
+    hideKeyboard();
+    linReply.setVisibility(View.GONE);
+    bottomPanel.setVisibility(View.VISIBLE);
+    linMessage.setVisibility(View.VISIBLE);
+    this.isReplyMode = false;
   }
 
   public void hideSearchMode() {
@@ -859,6 +899,13 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     this.isSearchMode = false;
 
     fragment.resetAdapterSearchHandler();
+  }
+
+  public void showReplyMode(InputPanel i, EditText s) {
+    hideKeyboard();
+    linMessage.setVisibility(View.GONE);
+    i.setVisibility(View.GONE);
+    linReply.setVisibility(View.VISIBLE);
   }
 
   public void showSearchMode(InputPanel i, SearchView s) {
@@ -874,6 +921,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (view != null) {
       InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
       imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+  }
+
+  public void showKeyboard() {
+    View view = this.getCurrentFocus();
+    if (view != null) {
+      InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+      imm.showSoftInput(view, 0);
     }
   }
 
@@ -1367,6 +1422,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     linSearch             = ViewUtil.findById(this, R.id.lin_search);
     upArrow               = ViewUtil.findById(this, R.id.search_arrow_up);
     downArrow             = ViewUtil.findById(this, R.id.search_arrow_down);
+    linReply              = ViewUtil.findById(this, R.id.lin_reply);
+    replyEdit             = ViewUtil.findById(this, R.id.custom_reply);
 
     ImageButton quickCameraToggle = ViewUtil.findById(this, R.id.quick_camera_toggle);
     View        composeBubble     = ViewUtil.findById(this, R.id.compose_bubble);
@@ -1738,7 +1795,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     boolean refreshFragment = (threadId != this.threadId);
     this.threadId = threadId;
 
-    if (isEmojiReactionMode || fragment == null || !fragment.isVisible() || isFinishing()) {
+    if (isEmojiReactionMode || fragment == null || !fragment.isVisible() || isFinishing() || isReplyMode) {
       isEmojiReactionMode = false;
       return;
     }
@@ -1887,7 +1944,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
                      String messageBody = messages[0].getMessageBody();
 
-                     if (!Stereotype.fromBody(messageBody).equals(Stereotype.REACTION)) {
+                     if (Stereotype.fromBody(messageBody).equals(Stereotype.UNKNOWN)) {
                         return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.releaseOutgoingMessage(id));
                      }
                      return MessageSender.send(context, masterSecret, messages[0], threadId, forceSms, () -> fragment.refreshView());
@@ -2154,6 +2211,41 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     @Override
     public boolean onQueryTextChange(String newText) {
       return false;
+    }
+  }
+
+  private class ReplyInitiatedListener implements EditText.OnEditorActionListener {
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+      if(event.getAction() == event.ACTION_UP) {
+        Address myAddress = null;
+        try {
+          RepliesHandler   repliesHandler   = new RepliesHandler(getApplicationContext());
+          IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(getBaseContext());
+          myAddress = identityDatabase.getMyIdentity().getAddress();
+          Long time = System.currentTimeMillis();
+
+          repliesHandler.replyToMessageBySender(record, v.getText().toString(), time);
+
+          Map<String, String> replyBody = new HashMap<>();
+          replyBody.put("type", Stereotype.REPLY);
+          replyBody.put("hash", record.getHash());
+          replyBody.put("reply", v.getText().toString());
+          replyBody.put("time", time.toString());
+          replyBody.put("address", myAddress.serialize());
+
+          String body = new JSONObject(replyBody).toString();
+
+          // TODO check if it group chat reply
+
+          if (recipient.getAddress().isGroup()) {
+            sendMediaMessage(false, body, new SlideDeck(), 0, -1, false);
+          } else sendTextMessage(false, 0, -1, false, body);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+      return true;
     }
   }
 

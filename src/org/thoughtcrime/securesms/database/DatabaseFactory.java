@@ -113,13 +113,14 @@ public class DatabaseFactory {
   private static final int PROFILE_SHARING_APPROVAL                        = 42;
   private static final int UNSEEN_NUMBER_OFFER                             = 43;
   private static final int READ_RECEIPTS                                   = 44;
-  private static final int GROUP_RECEIPT_TRACKING                          = 45;
-  private static final int UNREAD_COUNT_VERSION                            = 46;
-  private static final int MORE_RECIPIENT_FIELDS                           = 47;
-  private static final int INTRODUCED_PINNED_MESSAGES                      = 48;
-  private static final int INTRODUCED_NICKNAMES                            = 49;
-  private static final int INTRODUCED_MESSAGE_REACTION                     = 50;
-  private static final int DATABASE_VERSION                                = 50;
+  private static final int GROUP_RECEIPT_TRACKING      = 45;
+  private static final int UNREAD_COUNT_VERSION        = 46;
+  private static final int MORE_RECIPIENT_FIELDS       = 47;
+  private static final int INTRODUCED_PINNED_MESSAGES  = 48;
+  private static final int INTRODUCED_NICKNAMES        = 49;
+  private static final int INTRODUCED_MESSAGE_REACTION = 50;
+  private static final int INTRODUCED_MESSAGE_REPLIES  = 51;
+  private static final int DATABASE_VERSION            = 51;
 
   private static final String DATABASE_NAME    = "messages.db";
   private static final Object lock             = new Object();
@@ -143,6 +144,7 @@ public class DatabaseFactory {
   private final ContactsDatabase contactsDatabase;
   private final GroupReceiptDatabase groupReceiptDatabase;
   private final MessageReactionDatabase messageReactionDatabase;
+  private final MessageReplyDatabase messageReplyDatabase;
 
   public static DatabaseFactory getInstance(Context context) {
     synchronized (lock) {
@@ -213,6 +215,10 @@ public class DatabaseFactory {
     return getInstance(context).messageReactionDatabase;
   }
 
+  public static MessageReplyDatabase getMessageReplyDatabase(Context context) {
+    return getInstance(context).messageReplyDatabase;
+  }
+
   private DatabaseFactory(Context context) {
     this.databaseHelper           = new DatabaseHelper(context, DATABASE_NAME, null, DATABASE_VERSION);
     this.sms                      = new SmsDatabase(context, databaseHelper);
@@ -230,6 +236,7 @@ public class DatabaseFactory {
     this.groupReceiptDatabase     = new GroupReceiptDatabase(context, databaseHelper);
     this.contactsDatabase         = new ContactsDatabase(context);
     this.messageReactionDatabase  = new MessageReactionDatabase(context, databaseHelper);
+    this.messageReplyDatabase     = new MessageReplyDatabase(context, databaseHelper);
   }
 
   public void reset(Context context) {
@@ -249,6 +256,7 @@ public class DatabaseFactory {
     this.recipientDatabase.reset(databaseHelper);
     this.groupReceiptDatabase.reset(databaseHelper);
     this.messageReactionDatabase.reset(databaseHelper);
+    this.messageReplyDatabase.reset(databaseHelper);
     old.close();
   }
 
@@ -564,6 +572,7 @@ public class DatabaseFactory {
       db.execSQL(RecipientDatabase.CREATE_TABLE);
       db.execSQL(GroupReceiptDatabase.CREATE_TABLE);
       db.execSQL(MessageReactionDatabase.CREATE_TABLE);
+      db.execSQL(MessageReplyDatabase.CREATE_TABLE);
 
       executeStatements(db, SmsDatabase.CREATE_INDEXS);
       executeStatements(db, MmsDatabase.CREATE_INDEXS);
@@ -1466,6 +1475,10 @@ public class DatabaseFactory {
           db.update("mms", cv, "_id="+id, null);
         }
         mmsCursor.close();
+      }
+
+      if(oldVersion < INTRODUCED_MESSAGE_REPLIES) {
+        db.execSQL(MessageReplyDatabase.CREATE_TABLE);
       }
 
       db.setTransactionSuccessful();

@@ -70,6 +70,24 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/lin_reply"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/custom_reply"
+                    android:layout_width="200dp"
+                    android:layout_height="49dp"
+                    android:layout_margin="5dp"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/editbox_background"
+                    android:hint="Reply...">
+
+                </EditText>
+            </LinearLayout>
+
             <Button android:id="@+id/unblock_button"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"

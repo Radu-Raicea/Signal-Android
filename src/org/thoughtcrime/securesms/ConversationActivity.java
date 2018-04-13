@@ -2231,14 +2231,17 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           replyBody.put("address", myAddress.serialize());
 
           String body = new JSONObject(replyBody).toString();
-            
+
           if (recipient.getAddress().isGroup()) {
             sendMediaMessage(false, body, new SlideDeck(), 0, -1, false);
           } else sendTextMessage(false, 0, -1, false, body);
         } catch (Exception e) {
           e.printStackTrace();
         }
+        Toast.makeText(getApplicationContext(), R.string.ConversationActivity_reply_sent_alert_message, Toast.LENGTH_LONG).show();
+        replyEdit.getText().clear();
       }
+
       return true;
     }
   }

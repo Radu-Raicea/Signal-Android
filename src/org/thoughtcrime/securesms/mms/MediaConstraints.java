@@ -14,15 +14,18 @@ import org.thoughtcrime.securesms.mms.DecryptableStreamUriLoader.DecryptableUri;
 import org.thoughtcrime.securesms.util.BitmapDecodingException;
 import org.thoughtcrime.securesms.util.BitmapUtil;
 import org.thoughtcrime.securesms.util.MediaUtil;
+import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Util;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 public abstract class MediaConstraints {
   private static final String TAG = MediaConstraints.class.getSimpleName();
@@ -55,6 +58,14 @@ public abstract class MediaConstraints {
       Log.w(TAG, "Failed to determine if media's constraints are satisfied.", ioe);
       return false;
     }
+  }
+
+  public boolean satisfiesCompression(@NonNull Context context, Attachment attachment) {
+    Set compressionOptions = TextSecurePreferences.getCompressionOptions(context);
+
+    return ((MediaUtil.isVideo(attachment) && compressionOptions.contains("video")) ||
+            (MediaUtil.isImage(attachment) && compressionOptions.contains("image")) ||
+            (MediaUtil.isGif(attachment)) && compressionOptions.contains("gif"));
   }
 
   private boolean isWithinBounds(Context context, MasterSecret masterSecret, Uri uri) throws IOException {
@@ -94,31 +105,32 @@ public abstract class MediaConstraints {
    if (!MediaUtil.isVideo(attachment) && !MediaUtil.isImage(attachment) && !MediaUtil.isGif(attachment)) {
            throw new UnsupportedOperationException("File type not video or image or gif! Cannot compress");
    }
-   String filePath = null;
-   if(MediaUtil.isVideo(attachment) || MediaUtil.isImage(attachment) || MediaUtil.isGif(attachment)) {
-     Log.w("COMPRESSION", "Compressing media file.");
-     String directory = context.getCacheDir().toString() + "/tempFile" + attachment.getContentType().replace('/', '.');
-     InputStream is = PartAuthority.getAttachmentStream(context, masterSecret, attachment.getDataUri());
-     byte[] byteStream = Util.readFully(is);
 
-     FileOutputStream outputStream = new FileOutputStream(directory);
-     outputStream.write(byteStream);
+   String directory = context.getCacheDir().toString() + "/tempFile" + attachment.getContentType().replace('/', '.');
+   InputStream is = PartAuthority.getAttachmentStream(context, masterSecret, attachment.getDataUri());
+   byte[] byteStream = Util.readFully(is);
 
-     if(MediaUtil.isVideo(attachment)) {
-       filePath = SiliCompressor.with(context).compressVideo(directory ,context.getCacheDir().toString());
-       Log.w("VIDEO", "Compressing video file.");
-     }
-     else{
-       filePath = SiliCompressor.with(context).compress(directory ,context.getCacheDir());
-       Log.w("IMAGE", "Compressing image file.");
-     }
-     outputStream.close();
-     is.close();
-     new File(directory).delete();
-     return new MediaStream(new FileInputStream(filePath),attachment.getContentType());
+   FileOutputStream outputStream = new FileOutputStream(directory);
+   outputStream.write(byteStream);
+
+   outputStream.close();
+   is.close();
+   new File(directory).delete();
+
+   if(MediaUtil.isVideo(attachment)) {
+     return compressVideo(context, directory, attachment);
    }
 
-   return new MediaStream(new FileInputStream(filePath), attachment.getContentType());
+   return compressImage(context, directory, attachment);
  }
 
+ public MediaStream compressVideo(@NonNull Context context, String directory, Attachment attachment) throws URISyntaxException, FileNotFoundException {
+    String filepath = SiliCompressor.with(context).compressVideo(directory ,context.getCacheDir().toString());
+    return new MediaStream(new FileInputStream(filepath), attachment.getContentType());
+ }
+
+  public MediaStream compressImage(@NonNull Context context, String directory, Attachment attachment) throws URISyntaxException, FileNotFoundException {
+    String filepath = SiliCompressor.with(context).compress(directory ,context.getCacheDir());
+    return new MediaStream(new FileInputStream(filepath), attachment.getContentType());
+  }
 }

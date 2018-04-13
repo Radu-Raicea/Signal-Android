@@ -66,7 +66,7 @@ public abstract class SendJob extends MasterSecretJob {
 
     for (Attachment attachment : attachments) {
       try {
-        if (satisfiesCompression(attachment)) {
+        if (constraints.satisfiesCompression(context, attachment)) {
           MediaStream compressedFile = constraints.compressFile(context, masterSecret, attachment);
           results.add(attachmentDatabase.updateAttachmentData(masterSecret, attachment, compressedFile));
         }
@@ -84,13 +84,5 @@ public abstract class SendJob extends MasterSecretJob {
     }
 
     return results;
-  }
-
-  public boolean satisfiesCompression(Attachment attachment) {
-    Set compressionOptions = TextSecurePreferences.getCompressionOptions(context);
-
-    return ((MediaUtil.isVideo(attachment) && compressionOptions.contains("video")) ||
-            (MediaUtil.isImage(attachment) && compressionOptions.contains("image")) ||
-            (MediaUtil.isGif(attachment)) && compressionOptions.contains("gif"));
   }
 }

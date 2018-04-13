@@ -19,6 +19,10 @@ public class RepliesHandler {
         this.messageReplyDatabase = DatabaseFactory.getMessageReplyDatabase(context);
     }
 
+    public void setMessageReplyDatabase(MessageReplyDatabase messageReplyDatabase) {
+        this.messageReplyDatabase = messageReplyDatabase;
+    }
+
     /**
      * This method only used by the conversation fragment since it will automatically
      * set the id of the replier to the sender's phonenumber.

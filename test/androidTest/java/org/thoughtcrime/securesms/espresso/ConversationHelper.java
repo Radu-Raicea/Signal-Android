@@ -1,6 +1,7 @@
 package org.thoughtcrime.securesms.espresso;
 
 import android.support.test.InstrumentationRegistry;
+import android.view.KeyEvent;
 
 import org.thoughtcrime.securesms.R;
 
@@ -99,10 +100,10 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
         onView(withId(R.id.menu_context_reply))
                 .perform(click());
         onView(withId(R.id.lin_reply))
-                .perform(click())
+                .perform(click());
+        onView(withId(R.id.custom_reply))
                 .perform(typeText(message));
-        onView(withId(R.id.lin_reply))
-                .perform(pressImeActionButton());
+        onView(withId(R.id.custom_reply)).perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_ENTER));
 
         return this;
     }

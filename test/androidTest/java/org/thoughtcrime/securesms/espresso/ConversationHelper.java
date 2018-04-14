@@ -8,7 +8,9 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.openActionBarOverflowOrOptionsMenu;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.pressImeActionButton;
 import static android.support.test.espresso.action.ViewActions.typeText;
+import static android.support.test.espresso.action.ViewActions.typeTextIntoFocusedView;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.contrib.RecyclerViewActions.scrollToPosition;
 import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
@@ -88,6 +90,23 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
 
         return this;
     }
+
+    public ConversationHelper sendReply(int position, String message) {
+
+        this.unselectMessage();
+        this.selectMessage(position);
+
+        onView(withId(R.id.menu_context_reply))
+                .perform(click());
+        onView(withId(R.id.lin_reply))
+                .perform(click())
+                .perform(typeText(message));
+        onView(withId(R.id.lin_reply))
+                .perform(pressImeActionButton());
+
+        return this;
+    }
+
 
     public ConversationHelper selectMessage(int position) {
         this.messageSelected = true;

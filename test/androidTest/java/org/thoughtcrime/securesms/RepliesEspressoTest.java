@@ -19,11 +19,12 @@ public class RepliesEspressoTest {
     @Test
     public void buttonExists(){
         Helper helper = new Helper(mainActivityRule);
+        String testSend = helper.randString();
 
         helper
                 .goConversations()
                 .goConversation()
-                .sendMessage("Testing")
+                .sendMessage(testSend)
                 .selectMessage(0)
                 .assertId(R.id.menu_context_reply);
 
@@ -32,39 +33,50 @@ public class RepliesEspressoTest {
     @Test
     public void canSendReply() {
         Helper helper = new Helper(mainActivityRule);
+        String testSend = helper.randString();
+        String testReply = helper.randString();
 
         helper
                 .goConversations()
                 .goConversation()
-                .sendMessage("Testing")
-                .sendReply(0, "Reply test");
+                .sendMessage(testSend)
+                .sendReply(0, testReply)
+                .assertText(testReply);
     }
 
     @Test
     public void replyIsVisibleInUI() {
         Helper helper = new Helper(mainActivityRule);
 
+        String testSend = helper.randString();
+        String testReply = helper.randString();
+
         helper
                 .goConversations()
                 .goConversation()
-                .sendMessage("Testing")
-                .sendReply(0, "test")
-                .assertText("test");
+                .sendMessage(testSend)
+                .sendReply(0, testReply)
+                .assertText(testReply);
     }
 
     @Test
     public void multipleRepliesAreVisibleInUI() {
         Helper helper = new Helper(mainActivityRule);
 
+        String testSend1 = helper.randString();
+        String testReply1 = helper.randString();
+        String testSend2 = helper.randString();
+        String testReply2 = helper.randString();
+
         helper
                 .goConversations()
                 .goConversation()
-                .sendMessage("Testing1")
-                .sendReply(0, "test1")
-                .assertText("test1")
-                .sendMessage("Testing2")
-                .sendReply(0, "test2")
-                .assertText("test2");
+                .sendMessage(testSend1)
+                .sendReply(0, testReply1)
+                .assertText(testReply1)
+                .sendMessage(testSend2)
+                .sendReply(0, testReply2)
+                .assertText(testReply2);
 
     }
 }

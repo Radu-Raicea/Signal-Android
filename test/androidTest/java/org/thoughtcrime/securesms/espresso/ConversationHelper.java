@@ -10,6 +10,7 @@ import static android.support.test.espresso.Espresso.openActionBarOverflowOrOpti
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.pressImeActionButton;
+import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.action.ViewActions.typeTextIntoFocusedView;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
@@ -102,12 +103,25 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
         onView(withId(R.id.lin_reply))
                 .perform(click());
         onView(withId(R.id.custom_reply))
-                .perform(typeText(message));
-        onView(withId(R.id.custom_reply)).perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_ENTER));
+                .perform(typeText(message))
+
+                .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_ENTER))
+                .perform(replaceText(""))
+                .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_BACK))
+                .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_BACK));
+
+        clearKeyboard();
 
         return this;
     }
 
+    public ConversationHelper clearKeyboard() {
+        onView(withId(R.id.embedded_text_editor))
+                .perform(click())
+                .perform(replaceText(""));
+
+        return this;
+    }
 
     public ConversationHelper selectMessage(int position) {
         this.messageSelected = true;

@@ -13,6 +13,7 @@
   global:
   - ANDROID_API=27
   - ANDROID_BUILD_TOOLS=27.0.1
+  - CODACY_PROJECT_TOKEN="b28c8d74c87d45288a959107defa3a35"
 
  android:
    components:
@@ -42,6 +43,8 @@
  before_install:
      - chmod +x gradlew
      - yes | sdkmanager "platforms;android-27"
+     - sudo apt-get install jq
+     - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
 
  script:
     - echo "Travis branch is $TRAVIS_BRANCH"
@@ -50,6 +53,7 @@
     - ./gradlew check jacocoDebugReport
  after_success:
     - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+    - java -jar ~/codacy-coverage-reporter-assembly-latest.jar report -l Java -r build/reports/jacoco/jacocoDebugReport/jacocoDebugReport.xml
 
 
 

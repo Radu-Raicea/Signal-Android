@@ -1,4 +1,7 @@
 ## Documentation
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b28c8d74c87d45288a959107defa3a35)](https://app.codacy.com/app/shelbaz/SignalAndroid?utm_source=github.com&utm_medium=referral&utm_content=Radu-Raicea/SignalAndroid&utm_campaign=badger)
+
 Looking for documentation? Check out the wiki!
 
 https://github.com/WhisperSystems/Signal-Android/wiki

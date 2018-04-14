@@ -94,21 +94,21 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
     }
 
     public ConversationHelper sendReply(int position, String message) {
-
         this.unselectMessage();
+
         this.selectMessage(position);
 
         onView(withId(R.id.menu_context_reply))
-                .perform(click());
+            .perform(click());
         onView(withId(R.id.lin_reply))
-                .perform(click());
+            .perform(click());
         onView(withId(R.id.custom_reply))
-                .perform(typeText(message))
+            .perform(typeText(message))
 
-                .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_ENTER))
-                .perform(replaceText(""))
-                .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_BACK))
-                .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_BACK));
+            .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_ENTER))
+            .perform(replaceText(""))
+            .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_BACK))
+            .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_BACK));
 
         clearKeyboard();
 
@@ -117,8 +117,8 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
 
     public ConversationHelper clearKeyboard() {
         onView(withId(R.id.embedded_text_editor))
-                .perform(click())
-                .perform(replaceText(""));
+            .perform(click())
+            .perform(replaceText(""));
 
         return this;
     }

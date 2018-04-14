@@ -17,13 +17,14 @@ public class RepliesEspressoTest {
             new ActivityTestRule(ConversationListActivity.class, true, false);
 
     @Test
-    public void buttonExists(){
+    public void buttonExists() {
         Helper helper = new Helper(mainActivityRule);
+
         String testSend = helper.randString();
 
         helper
-                .goConversations()
-                .goConversation()
+            .goConversations()
+            .goConversation()
                 .sendMessage(testSend)
                 .selectMessage(0)
                 .assertId(R.id.menu_context_reply);
@@ -33,12 +34,13 @@ public class RepliesEspressoTest {
     @Test
     public void canSendReply() {
         Helper helper = new Helper(mainActivityRule);
+
         String testSend = helper.randString();
         String testReply = helper.randString();
 
         helper
-                .goConversations()
-                .goConversation()
+            .goConversations()
+            .goConversation()
                 .sendMessage(testSend)
                 .sendReply(0, testReply)
                 .assertText(testReply);
@@ -52,8 +54,8 @@ public class RepliesEspressoTest {
         String testReply = helper.randString();
 
         helper
-                .goConversations()
-                .goConversation()
+            .goConversations()
+            .goConversation()
                 .sendMessage(testSend)
                 .sendReply(0, testReply)
                 .assertText(testReply);
@@ -69,8 +71,8 @@ public class RepliesEspressoTest {
         String testReply2 = helper.randString();
 
         helper
-                .goConversations()
-                .goConversation()
+            .goConversations()
+            .goConversation()
                 .sendMessage(testSend1)
                 .sendReply(0, testReply1)
                 .assertText(testReply1)

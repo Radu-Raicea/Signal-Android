@@ -665,7 +665,7 @@ public class SmsDatabase extends MessagingDatabase {
       e.printStackTrace();
     }
 
-    if (!Stereotype.fromBody(body).equals(Stereotype.REACTION)) {
+    if (Stereotype.fromBody(body).equals(Stereotype.UNKNOWN)) {
       DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
       notifyConversationListeners(threadId);
     }

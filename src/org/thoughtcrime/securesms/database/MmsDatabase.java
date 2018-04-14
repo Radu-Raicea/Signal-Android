@@ -864,9 +864,11 @@ public class MmsDatabase extends MessagingDatabase {
       for (Address address : earlyReadReceipts.keySet())     receiptDatabase.update(address, messageId, GroupReceiptDatabase.STATUS_READ, -1);
     }
 
-    DatabaseFactory.getThreadDatabase(context).setLastSeen(threadId);
-    DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
-    jobManager.add(new TrimThreadJob(context, threadId));
+    if((Stereotype.fromBody(message.getBody()).equals(Stereotype.UNKNOWN))) {
+      DatabaseFactory.getThreadDatabase(context).setLastSeen(threadId);
+      DatabaseFactory.getThreadDatabase(context).setHasSent(threadId, true);
+      jobManager.add(new TrimThreadJob(context, threadId));
+    }
 
     return messageId;
   }

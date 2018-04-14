@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -61,7 +60,6 @@ import org.thoughtcrime.securesms.database.RecipientDatabase;
 import org.thoughtcrime.securesms.database.loaders.ConversationLoader;
 import org.thoughtcrime.securesms.database.model.MediaMmsMessageRecord;
 import org.thoughtcrime.securesms.database.model.MessageRecord;
-import org.thoughtcrime.securesms.database.model.MmsMessageRecord;
 import org.thoughtcrime.securesms.mms.GlideApp;
 import org.thoughtcrime.securesms.mms.OutgoingMediaMessage;
 import org.thoughtcrime.securesms.mms.Slide;
@@ -533,7 +531,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
     public long stageOutgoingMessage(OutgoingTextMessage message) {
         MessageRecord messageRecord = DatabaseFactory.getSmsDatabase(getContext()).readerFor(message, threadId).getCurrent();
 
-        if (!Stereotype.fromBody(messageRecord.getBody().getBody()).equals(Stereotype.REACTION)) {
+        if (Stereotype.fromBody(messageRecord.getBody().getBody()).equals(Stereotype.UNKNOWN)) {
             if (getListAdapter() != null) {
                 getListAdapter().setHeaderView(null);
                 setLastSeen(0);
@@ -549,7 +547,7 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
     }
 
-    // Interface place holder
+    // Interface placeholder
     public void refreshView() {
 
     }
@@ -746,10 +744,18 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
                     ((ConversationActivity)getActivity()).handleEmojiReaction(getSelectedMessageRecord(), new ReactionsHandler(getContext()));
                     actionMode.finish();
                     return true;
+                case R.id.menu_context_reply:
+                    handleReplyMessage(getSelectedMessageRecord());
+                    actionMode.finish();
+                    return true;
             }
 
             return false;
         }
+    }
+
+    private void handleReplyMessage(MessageRecord selectedMessageRecord) {
+        ((ConversationActivity)getActivity()).handleReplyMode(selectedMessageRecord);
     }
 
     private static class ConversationDateHeader extends HeaderViewHolder {

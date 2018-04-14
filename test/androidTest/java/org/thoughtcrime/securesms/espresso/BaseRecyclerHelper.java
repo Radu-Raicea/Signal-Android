@@ -59,4 +59,27 @@ class BaseRecyclerHelper<T> extends BaseHelper<T> {
 
         return (T)this;
     }
+
+    public T assertEmojiAt(int emoji, int position) {
+        String[] emojis = new String[]{
+                "\uD83D\uDE00",
+                "\uD83D\uDE01",
+                "\uD83D\uDE02",
+                "\uD83E\uDD23",
+                "\uD83D\uDE03",
+                "\uD83D\uDE04",
+                "\uD83D\uDE05",
+                "\uD83D\uDE06",
+                "\uD83D\uDE09",
+                "\uD83D\uDE0A",
+                "\uD83D\uDE0B",
+                "\uD83D\uDE0E",
+                "\uD83D\uDE0D",
+                "\uD83D\uDE18",
+                "\uD83D\uDE17",
+                "\uD83D\uDE19",
+        };
+
+        return this.assertTextAt(emojis[emoji], position);
+    }
 }

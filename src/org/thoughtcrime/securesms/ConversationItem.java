@@ -34,15 +34,18 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.BackgroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,8 +63,10 @@ import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.database.Address;
 import org.thoughtcrime.securesms.database.AttachmentDatabase;
 import org.thoughtcrime.securesms.database.DatabaseFactory;
+import org.thoughtcrime.securesms.database.IdentityDatabase;
 import org.thoughtcrime.securesms.database.MmsDatabase;
 import org.thoughtcrime.securesms.database.MmsSmsDatabase;
+import org.thoughtcrime.securesms.database.RecipientDatabase;
 import org.thoughtcrime.securesms.database.SmsDatabase;
 import org.thoughtcrime.securesms.database.documents.IdentityKeyMismatch;
 import org.thoughtcrime.securesms.database.model.MediaMmsMessageRecord;
@@ -91,10 +96,15 @@ import org.thoughtcrime.securesms.util.views.Stub;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+
+import static android.widget.RelativeLayout.ALIGN_PARENT_LEFT;
+import static android.widget.RelativeLayout.ALIGN_PARENT_RIGHT;
 
 /**
  * A view that displays an individual conversation item within a conversation
@@ -129,7 +139,6 @@ public class ConversationItem extends LinearLayout
   private AvatarImageView    contactPhoto;
   private DeliveryStatusView deliveryStatusIndicator;
   private AlertView          alertView;
-  private FlexboxLayout      reactionsList;
 
   private @NonNull  Set<MessageRecord>  batchSelected = new HashSet<>();
   private @NonNull  Recipient           conversationRecipient;
@@ -182,7 +191,6 @@ public class ConversationItem extends LinearLayout
     this.documentViewStub        = new Stub<>(findViewById(R.id.document_view_stub));
     this.expirationTimer         =            findViewById(R.id.expiration_indicator);
     this.groupSenderHolder       =            findViewById(R.id.group_sender_holder);
-    this.reactionsList           =            findViewById(R.id.reactions_list);
 
     setOnClickListener(new ClickListener(null));
 
@@ -223,6 +231,7 @@ public class ConversationItem extends LinearLayout
     setSimInfo(messageRecord);
     setExpiration(messageRecord);
     setReactions(messageRecord);
+    setReplies(messageRecord);
   }
 
   @Override
@@ -261,7 +270,7 @@ public class ConversationItem extends LinearLayout
     int index = tempString.indexOf(highlight, start);
 
     while (index > -1) {
-      if(!messageRecord.isOutgoing()) {
+      if (!messageRecord.isOutgoing()) {
         color = Color.parseColor("#E1BEE7");
       } else {
         color = Color.YELLOW;
@@ -539,31 +548,48 @@ public class ConversationItem extends LinearLayout
   private void setReactions(final MessageRecord messageRecord) {
     FlexboxLayout reactionsList = (FlexboxLayout) findViewById(R.id.reactions_list);
 
-    if(((FlexboxLayout) reactionsList).getChildCount() > 0) {
+    if (((FlexboxLayout) reactionsList).getChildCount() > 0) {
       reactionsList.removeAllViews();
     }
 
     ReactionsHandler handler = new ReactionsHandler(getContext());
     List<ReactionsHandler.Reaction> reactions = handler.getMessageReactions(messageRecord);
-    for(ReactionsHandler.Reaction reaction : reactions) {
+    Map<String, Integer> reactionCounts = handler.getReactionCounts(reactions);
+    Map<String, String> reactionsToDisplay = new HashMap<>();
+
+    for (ReactionsHandler.Reaction reaction : reactions) {
       TextView tv = new TextView(context);
+      String reactionDate = DateUtils.getExtendedRelativeTimeSpanString(context, new Locale("en", "CA"), reaction.getReactionDate());
+      String longClickText = getMessageSenderName(reaction.getReactor()) + " at " + reactionDate;
+      int count = reactionCounts.get(reaction.getReaction());
 
-      tv.setText(reaction.getReaction());
-      tv.setBackgroundResource(R.drawable.reaction_bubble);
-      tv.setBackgroundColor(Color.TRANSPARENT);
-      tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
-      tv.setOnLongClickListener((view)->{
-        Log.i("reaction","reaction " + reaction.getReaction() + " long clicked");
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
-        builder.setMessage(reaction.getReactor().serialize() + " at " + reaction.getReactionDate());
-        builder.setCancelable(true);
+      if (!reactionsToDisplay.containsKey(reaction.getReaction())) {
+        String reactionStr;
 
-        builder.setNegativeButton(R.string.no, (dialog, id) -> dialog.cancel());
-        builder.create().show();
+        if (count > 1) {
+          reactionStr = reaction.getReaction();
+          String countStr = Integer.toString(count) + " ";
+          SpannableString ss1 = new SpannableString(reactionStr);
+          SpannableString ss2 = new SpannableString(countStr);
+          ss2.setSpan(new RelativeSizeSpan(0.5f), 0, ss2.length(), 0);
+          CharSequence finalText = TextUtils.concat(ss1, ss2);
+          tv.setText(finalText);
+        } else {
+          reactionStr = reaction.getReaction() + " ";
+          tv.setText(reactionStr);
+        }
 
-        return true;
-      });
-      tv.setOnClickListener((view)->{
+        tv.setBackgroundResource(R.drawable.reaction_bubble);
+        tv.setBackgroundColor(Color.TRANSPARENT);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
+
+      } else {
+        longClickText = reactionsToDisplay.get(reaction.getReaction()) + "\n" + longClickText;
+      }
+
+      reactionsToDisplay.put(reaction.getReaction(), longClickText);
+
+      tv.setOnClickListener((view) -> {
         Log.i("reaction","reaction " + reaction.getReaction() + " clicked");
 
         String address = "";
@@ -574,7 +600,7 @@ public class ConversationItem extends LinearLayout
           e.printStackTrace();
         }
 
-        for(ReactionsHandler.Reaction reaction_check : reactions) {
+        for (ReactionsHandler.Reaction reaction_check : reactions) {
           if (reaction.getReaction().equals(reaction_check.getReaction()) && reaction_check.getReactor().serialize().equals(address)) {
             Toast.makeText(context, "You have already reacted with this emoji", Toast.LENGTH_SHORT).show();
             return;
@@ -586,11 +612,113 @@ public class ConversationItem extends LinearLayout
         } catch (InvalidMessageException e) {
           e.printStackTrace();
         }
+      });
 
+      tv.setOnLongClickListener((view) -> {
+        Log.i("reaction","reaction " + reaction.getReaction() + " long clicked");
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+
+        if (count > 1) {
+          builder.setMessage(reactionCounts.get(reaction.getReaction()) + " people reacted with " +
+                  reaction.getReaction() + "\n\n" + reactionsToDisplay.get(reaction.getReaction()));
+        } else {
+          builder.setMessage(reactionCounts.get(reaction.getReaction()) + " person reacted with " +
+                  reaction.getReaction() + "\n\n" + reactionsToDisplay.get(reaction.getReaction()));
+        }
+
+        builder.setCancelable(true);
+        builder.setNegativeButton(R.string.ok, (dialog, id) -> dialog.cancel());
+        builder.create().show();
+
+        return true;
       });
 
       reactionsList.addView(tv);
     }
+  }
+
+  private String getMessageSenderName(Address senderAddress) {
+    String messageSenderName = "";
+
+    IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(context);
+    Address          myAddress        = null;
+
+    try {
+      myAddress = identityDatabase.getMyIdentity().getAddress();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    if (myAddress.serialize().equals(senderAddress.serialize())) return "Me";
+
+    messageSenderName = messageRecord.getRecipient().getName();
+
+    if (messageRecord.getRecipient().getAddress().isGroup()) {
+      for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
+        if (participant.getAddress().serialize().equals(senderAddress.serialize())) {
+          return participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
+        }
+      }
+    }
+
+    if (messageSenderName == null) {
+      messageSenderName = messageRecord.getRecipient().getAddress().toString();
+    }
+
+    return messageSenderName;
+  }
+
+  private void setReplies(final MessageRecord messageRecord) {
+    LinearLayout     replyList        = (LinearLayout) findViewById(R.id.replies_list);
+    IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(context);
+
+    Address myAddress = null;
+
+    if (((LinearLayout) replyList).getChildCount() > 0)
+      ((LinearLayout) replyList).removeAllViews();
+
+    RepliesHandler             handler = new RepliesHandler(getContext());
+    List<RepliesHandler.Reply> replies = handler.getMessageReplies(messageRecord);
+
+    for (RepliesHandler.Reply reply : replies) {
+      LayoutInflater inflater        = LayoutInflater.from(getContext());
+      View           theInflatedView = inflater.inflate(R.layout.pinned_conversation_item, this, false);
+
+      if (myAddress == null) {
+        try {
+          myAddress = identityDatabase.getMyIdentity().getAddress();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+
+      TextView tvRecipient     = theInflatedView.findViewById(R.id.pinned_message_recipient);
+      TextView tvMessage       = theInflatedView.findViewById(R.id.pinned_message_body);
+      TextView tvTime          = theInflatedView.findViewById(R.id.conversation_item_date);
+      String   replySenderName = getMessageSenderName(reply.getReplierAddress());
+
+      tvMessage.setText(reply.getReply());
+      tvTime.setText(DateUtils.getExtendedRelativeTimeSpanString(context, new Locale("en", "CA"),
+              reply.getReplyDate()));
+
+      if (replySenderName.equals("Me")) {
+        tvRecipient.setText(replySenderName);
+        this.setReplyViewOrientation(
+                theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_RIGHT);
+      } else {
+        tvRecipient.setText(replySenderName);
+        this.setReplyViewOrientation(
+                theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_LEFT);
+      }
+      theInflatedView.setBackgroundColor(Color.parseColor("#E0E0E0"));
+      replyList.addView(theInflatedView);
+    }
+  }
+
+  private void setReplyViewOrientation(View theInflatedView, int alignParentRight) {
+    RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) theInflatedView.getLayoutParams();
+    lp.addRule(alignParentRight);
+    theInflatedView.setLayoutParams(lp);
   }
 
   private void setFailedStatusIcons() {

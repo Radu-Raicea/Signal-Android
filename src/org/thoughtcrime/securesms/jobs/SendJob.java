@@ -2,7 +2,6 @@ package org.thoughtcrime.securesms.jobs;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import org.thoughtcrime.securesms.BuildConfig;
 import org.thoughtcrime.securesms.TextSecureExpiredException;
@@ -66,8 +65,7 @@ public abstract class SendJob extends MasterSecretJob {
         if (constraints.satisfiesCompression(context, attachment, TextSecurePreferences.getCompressionOptions(context))) {
           MediaStream compressedFile = constraints.compressFile(context, masterSecret, attachment);
           results.add(attachmentDatabase.updateAttachmentData(masterSecret, attachment, compressedFile));
-        }
-          else if (constraints.isSatisfied(context, masterSecret, attachment)) {
+        } else if (constraints.isSatisfied(context, masterSecret, attachment)) {
           results.add(attachment);
         } else if (constraints.canResize(attachment)) {
           MediaStream resized = constraints.getResizedMedia(context, masterSecret, attachment);

@@ -1,6 +1,5 @@
 package org.thoughtcrime.securesms.compression;
 import android.content.Context;
-import android.net.Uri;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +16,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.thoughtcrime.securesms.attachments.Attachment;
-import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.mms.MediaConstraints;
 import com.iceteck.silicompressorr.SiliCompressor;
 
@@ -29,7 +27,7 @@ import java.util.Set;
 @PrepareForTest(SiliCompressor.class)
 public class  CompressionTest extends BaseUnitTest {
 
-    SiliCompressor mockCompressor;
+    private SiliCompressor mockCompressor;
 
     private Attachment getMockAttachment(String contentType) {
         Attachment attachment = mock(Attachment.class);
@@ -110,8 +108,8 @@ public class  CompressionTest extends BaseUnitTest {
 
         MediaConstraints temp = MediaConstraints.getPushMediaConstraints();
 
-        assertTrue(!temp.satisfiesCompression(context, a1, testPreferences));
-        assertTrue(!temp.satisfiesCompression(context, a2, testPreferences));
-        assertTrue(!temp.satisfiesCompression(context, a3, testPreferences));
+        assertFalse(temp.satisfiesCompression(context, a1, testPreferences));
+        assertFalse(temp.satisfiesCompression(context, a2, testPreferences));
+        assertFalse(temp.satisfiesCompression(context, a3, testPreferences));
     }
 }

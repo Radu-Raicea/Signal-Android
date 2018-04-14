@@ -30,8 +30,8 @@ public class ReactionsHandlerTests extends ReactionsMocks {
 
     @Test
     public void testAddReactionToSenderDB() {
-        reactionsHandler.addReactionToSenderDB(messageRecord, reactions[0], reactionDate);
-        verify(messageReactionDatabase).reactToMessage(messageRecord, reactions[0], reactionDate);
+        reactionsHandler.addReactionToSenderDB(messageRecordWithReactions, reactions[0], reactionDate);
+        verify(messageReactionDatabase).reactToMessage(messageRecordWithReactions, reactions[0], reactionDate);
     }
 
     @Test
@@ -42,7 +42,7 @@ public class ReactionsHandlerTests extends ReactionsMocks {
 
     @Test
     public void testGetMessageReactions() {
-        List<ReactionsHandler.Reaction> results = reactionsHandler.getMessageReactions(messageRecord);
+        List<ReactionsHandler.Reaction> results = reactionsHandler.getMessageReactions(messageRecordWithReactions);
 
         assertEquals(results.size(), 3);
 
@@ -57,10 +57,23 @@ public class ReactionsHandlerTests extends ReactionsMocks {
     }
 
     @Test
+    public void testGetMessageReactionsWithNoReactions() {
+        List<ReactionsHandler.Reaction> results = reactionsHandler.getMessageReactions(messageRecordWithoutReactions);
+        assertEquals(results.size(), 0);
+    }
+
+    @Test
     public void testGetReactionCounts() {
-        List<ReactionsHandler.Reaction> results = reactionsHandler.getMessageReactions(messageRecord);
+        List<ReactionsHandler.Reaction> results = reactionsHandler.getMessageReactions(messageRecordWithReactions);
         Map<String, Integer> reactionCounts = reactionsHandler.getReactionCounts(results);
         assertEquals(reactionCounts.get(":)"), (Integer) 2);
         assertEquals(reactionCounts.get(":("), (Integer) 1);
+    }
+
+    @Test
+    public void testGetReactionCountsWithNoReactions() {
+        List<ReactionsHandler.Reaction> results = reactionsHandler.getMessageReactions(messageRecordWithoutReactions);
+        Map<String, Integer> reactionCounts = reactionsHandler.getReactionCounts(results);
+        assertEquals(reactionCounts.size(), 0);
     }
 }

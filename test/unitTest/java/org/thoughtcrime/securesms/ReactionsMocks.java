@@ -23,33 +23,36 @@ import static org.mockito.Mockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DatabaseFactory.class, Parcel.class})
 public class ReactionsMocks extends BaseUnitTest {
-    protected DatabaseFactory                 databaseFactory;
-    protected MessageReactionDatabase         messageReactionDatabase;
-    protected MessageRecord                   messageRecord;
-    protected Cursor                          cursor;
-    protected Parcel                          parcel;
-    protected String[]                        reactions;
-    protected String                          reactionId;
-    protected String                          messageHash;
-    protected String                          reactorId;
-    protected String                          messageType;
-    protected Long                            reactionDate;
-    protected Long                            threadId;
+    protected DatabaseFactory         databaseFactory;
+    protected MessageReactionDatabase messageReactionDatabase;
+    protected MessageRecord           messageRecordWithReactions;
+    protected MessageRecord           messageRecordWithoutReactions;
+    protected Cursor                  cursorWithReactions;
+    protected Cursor                  cursorWithoutReactions;
+    protected Parcel                  parcel;
+    protected String[]                reactions;
+    protected String                  reactionId;
+    protected String                  messageHash;
+    protected String                  reactorId;
+    protected String                  messageType;
+    protected Long                    reactionDate;
+    protected Long                    threadId;
 
     @Override
     public void setUp() throws Exception {
-        databaseFactory         = mock(DatabaseFactory.class);
-        messageReactionDatabase = mock(MessageReactionDatabase.class);
-        messageRecord           = mock(MessageRecord.class);
-        cursor                  = mock(Cursor.class);
-        parcel                  = mock(Parcel.class);
-        reactions               = new String[3];
-        reactionId              = "reaction id";
-        messageHash             = "message hash";
-        reactorId               = "reactor id";
-        messageType             = "SMS";
-        reactionDate            = 1234L;
-        threadId                = 1L;
+        databaseFactory            = mock(DatabaseFactory.class);
+        messageReactionDatabase    = mock(MessageReactionDatabase.class);
+        messageRecordWithReactions = mock(MessageRecord.class);
+        cursorWithReactions        = mock(Cursor.class);
+        cursorWithoutReactions     = mock(Cursor.class);
+        parcel                     = mock(Parcel.class);
+        reactions                  = new String[3];
+        reactionId                 = "reaction id";
+        messageHash                = "message hash";
+        reactorId                  = "reactor id";
+        messageType                = "SMS";
+        reactionDate               = 1234L;
+        threadId                   = 1L;
     }
 
     public void setUpTestReactions() {
@@ -59,7 +62,8 @@ public class ReactionsMocks extends BaseUnitTest {
     }
 
     public void setUpGetMessageReactions() {
-        when(messageReactionDatabase.getMessageReaction(messageRecord)).thenReturn(cursor);
+        when(messageReactionDatabase.getMessageReaction(messageRecordWithReactions)).thenReturn(cursorWithReactions);
+        when(messageReactionDatabase.getMessageReaction(messageRecordWithoutReactions)).thenReturn(cursorWithoutReactions);
     }
 
     public void setUpStaticMessageReactionDatabase() throws Exception {
@@ -75,13 +79,15 @@ public class ReactionsMocks extends BaseUnitTest {
     }
 
     public void setUpCursor() {
-        when(cursor.moveToNext())
+        when(cursorWithReactions.moveToNext())
                 .thenReturn(true)
                 .thenReturn(true)
                 .thenReturn(true)
                 .thenReturn(false);
 
-        when(cursor.getLong(cursor.getColumnIndexOrThrow(Mockito.anyString())))
+        when(cursorWithoutReactions.moveToNext()).thenReturn(false);
+
+        when(cursorWithReactions.getLong(cursorWithReactions.getColumnIndexOrThrow(Mockito.anyString())))
                 .thenReturn(reactionDate);
 
         List<String> reactionAttributes = new ArrayList<>();
@@ -94,7 +100,7 @@ public class ReactionsMocks extends BaseUnitTest {
             reactionAttributes.add(messageHash);
         }
 
-        when(cursor.getString(cursor.getColumnIndexOrThrow(Mockito.anyString())))
+        when(cursorWithReactions.getString(cursorWithReactions.getColumnIndexOrThrow(Mockito.anyString())))
                 .thenAnswer(AdditionalAnswers.returnsElementsOf(reactionAttributes));
     }
 }

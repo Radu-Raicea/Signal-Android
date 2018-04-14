@@ -25,8 +25,10 @@ import static org.mockito.Mockito.when;
 public class MessageReplyMocks extends BaseUnitTest {
     protected DatabaseFactory      databaseFactory;
     protected MessageReplyDatabase messageReplyDatabase;
-    protected MessageRecord        messageRecord;
-    protected Cursor               cursor;
+    protected MessageRecord        messageRecordWithReplies;
+    protected MessageRecord        messageRecordWithoutReplies;
+    protected Cursor               cursorWithReplies;
+    protected Cursor               cursorWithoutReplies;
     protected Parcel               parcel;
     protected String[]             replies;
     protected String               replyId;
@@ -38,18 +40,20 @@ public class MessageReplyMocks extends BaseUnitTest {
 
     @Override
     public void setUp() throws Exception {
-        databaseFactory      = mock(DatabaseFactory.class);
-        messageReplyDatabase = mock(MessageReplyDatabase.class);
-        messageRecord        = mock(MessageRecord.class);
-        cursor               = mock(Cursor.class);
-        parcel               = mock(Parcel.class);
-        replies              = new String[3];
-        replyId              = "reply id";
-        messageHash          = "message hash";
-        replierId            = "replier id";
-        messageType          = "SMS";
-        time                 = 1234L;
-        threadId             = 1L;
+        databaseFactory             = mock(DatabaseFactory.class);
+        messageReplyDatabase        = mock(MessageReplyDatabase.class);
+        messageRecordWithReplies    = mock(MessageRecord.class);
+        messageRecordWithoutReplies = mock(MessageRecord.class);
+        cursorWithReplies           = mock(Cursor.class);
+        cursorWithoutReplies        = mock(Cursor.class);
+        parcel                      = mock(Parcel.class);
+        replies                     = new String[3];
+        replyId                     = "reply id";
+        messageHash                 = "message hash";
+        replierId                   = "replier id";
+        messageType                 = "SMS";
+        time                        = 1234L;
+        threadId                    = 1L;
     }
 
     public void setUpTestReplies() {
@@ -59,7 +63,8 @@ public class MessageReplyMocks extends BaseUnitTest {
     }
 
     public void setUpGetMessageReplies() {
-        when(messageReplyDatabase.getMessageReplies(messageRecord)).thenReturn(cursor);
+        when(messageReplyDatabase.getMessageReplies(messageRecordWithReplies)).thenReturn(cursorWithReplies);
+        when(messageReplyDatabase.getMessageReplies(messageRecordWithoutReplies)).thenReturn(cursorWithoutReplies);
     }
 
     public void setUpStaticMessageReplyDatabase() throws Exception {
@@ -75,13 +80,15 @@ public class MessageReplyMocks extends BaseUnitTest {
     }
 
     public void setUpCursor() {
-        when(cursor.moveToNext())
+        when(cursorWithReplies.moveToNext())
                 .thenReturn(true)
                 .thenReturn(true)
                 .thenReturn(true)
                 .thenReturn(false);
 
-        when(cursor.getLong(cursor.getColumnIndexOrThrow(Mockito.anyString())))
+        when(cursorWithoutReplies.moveToNext()).thenReturn(false);
+
+        when(cursorWithReplies.getLong(cursorWithReplies.getColumnIndexOrThrow(Mockito.anyString())))
                 .thenReturn(time);
 
         List<String> replyAttributes = new ArrayList<>();
@@ -94,7 +101,7 @@ public class MessageReplyMocks extends BaseUnitTest {
             replyAttributes.add(messageHash);
         }
 
-        when(cursor.getString(cursor.getColumnIndexOrThrow(Mockito.anyString())))
+        when(cursorWithReplies.getString(cursorWithReplies.getColumnIndexOrThrow(Mockito.anyString())))
                 .thenAnswer(AdditionalAnswers.returnsElementsOf(replyAttributes));
     }
 }

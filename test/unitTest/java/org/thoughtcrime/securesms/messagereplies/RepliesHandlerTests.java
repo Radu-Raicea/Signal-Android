@@ -29,8 +29,8 @@ public class RepliesHandlerTests extends MessageReplyMocks {
 
     @Test
     public void testReplyToMessageBySender() {
-        repliesHandler.replyToMessageBySender(messageRecord, replies[0], time);
-        verify(messageReplyDatabase).replyToMessage(messageRecord, replies[0], time);
+        repliesHandler.replyToMessageBySender(messageRecordWithReplies, replies[0], time);
+        verify(messageReplyDatabase).replyToMessage(messageRecordWithReplies, replies[0], time);
     }
 
     @Test
@@ -41,7 +41,7 @@ public class RepliesHandlerTests extends MessageReplyMocks {
 
     @Test
     public void testGetMessageReplies() {
-        List<RepliesHandler.Reply> results = repliesHandler.getMessageReplies(messageRecord);
+        List<RepliesHandler.Reply> results = repliesHandler.getMessageReplies(messageRecordWithReplies);
 
         assertEquals(results.size(), 3);
 
@@ -53,5 +53,11 @@ public class RepliesHandlerTests extends MessageReplyMocks {
         assertEquals(results.get(0).getReplyDate(), (Long) 1234L);
         assertEquals(results.get(0).getReplyId(), "reply id");
         assertEquals(results.get(0).getMessageHash(), "message hash");
+    }
+
+    @Test
+    public void testGetMessageRepliesWithNoReplies() {
+        List<RepliesHandler.Reply> results = repliesHandler.getMessageReplies(messageRecordWithoutReplies);
+        assertEquals(results.size(), 0);
     }
 }

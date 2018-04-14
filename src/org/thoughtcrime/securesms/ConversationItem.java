@@ -139,8 +139,6 @@ public class ConversationItem extends LinearLayout
   private AvatarImageView    contactPhoto;
   private DeliveryStatusView deliveryStatusIndicator;
   private AlertView          alertView;
-  private FlexboxLayout      reactionsList;
-  private LinearLayout       commentsList;
 
   private @NonNull  Set<MessageRecord>  batchSelected = new HashSet<>();
   private @NonNull  Recipient           conversationRecipient;
@@ -193,7 +191,6 @@ public class ConversationItem extends LinearLayout
     this.documentViewStub        = new Stub<>(findViewById(R.id.document_view_stub));
     this.expirationTimer         =            findViewById(R.id.expiration_indicator);
     this.groupSenderHolder       =            findViewById(R.id.group_sender_holder);
-    this.reactionsList           =            findViewById(R.id.reactions_list);
 
     setOnClickListener(new ClickListener(null));
 
@@ -643,47 +640,44 @@ public class ConversationItem extends LinearLayout
   private String getMessageSenderName(Address senderAddress) {
     String messageSenderName = "";
 
-    IdentityDatabase identityDatabase  = DatabaseFactory.getIdentityDatabase(context);
-    Address myAddress = null;
+    IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(context);
+    Address          myAddress        = null;
 
     try {
-        myAddress = identityDatabase.getMyIdentity().getAddress();
+      myAddress = identityDatabase.getMyIdentity().getAddress();
     } catch (Exception e) {
-        e.printStackTrace();
+      e.printStackTrace();
     }
 
-    if (myAddress.serialize().equals(senderAddress.serialize())) {
-        messageSenderName = "Me";
-    } else {
-        messageSenderName = messageRecord.getRecipient().getName();
-        if (messageRecord.getRecipient().getAddress().isGroup()) {
-            for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
-                if (participant.getAddress().serialize().equals(senderAddress.serialize())) {
-                    messageSenderName = participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
-                    break;
-                }
-            }
-        } else {
-            if (messageSenderName == null) {
-                messageSenderName = messageRecord.getRecipient().getAddress().toString();
-            }
+    if (myAddress.serialize().equals(senderAddress.serialize())) return "Me";
+
+    messageSenderName = messageRecord.getRecipient().getName();
+
+    if (messageRecord.getRecipient().getAddress().isGroup()) {
+      for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
+        if (participant.getAddress().serialize().equals(senderAddress.serialize())) {
+          return participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
         }
+      }
+    }
+
+    if (messageSenderName == null) {
+      messageSenderName = messageRecord.getRecipient().getAddress().toString();
     }
 
     return messageSenderName;
   }
 
   private void setReplies(final MessageRecord messageRecord) {
-    LinearLayout      replyList      = (LinearLayout) findViewById(R.id.replies_list);
-    IdentityDatabase  identityDatabase  = DatabaseFactory.getIdentityDatabase(context);
-    RecipientDatabase recipientDatabase = DatabaseFactory.getRecipientDatabase(context);
+    LinearLayout     replyList        = (LinearLayout) findViewById(R.id.replies_list);
+    IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(context);
 
     Address myAddress = null;
 
     if (((LinearLayout) replyList).getChildCount() > 0)
       ((LinearLayout) replyList).removeAllViews();
 
-    RepliesHandler             handler  = new RepliesHandler(getContext());
+    RepliesHandler             handler = new RepliesHandler(getContext());
     List<RepliesHandler.Reply> replies = handler.getMessageReplies(messageRecord);
 
     for (RepliesHandler.Reply reply : replies) {
@@ -698,44 +692,30 @@ public class ConversationItem extends LinearLayout
         }
       }
 
-        TextView tvReceipient = theInflatedView.findViewById(R.id.pinned_message_recipient);
-        TextView tvMessage    = theInflatedView.findViewById(R.id.pinned_message_body);
-        TextView tvTime       = theInflatedView.findViewById(R.id.conversation_item_date);
+      TextView tvRecipient     = theInflatedView.findViewById(R.id.pinned_message_recipient);
+      TextView tvMessage       = theInflatedView.findViewById(R.id.pinned_message_body);
+      TextView tvTime          = theInflatedView.findViewById(R.id.conversation_item_date);
+      String   replySenderName = getMessageSenderName(reply.getReplierAddress());
 
-        tvMessage.setText(reply.getReply());
-        tvTime.setText(DateUtils.getExtendedRelativeTimeSpanString(context, new Locale("en", "CA"),
-                reply.getReplyDate()));
+      tvMessage.setText(reply.getReply());
+      tvTime.setText(DateUtils.getExtendedRelativeTimeSpanString(context, new Locale("en", "CA"),
+              reply.getReplyDate()));
 
-        // check if it is me replying
-        if (myAddress.serialize().equals(reply.getReplierAddress().serialize())) {
-          tvReceipient.setText("Me");
-          this.setReplyViewOrientation(messageRecord,
-                  theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_RIGHT);
-          // this is someone else replying
-        } else {
-          String messageSenderName = messageRecord.getRecipient().getName();
-          if(messageRecord.getRecipient().getAddress().isGroup()) {
-            for (Recipient participant : messageRecord.getIndividualRecipient().getParticipants()) {
-                if (participant.getAddress().serialize().equals(reply.getReplierAddress().serialize())) {
-                  messageSenderName = participant.getName() == null ? participant.getAddress().serialize() : participant.getName();
-                  break;
-              }
-            }
-          } else {
-
-          if (messageSenderName == null) {
-            messageSenderName = messageRecord.getRecipient().getAddress().toString();
-           }}
-          tvReceipient.setText(messageSenderName);
-          this.setReplyViewOrientation(messageRecord,
-                  theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_LEFT);
-        }
-        theInflatedView.setBackgroundColor(Color.parseColor("#E0E0E0"));
-        replyList.addView(theInflatedView);
+      if (replySenderName.equals("Me")) {
+        tvRecipient.setText(replySenderName);
+        this.setReplyViewOrientation(
+                theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_RIGHT);
+      } else {
+        tvRecipient.setText(replySenderName);
+        this.setReplyViewOrientation(
+                theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_LEFT);
       }
+      theInflatedView.setBackgroundColor(Color.parseColor("#E0E0E0"));
+      replyList.addView(theInflatedView);
+    }
   }
 
-  private void setReplyViewOrientation(MessageRecord record, View theInflatedView, int alignParentRight) {
+  private void setReplyViewOrientation(View theInflatedView, int alignParentRight) {
     RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) theInflatedView.getLayoutParams();
     lp.addRule(alignParentRight);
     theInflatedView.setLayoutParams(lp);

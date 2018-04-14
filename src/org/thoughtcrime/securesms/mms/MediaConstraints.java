@@ -60,9 +60,7 @@ public abstract class MediaConstraints {
     }
   }
 
-  public boolean satisfiesCompression(@NonNull Context context, Attachment attachment) {
-    Set compressionOptions = TextSecurePreferences.getCompressionOptions(context);
-
+  public boolean satisfiesCompression(@NonNull Context context, Attachment attachment, Set<String> compressionOptions) {
     return ((MediaUtil.isVideo(attachment) && compressionOptions.contains("video")) ||
             (MediaUtil.isImage(attachment) && compressionOptions.contains("image")) ||
             (MediaUtil.isGif(attachment)) && compressionOptions.contains("gif"));

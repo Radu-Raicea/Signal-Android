@@ -1,5 +1,6 @@
 package org.thoughtcrime.securesms.compression;
 import android.content.Context;
+import android.net.Uri;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,16 +16,27 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.thoughtcrime.securesms.attachments.Attachment;
+import org.thoughtcrime.securesms.attachments.DatabaseAttachment;
 import org.thoughtcrime.securesms.mms.MediaConstraints;
 import com.iceteck.silicompressorr.SiliCompressor;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(SiliCompressor.class)
 public class  CompressionTest extends BaseUnitTest {
 
     SiliCompressor mockCompressor;
+
+    private Attachment getMockAttachment(String contentType) {
+        Attachment attachment = mock(Attachment.class);
+        when(attachment.getContentType()).thenReturn(contentType);
+
+        return attachment;
+    }
 
     @Override
     @Before
@@ -68,5 +80,38 @@ public class  CompressionTest extends BaseUnitTest {
         Long compressedLength = new File(compressedPath).length();
 
         assertTrue(compressedLength < uncompressedLength);
+    }
+
+    @Test
+    public void testSatisfiesCompressionSetting() throws Exception {
+        Attachment a1 = getMockAttachment("image/jpeg");
+        Attachment a2 = getMockAttachment("image/gif");
+        Attachment a3 = getMockAttachment("video/mp4");
+
+        Set<String> testPreferences = new HashSet<String>();
+        testPreferences.add("image");
+        testPreferences.add("video");
+        testPreferences.add("gif");
+
+        MediaConstraints temp = MediaConstraints.getPushMediaConstraints();
+
+        assertTrue(temp.satisfiesCompression(context, a1, testPreferences));
+        assertTrue(temp.satisfiesCompression(context, a2, testPreferences));
+        assertTrue(temp.satisfiesCompression(context, a3, testPreferences));
+    }
+
+    @Test
+    public void testDoesntSatisfyCompressionSetting() throws Exception {
+        Attachment a1 = getMockAttachment("image/jpeg");
+        Attachment a2 = getMockAttachment("image/gif");
+        Attachment a3 = getMockAttachment("video/mp4");
+
+        Set<String> testPreferences = new HashSet<String>();
+
+        MediaConstraints temp = MediaConstraints.getPushMediaConstraints();
+
+        assertTrue(!temp.satisfiesCompression(context, a1, testPreferences));
+        assertTrue(!temp.satisfiesCompression(context, a2, testPreferences));
+        assertTrue(!temp.satisfiesCompression(context, a3, testPreferences));
     }
 }

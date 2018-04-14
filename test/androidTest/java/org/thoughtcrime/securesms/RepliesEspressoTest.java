@@ -49,7 +49,7 @@ public class RepliesEspressoTest {
                 .goConversation()
                 .sendMessage("Testing")
                 .sendReply(0, "test")
-                .assertTextAt("test", 0);
+                .assertText("test");
     }
 
     @Test
@@ -61,10 +61,10 @@ public class RepliesEspressoTest {
                 .goConversation()
                 .sendMessage("Testing1")
                 .sendReply(0, "test1")
-                .assertTextAt("test1", 0)
+                .assertText("test1")
                 .sendMessage("Testing2")
                 .sendReply(0, "test2")
-                .assertTextAt("test2", 0);
+                .assertText("test2");
 
     }
 }

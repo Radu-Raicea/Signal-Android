@@ -17,6 +17,8 @@ import static org.mockito.Mockito.when;
 
 import org.thoughtcrime.securesms.attachments.Attachment;
 import org.thoughtcrime.securesms.mms.MediaConstraints;
+import org.thoughtcrime.securesms.util.MediaUtil;
+
 import com.iceteck.silicompressorr.SiliCompressor;
 
 import java.io.File;
@@ -26,6 +28,10 @@ import java.util.Set;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(SiliCompressor.class)
 public class  CompressionTest extends BaseUnitTest {
+    private static String TEET_IMG_FILE = "test/unitTest/java/org/thoughtcrime/securesms/resources/test-img.jpg";
+    private static String TEST_VIDEO_FILE = "test/unitTest/java/org/thoughtcrime/securesms/resources/test-video.mp4";
+    private static String COMPRESSED_TEST_IMG_FILE = "test/unitTest/java/org/thoughtcrime/securesms/resources/test-img-compressed.jpg";
+    private static String COMPRESSED_TEST_VIDEO_FILE = "test/unitTest/java/org/thoughtcrime/securesms/resources/test-video-compressed.mp4";
 
     private SiliCompressor mockCompressor;
 
@@ -42,14 +48,14 @@ public class  CompressionTest extends BaseUnitTest {
         super.setUp();
 
         mockCompressor = PowerMockito.mock(SiliCompressor.class);
-        PowerMockito.when(mockCompressor.compress(anyString(), anyObject())).thenReturn("test/unitTest/java/org/thoughtcrime/securesms/resources/test-img-compressed.jpg");
-        PowerMockito.when(mockCompressor.compressVideo(anyString(), anyString())).thenReturn("test/unitTest/java/org/thoughtcrime/securesms/resources/test-video-compressed.mp4");
+        PowerMockito.when(mockCompressor.compress(anyString(), anyObject())).thenReturn(COMPRESSED_TEST_IMG_FILE);
+        PowerMockito.when(mockCompressor.compressVideo(anyString(), anyString())).thenReturn(COMPRESSED_TEST_VIDEO_FILE);
         PowerMockito.whenNew(SiliCompressor.class).withAnyArguments().thenReturn(mockCompressor);
     }
 
     @Test
     public void testCompressImageFile() throws Exception {
-        File testImg = new File("test/unitTest/java/org/thoughtcrime/securesms/resources/test-img.jpg");
+        File testImg = new File(TEET_IMG_FILE);
         String testDirectory = testImg.getPath();
 
         MediaConstraints temp = MediaConstraints.getPushMediaConstraints();
@@ -67,7 +73,7 @@ public class  CompressionTest extends BaseUnitTest {
         Context mockContext = mock(Context.class);
         when(mockContext.getCacheDir()).thenReturn(mock(File.class));
 
-        File testVideo = new File("test/unitTest/java/org/thoughtcrime/securesms/resources/test-video.mp4");
+        File testVideo = new File(TEST_VIDEO_FILE);
         String testDirectory = testVideo.getPath();
 
         MediaConstraints temp = MediaConstraints.getPushMediaConstraints();
@@ -82,9 +88,9 @@ public class  CompressionTest extends BaseUnitTest {
 
     @Test
     public void testSatisfiesCompressionSetting() throws Exception {
-        Attachment a1 = getMockAttachment("image/jpeg");
-        Attachment a2 = getMockAttachment("image/gif");
-        Attachment a3 = getMockAttachment("video/mp4");
+        Attachment a1 = getMockAttachment(MediaUtil.IMAGE_JPEG);
+        Attachment a2 = getMockAttachment(MediaUtil.IMAGE_GIF);
+        Attachment a3 = getMockAttachment(MediaUtil.VIDEO_MP4);
 
         Set<String> testPreferences = new HashSet<String>();
         testPreferences.add("image");
@@ -100,9 +106,9 @@ public class  CompressionTest extends BaseUnitTest {
 
     @Test
     public void testDoesntSatisfyCompressionSetting() throws Exception {
-        Attachment a1 = getMockAttachment("image/jpeg");
-        Attachment a2 = getMockAttachment("image/gif");
-        Attachment a3 = getMockAttachment("video/mp4");
+        Attachment a1 = getMockAttachment(MediaUtil.IMAGE_JPEG);
+        Attachment a2 = getMockAttachment(MediaUtil.IMAGE_GIF);
+        Attachment a3 = getMockAttachment(MediaUtil.VIDEO_MP4);
 
         Set<String> testPreferences = new HashSet<String>();
 

@@ -1,3 +1,8 @@
+
+[![Build Status](https://travis-ci.org/Radu-Raicea/SignalAndroid.svg?branch=master)](https://travis-ci.org/Radu-Raicea/SignalAndroid)
+[![codecov](https://codecov.io/gh/radu-raicea/SignalAndroid/branch/master/graph/badge.svg)](https://codecov.io/gh/radu-raicea/SignalAndroid)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/98bb07ed988245c092157c9013c8edf0)](https://www.codacy.com/app/shelbaz/SignalAndroid?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Radu-Raicea/SignalAndroid&amp;utm_campaign=Badge_Grade)
+
 ## Documentation
 Looking for documentation? Check out the wiki!
 

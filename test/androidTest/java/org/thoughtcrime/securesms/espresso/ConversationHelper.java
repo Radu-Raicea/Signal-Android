@@ -191,11 +191,11 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
         return new PinnedHelper(new HelperSecret());
     }
 
-    public PreferencesHelper goSettings() {
+    public ConversationSettingsHelper goSettings() {
         onView(withId(R.id.contact_photo_image))
             .perform(click());
 
-        return new PreferencesHelper(new HelperSecret());
+        return new ConversationSettingsHelper(new HelperSecret());
     }
 
     public SearchHelper goSearch() {

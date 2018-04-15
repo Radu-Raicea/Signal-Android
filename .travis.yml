@@ -13,6 +13,7 @@
   global:
   - ANDROID_API=27
   - ANDROID_BUILD_TOOLS=27.0.1
+  - CODACY_PROJECT_TOKEN="c81f43839fa146f68993d9fa7dd9d688"
 
  android:
    components:
@@ -39,32 +40,20 @@
   - $HOME/.gradle/wrapper     #Cache the gradle
   - $HOME/.android/build-cache
 
- addons:
-  apt_packages:
-  - pandoc
-  artifacts:
-    paths:
-    - $(git ls-files -o | grep build/outputs | tr "\n" ":")
-
  before_install:
      - chmod +x gradlew
      - yes | sdkmanager "platforms;android-27"
-     - pip install --user codecov
+     - sudo apt-get install jq
+     - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
 
  script:
     - echo "Travis branch is $TRAVIS_BRANCH"
     - echo "Travis branch is in pull request $TRAVIS_PULL+REQUEST"
     - ./gradlew assemble
-    - ./gradlew check
-
+    - ./gradlew check jacocoDebugReport
  after_success:
-    - codecov
+    - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+    - java -jar ~/codacy-coverage-reporter-assembly-latest.jar report -l Java -r build/reports/jacoco/jacocoDebugReport/jacocoDebugReport.xml
 
- after_failure:
-    - pandoc build/reports/tests/index.html -t plain | sed -n '/^Failed tests/,/default-package/p'
-
- after_script:
-    - for f in build/outputs/lint-results.html; do pandoc $f -t plain; done
-    - for f in build/outputs/lint-results.html; do pandoc $f -t plain; done
 
 

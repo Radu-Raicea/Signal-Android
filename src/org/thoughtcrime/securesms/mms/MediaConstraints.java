@@ -7,16 +7,24 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 
+import com.iceteck.silicompressorr.SiliCompressor;
 import org.thoughtcrime.securesms.attachments.Attachment;
 import org.thoughtcrime.securesms.crypto.MasterSecret;
 import org.thoughtcrime.securesms.mms.DecryptableStreamUriLoader.DecryptableUri;
 import org.thoughtcrime.securesms.util.BitmapDecodingException;
 import org.thoughtcrime.securesms.util.BitmapUtil;
 import org.thoughtcrime.securesms.util.MediaUtil;
+import org.thoughtcrime.securesms.util.Util;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.util.Set;
 
 public abstract class MediaConstraints {
   private static final String TAG = MediaConstraints.class.getSimpleName();
@@ -51,6 +59,12 @@ public abstract class MediaConstraints {
     }
   }
 
+  public boolean satisfiesCompression(@NonNull Context context, Attachment attachment, Set<String> compressionOptions) {
+    return ((MediaUtil.isVideo(attachment) && compressionOptions.contains("video")) ||
+            (MediaUtil.isImage(attachment) && compressionOptions.contains("image")) ||
+            (MediaUtil.isGif(attachment)) && compressionOptions.contains("gif"));
+  }
+
   private boolean isWithinBounds(Context context, MasterSecret masterSecret, Uri uri) throws IOException {
     try {
       InputStream is = PartAuthority.getAttachmentStream(context, masterSecret, uri);
@@ -82,5 +96,40 @@ public abstract class MediaConstraints {
     } catch (BitmapDecodingException e) {
       throw new IOException(e);
     }
+  }
+
+ public MediaStream compressFile(@NonNull Context context, @NonNull MasterSecret masterSecret, @NonNull Attachment attachment) throws IOException, URISyntaxException {
+   if (!MediaUtil.isVideo(attachment) && !MediaUtil.isImage(attachment) && !MediaUtil.isGif(attachment)) {
+           throw new UnsupportedOperationException("File type not video or image or gif! Cannot compress");
+   }
+
+   String directory = context.getCacheDir().toString() + "/tempFile" + attachment.getContentType().replace('/', '.');
+   InputStream is = PartAuthority.getAttachmentStream(context, masterSecret, attachment.getDataUri());
+   byte[] byteStream = Util.readFully(is);
+
+   FileOutputStream outputStream = new FileOutputStream(directory);
+   outputStream.write(byteStream);
+
+   String filepath = "";
+
+   if(MediaUtil.isVideo(attachment)) {
+     filepath = compressVideo(context, directory);
+   } else {
+     filepath = compressImage(context, directory);
+   }
+
+   outputStream.close();
+   is.close();
+   new File(directory).delete();
+
+   return new MediaStream(new FileInputStream(filepath), attachment.getContentType());
+ }
+
+ public String compressVideo(@NonNull Context context, String directory) throws URISyntaxException, FileNotFoundException {
+    return SiliCompressor.with(context).compressVideo(directory ,context.getCacheDir().toString());
+  }
+
+  public String compressImage(@NonNull Context context, String directory) throws URISyntaxException, FileNotFoundException {
+    return SiliCompressor.with(context).compress(directory ,context.getCacheDir());
   }
 }

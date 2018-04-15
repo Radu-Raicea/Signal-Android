@@ -547,7 +547,6 @@ public class ConversationFragment extends Fragment implements LoaderManager.Load
         }
     }
 
-    // Interface placeholder
     public void refreshView() {
 
     }

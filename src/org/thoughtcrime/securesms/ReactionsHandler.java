@@ -21,6 +21,10 @@ public class ReactionsHandler {
         this.reactionsDb = DatabaseFactory.getMessageReactionDatabase(context);
     }
 
+    public void setMessageReactionDatabase(MessageReactionDatabase reactionsDb) {
+        this.reactionsDb = reactionsDb;
+    }
+
     /**
      * This method only used by the conversation fragment since it will automatically
      * set the reactorID's to the user's id itself, Please use the other overloaded method if the reaction made

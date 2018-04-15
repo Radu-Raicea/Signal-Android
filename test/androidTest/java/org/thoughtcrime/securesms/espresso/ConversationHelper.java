@@ -1,6 +1,7 @@
 package org.thoughtcrime.securesms.espresso;
 
 import android.support.test.InstrumentationRegistry;
+import android.view.KeyEvent;
 
 import org.thoughtcrime.securesms.R;
 
@@ -8,7 +9,10 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.openActionBarOverflowOrOptionsMenu;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.pressImeActionButton;
+import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.typeText;
+import static android.support.test.espresso.action.ViewActions.typeTextIntoFocusedView;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.contrib.RecyclerViewActions.scrollToPosition;
 import static android.support.test.espresso.matcher.ViewMatchers.isRoot;
@@ -85,6 +89,36 @@ public class ConversationHelper extends BaseRecyclerHelper<ConversationHelper> {
         this.messageSelected = false;
 
         pressBack();
+
+        return this;
+    }
+
+    public ConversationHelper sendReply(int position, String message) {
+        this.unselectMessage();
+
+        this.selectMessage(position);
+
+        onView(withId(R.id.menu_context_reply))
+            .perform(click());
+        onView(withId(R.id.lin_reply))
+            .perform(click());
+        onView(withId(R.id.custom_reply))
+            .perform(typeText(message))
+
+            .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_ENTER))
+            .perform(replaceText(""))
+            .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_BACK))
+            .perform(android.support.test.espresso.action.ViewActions.pressKey(KeyEvent.KEYCODE_BACK));
+
+        clearKeyboard();
+
+        return this;
+    }
+
+    public ConversationHelper clearKeyboard() {
+        onView(withId(R.id.embedded_text_editor))
+            .perform(click())
+            .perform(replaceText(""));
 
         return this;
     }

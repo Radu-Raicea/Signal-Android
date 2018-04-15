@@ -41,7 +41,7 @@ public class MediaUtil {
   public static final String AUDIO_UNSPECIFIED = "audio/*";
   public static final String VIDEO_UNSPECIFIED = "video/*";
   public static final String VIDEO_MP4         = "video/mp4" ;
-  
+
   public static @Nullable ThumbnailData generateThumbnail(Context context, MasterSecret masterSecret, String contentType, Uri uri)
       throws BitmapDecodingException
   {

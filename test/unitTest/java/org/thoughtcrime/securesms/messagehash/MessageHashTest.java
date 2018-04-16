@@ -16,7 +16,6 @@ public class MessageHashTest extends BaseUnitTest {
     private String timestamp    = "1231242143";
     private String expectedHash = "";
 
-
     @Before
     public void setup() {
         this.expectedHash = MessageHash.generateFrom(this.testAddress, this.timestamp);
@@ -31,9 +30,8 @@ public class MessageHashTest extends BaseUnitTest {
 
     @Test
     public void testMessageHashGeneratorConsistencyAfterMultipleTries() {
-        int iteration = 0;
         String[] generatedHashes = new String[this.iterationMax];
-        for( ; iteration != this.iterationMax; iteration++) {
+        for (int iteration = 0; iteration != this.iterationMax; iteration++) {
             generatedHashes[iteration] = MessageHash.generateFrom(this.testAddress, this.timestamp);
         }
 
@@ -48,9 +46,8 @@ public class MessageHashTest extends BaseUnitTest {
         HashMap<String, String> generatedHashes = new HashMap<>();
 
         Long testTimestamp = 221232131l;
-        int iteration = 0;
 
-        for( ; iteration != this.iterationMax; iteration++) {
+        for (int iteration = 0; iteration != this.iterationMax; iteration++) {
             String generatedHash = MessageHash.generateFrom(this.testAddress, (testTimestamp++).toString());
             // check that no such hash exist
             assertNull(generatedHashes.get(generatedHash));

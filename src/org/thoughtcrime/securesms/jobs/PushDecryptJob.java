@@ -651,14 +651,14 @@ public class PushDecryptJob extends ContextJob {
         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipient);
         ReactionsHandler      handler = new ReactionsHandler(context);
         ObjectMapper          mapper  = new ObjectMapper();
-        Map<String,String>    map     = mapper.readValue(body, Map.class);
+        Map<String, String>   map     = mapper.readValue(body, Map.class);
 
         handler.addReactionToReceiverDB(map.get("hash"), map.get("emoji"), Long.parseLong(map.get("time")), map.get("address"),threadId );
     } else if (Stereotype.fromBody(body).equals(Stereotype.REPLY)) {
         threadId = DatabaseFactory.getThreadDatabase(context).getThreadIdFor(recipient);
-        RepliesHandler      handler = new RepliesHandler(context);
-        ObjectMapper        mapper  = new ObjectMapper();
-        Map<String, String> map     = mapper.readValue(body, Map.class);
+        RepliesHandler        handler = new RepliesHandler(context);
+        ObjectMapper          mapper  = new ObjectMapper();
+        Map<String, String>   map     = mapper.readValue(body, Map.class);
 
         handler.receiveReply(map.get("hash"), map.get("reply"), Long.parseLong(map.get("time")), map.get("address"), threadId);
     } else {

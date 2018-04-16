@@ -22,15 +22,18 @@ public class MessageReactionDatabase extends Database {
     public static final String HASH_ID       = "hash";
     public static final String REACTION_DATE = "date_sent";
 
-    public static final String[] PROJECTION = {MessageReactionDatabase.REACTION,
+    public static final String[] PROJECTION = {
+            MessageReactionDatabase.REACTION,
             MessageReactionDatabase.SMS_HASH,
             MessageReactionDatabase.MMS_HASH,
             MessageReactionDatabase.REACTION,
             MessageReactionDatabase.REACTOR_ID,
             MessageReactionDatabase.REACTION_DATE,
-            MessageReactionDatabase.HASH_ID};
+            MessageReactionDatabase.HASH_ID
+    };
 
-    public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + "(" + ID + "  INTEGER PRIMARY KEY, " +
+    public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + "(" +
+            ID + "  INTEGER PRIMARY KEY, " +
             SMS_HASH + " TEXT DEFAULT NULL, " +
             MMS_HASH + " TEXT DEFAULT NULL, " +
             REACTION + " TEXT NOT NULL, " +
@@ -44,11 +47,9 @@ public class MessageReactionDatabase extends Database {
     }
 
     public void reactToMessage(String hash, String reaction, Long reactionDate, String reactorID, Long threadId) {
-        SQLiteDatabase db = databaseHelper.getWritableDatabase();
-        String      type;
-        ContentValues values = new ContentValues();
-
-        type = db.rawQuery("SELECT " + MmsSmsColumns.HASH + " FROM " + SmsDatabase.TABLE_NAME
+        SQLiteDatabase  db = databaseHelper.getWritableDatabase();
+        ContentValues   values = new ContentValues();
+        String          type = db.rawQuery("SELECT " + MmsSmsColumns.HASH + " FROM " + SmsDatabase.TABLE_NAME
                 + " WHERE " + MmsSmsColumns.HASH + " = ?", new String[] {hash})
                 .getCount() > 0 ? SMS_HASH : MMS_HASH;
 
@@ -61,10 +62,8 @@ public class MessageReactionDatabase extends Database {
     }
 
     public void reactToMessage(MessageRecord messageRecord, String reaction, Long reactionDate) {
-        String        messageType;
-        ContentValues values = new ContentValues();
-
-        messageType = getMessageType(messageRecord);
+        String          messageType = getMessageType(messageRecord);
+        ContentValues   values = new ContentValues();
         values.put(messageType, messageRecord.getHash());
 
         String address;

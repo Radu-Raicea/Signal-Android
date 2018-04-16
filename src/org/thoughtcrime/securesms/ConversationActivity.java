@@ -799,7 +799,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     isEmojiReactionMode = true;
 
     onEmojiToggle();
-    container.show(composeText, emojiDrawerStub.get()); //incase toggle doesn't work
+    container.show(composeText, emojiDrawerStub.get());
     inputPanel.setVisibility(View.GONE);
     setEmojiKeyboardListener(messageRecord, handler);
   }
@@ -807,9 +807,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private void setEmojiKeyboardListener(MessageRecord messageRecord, ReactionsHandler handler) {
     this.emojiDrawerStub.get().setEmojiEventListener(new EmojiDrawer.EmojiEventListener() {
       @Override
-      public void onKeyEvent(KeyEvent keyEvent) {
-        Log.i("Daniel", "event: " + keyEvent + "code:" + keyEvent.getKeyCode());
-      }
+      public void onKeyEvent(KeyEvent keyEvent) { }
 
       @Override
       public void onEmojiSelected(String emoji) throws InvalidMessageException {
@@ -841,6 +839,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     IdentityDatabase identityDatabase = DatabaseFactory.getIdentityDatabase(getApplicationContext());
 
     String myAddress = "";
+
     try {
       myAddress = identityDatabase.getMyIdentity().getAddress().serialize();
     } catch (Exception e) {
@@ -858,7 +857,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     if (recipient.getAddress().isGroup()) {
       sendMediaMessage(false, body, new SlideDeck(), 0,-1, false);
-    } else sendTextMessage(false, 0, -1, false, body);
+    } else {
+      sendTextMessage(false, 0, -1, false, body);
+    }
   }
 
   private void handleSearch(MenuItem item) {
@@ -2235,12 +2236,15 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
           if (recipient.getAddress().isGroup()) {
             sendMediaMessage(false, body, new SlideDeck(), 0, -1, false);
-          } else sendTextMessage(false, 0, -1, false, body);
+          } else {
+            sendTextMessage(false, 0, -1, false, body);
+          }
         } catch (Exception e) {
           e.printStackTrace();
         }
-        Toast.makeText(getApplicationContext(), R.string.ConversationActivity_reply_sent_alert_message, Toast.LENGTH_LONG).show();
+
         replyEdit.getText().clear();
+        Toast.makeText(getApplicationContext(), R.string.ConversationActivity_reply_sent_alert_message, Toast.LENGTH_LONG).show();
       }
       return true;
     }

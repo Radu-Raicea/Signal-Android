@@ -2214,7 +2214,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private class ReplyInitiatedListener implements EditText.OnEditorActionListener {
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-      if(event.getAction() == event.ACTION_UP) {
+      if (v.getText().toString().trim().equals("")) {
+          Toast.makeText(getApplicationContext(), R.string.ConversationActivity_reply_error_empty_reply, Toast.LENGTH_LONG).show();
+      } else {
         Address myAddress = null;
         try {
           RepliesHandler   repliesHandler   = new RepliesHandler(getApplicationContext());
@@ -2230,7 +2232,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           replyBody.put("reply", v.getText().toString());
           replyBody.put("time", time.toString());
           replyBody.put("address", myAddress.serialize());
-
           String body = new JSONObject(replyBody).toString();
 
           if (recipient.getAddress().isGroup()) {
@@ -2245,7 +2246,6 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
         replyEdit.getText().clear();
         Toast.makeText(getApplicationContext(), R.string.ConversationActivity_reply_sent_alert_message, Toast.LENGTH_LONG).show();
       }
-
       return true;
     }
   }

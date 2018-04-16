@@ -83,6 +83,8 @@
                     android:layout_margin="5dp"
                     android:layout_weight="1"
                     android:background="@android:drawable/editbox_background"
+                    android:imeOptions="actionSend"
+                    android:inputType="text"
                     android:hint="Reply...">
 
                 </EditText>

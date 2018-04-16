@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/conversation_item"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentRight="true"
+    android:focusable="true"
+    android:nextFocusLeft="@id/container"
+    android:nextFocusRight="@id/embedded_text_editor"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_weight="1"
+        android:background="#e5e5e5" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="6dp"
+        android:paddingTop="10dp">
+
+        <LinearLayout
+            android:id="@+id/reply_message_wrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/reply_body_bubble"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/pinned_message_bubble"
+                android:orientation="vertical"
+                android:backgroundTint="@color/grey_200">
+
+                <TextView
+                    android:id="@+id/reply_sender_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:layout_weight="1"
+                    android:paddingBottom="4dp"
+                    android:paddingLeft="5dp"
+                    android:text="TextView"
+                    android:textColor="?conversation_item_sent_text_secondary_color"
+                    tools:text="John Doe"
+                    android:fontFamily="sans-serif-light"/>
+
+                <TextView
+                    android:id="@+id/reply_message_body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minWidth="150dp"
+                    android:text=" Mango pickle lorem ipsum"
+                    android:textColor="?conversation_item_sent_text_primary_color"
+                    android:textColorLink="?conversation_item_sent_text_primary_color"
+                    android:textSize="16sp" />
+
+                <ViewStub
+                    android:id="@+id/reply_image_view_stub"
+                    android:layout_width="@dimen/media_bubble_height"
+                    android:layout_height="@dimen/media_bubble_height"
+                    android:layout="@layout/pinned_conversation_item_sent_thumbnail" />
+
+                <ViewStub android:id="@+id/reply_document_view_stub"
+                    android:layout="@layout/pinned_conversation_item_sent_document"
+                    android:layout_width="210dp"
+                    android:layout_height="wrap_content"/>
+
+                <ViewStub
+                    android:id="@+id/reply_audio_view_stub"
+                    android:layout="@layout/pinned_conversation_item_sent_audio"
+                    android:layout_width="210dp"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/conversation_item_date"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="TextView"
+                    android:textAlignment="textEnd"
+                    android:textColor="?conversation_item_sent_text_secondary_color"
+                    android:textSize="12sp"
+                    tools:text="Tue 10:50 AM"
+                    android:fontFamily="sans-serif-light"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</LinearLayout>

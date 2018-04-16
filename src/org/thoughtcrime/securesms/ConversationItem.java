@@ -682,7 +682,7 @@ public class ConversationItem extends LinearLayout
 
     for (RepliesHandler.Reply reply : replies) {
       LayoutInflater inflater        = LayoutInflater.from(getContext());
-      View           theInflatedView = inflater.inflate(R.layout.pinned_conversation_item, this, false);
+      View           theInflatedView = inflater.inflate(R.layout.reply_conversation_item, this, false);
 
       if (myAddress == null) {
         try {
@@ -692,8 +692,8 @@ public class ConversationItem extends LinearLayout
         }
       }
 
-      TextView tvRecipient     = theInflatedView.findViewById(R.id.pinned_message_recipient);
-      TextView tvMessage       = theInflatedView.findViewById(R.id.pinned_message_body);
+      TextView tvSender        = theInflatedView.findViewById(R.id.reply_sender_name);
+      TextView tvMessage       = theInflatedView.findViewById(R.id.reply_message_body);
       TextView tvTime          = theInflatedView.findViewById(R.id.conversation_item_date);
       String   replySenderName = getMessageSenderName(reply.getReplierAddress());
 
@@ -702,15 +702,21 @@ public class ConversationItem extends LinearLayout
               reply.getReplyDate()));
 
       if (replySenderName.equals("Me")) {
-        tvRecipient.setText(replySenderName);
+        tvSender.setText(replySenderName);
         this.setReplyViewOrientation(
-                theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_RIGHT);
+                theInflatedView.findViewById(R.id.reply_message_wrapper), ALIGN_PARENT_RIGHT);
       } else {
-        tvRecipient.setText(replySenderName);
+        tvSender.setText(replySenderName);
         this.setReplyViewOrientation(
-                theInflatedView.findViewById(R.id.pinned_message_wrapper), ALIGN_PARENT_LEFT);
+                theInflatedView.findViewById(R.id.reply_message_wrapper), ALIGN_PARENT_LEFT);
       }
-      theInflatedView.setBackgroundColor(Color.parseColor("#E0E0E0"));
+
+      if (messageRecord.isOutgoing()) {
+        theInflatedView.setBackgroundColor(defaultBubbleColor);
+      } else {
+        theInflatedView.setBackgroundColor(recipient.getColor().toConversationColor(context));
+      }
+
       replyList.addView(theInflatedView);
     }
   }

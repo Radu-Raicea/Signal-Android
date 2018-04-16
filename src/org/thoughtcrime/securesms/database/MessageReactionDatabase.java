@@ -49,9 +49,7 @@ public class MessageReactionDatabase extends Database {
     public void reactToMessage(String hash, String reaction, Long reactionDate, String reactorID, Long threadId) {
         SQLiteDatabase  db = databaseHelper.getWritableDatabase();
         ContentValues   values = new ContentValues();
-        String          type = db.rawQuery("SELECT " + MmsSmsColumns.HASH + " FROM " + SmsDatabase.TABLE_NAME
-                + " WHERE " + MmsSmsColumns.HASH + " = ?", new String[] {hash})
-                .getCount() > 0 ? SMS_HASH : MMS_HASH;
+        String          type = this.getMessageType(hash);
 
         values.put(type, hash);
         values.put(REACTION, reaction);
@@ -62,8 +60,8 @@ public class MessageReactionDatabase extends Database {
     }
 
     public void reactToMessage(MessageRecord messageRecord, String reaction, Long reactionDate) {
-        String          messageType = getMessageType(messageRecord);
-        ContentValues   values = new ContentValues();
+        String        messageType = getMessageType(messageRecord.getHash());
+        ContentValues values      = new ContentValues();
         values.put(messageType, messageRecord.getHash());
 
         String address;
@@ -81,28 +79,7 @@ public class MessageReactionDatabase extends Database {
         values.put(REACTION, reaction);
         values.put(REACTOR_ID, address);
         values.put(REACTION_DATE, reactionDate);
-        insertOrUpdate(values, messageType);
-    }
-
-    @NonNull
-    private String getMessageType(MessageRecord messageRecord) {
-        String messageType;
-        if (messageRecord.isMms()) {
-            messageType = MMS_HASH;
-        } else {
-            messageType = SMS_HASH;
-        }
-        return messageType;
-    }
-
-    private int processReactionSqlRequest(ContentValues values, String messageHash, String messageType) {
-        SQLiteDatabase db = databaseHelper.getWritableDatabase();
-        return db.update(TABLE_NAME, values, messageType + " = ? AND " +
-                        REACTOR_ID + " = ? AND " +
-                        REACTION + " = ?",
-                new String[]{values.getAsInteger(messageType) + "",
-                        values.getAsString(REACTOR_ID),
-                        values.getAsString(REACTION)});
+        this.insertOrUpdate(values, messageType);
     }
 
     private void insertOrUpdate(ContentValues values, String messageType) {
@@ -128,7 +105,7 @@ public class MessageReactionDatabase extends Database {
     public int removeReaction(MessageRecord record) {
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
 
-        return database.delete(TABLE_NAME, getMessageType(record) + " = ?", new String[]{record.getHash()});
+        return database.delete(TABLE_NAME, this.getMessageType(record.getHash()) + " = ?", new String[]{record.getHash()});
     }
 
     public int removeDanglingSmsReactions() {
@@ -155,6 +132,15 @@ public class MessageReactionDatabase extends Database {
         if (hash == null) return null;
 
         return database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " +
-                getMessageType(messageRecord) + " = ?", new String[]{messageRecord.getHash()});
+                this.getMessageType(messageRecord.getHash()) + " = ?", new String[]{messageRecord.getHash()});
+    }
+
+    @NonNull
+    private String getMessageType(String hash) {
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+
+        return db.rawQuery("SELECT " + MmsSmsColumns.HASH + " FROM " + SmsDatabase.TABLE_NAME
+                + " WHERE " + MmsSmsColumns.HASH + " = ?", new String[] {hash})
+                .getCount() > 0 ? SMS_HASH : MMS_HASH;
     }
 }

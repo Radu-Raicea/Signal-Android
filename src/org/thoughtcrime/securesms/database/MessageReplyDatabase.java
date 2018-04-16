@@ -44,21 +44,10 @@ public class MessageReplyDatabase extends Database {
         super(context, databaseHelper);
     }
 
-    @NonNull
-    private String getMessageType(MessageRecord messageRecord) {
-        String messageType;
-        if (messageRecord.isMms()) {
-            messageType = MMS_HASH;
-        } else {
-            messageType = SMS_HASH;
-        }
-        return messageType;
-    }
-
     public int removeReply(MessageRecord record) {
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
 
-        return database.delete(TABLE_NAME, getMessageType(record) + " = ?", new String[]{record.getHash()});
+        return database.delete(TABLE_NAME, this.getMessageType(record.getHash()) + " = ?", new String[]{record.getHash()});
     }
 
     public int removeDanglingSmsReplies() {
@@ -81,7 +70,7 @@ public class MessageReplyDatabase extends Database {
         String        messageType;
         ContentValues values = new ContentValues();
 
-        messageType = getMessageType(record);
+        messageType = this.getMessageType(record.getHash());
         values.put(messageType, record.getHash());
 
         Address address;
@@ -109,9 +98,7 @@ public class MessageReplyDatabase extends Database {
         String      type;
         ContentValues values = new ContentValues();
 
-        type = db.rawQuery("SELECT " + MmsSmsColumns.HASH + " FROM " + SmsDatabase.TABLE_NAME
-                + " WHERE " + MmsSmsColumns.HASH + " = ?", new String[] {hash})
-                .getCount() > 0 ? SMS_HASH : MMS_HASH;
+        type = this.getMessageType(hash);
 
         values.put(type, hash);
         values.put(REPLY, reply);
@@ -131,7 +118,16 @@ public class MessageReplyDatabase extends Database {
         if (hash == null) return null;
 
         return database.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " +
-                getMessageType(record) + " = ?" , new String[]{record.getHash()});
+                this.getMessageType(record.getHash()) + " = ?" , new String[]{record.getHash()});
 
+    }
+
+    @NonNull
+    private String getMessageType(String hash) {
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+
+        return db.rawQuery("SELECT " + MmsSmsColumns.HASH + " FROM " + SmsDatabase.TABLE_NAME
+                + " WHERE " + MmsSmsColumns.HASH + " = ?", new String[] {hash})
+                .getCount() > 0 ? SMS_HASH : MMS_HASH;
     }
 }

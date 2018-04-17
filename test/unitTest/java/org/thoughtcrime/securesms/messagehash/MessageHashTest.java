@@ -42,7 +42,7 @@ public class MessageHashTest extends BaseUnitTest {
     }
 
     @Test
-    public void testMessageHashGeneratingHashesWithNoCollusion() {
+    public void testMessageHashGeneratingHashesWithNoCollisions() {
         HashMap<String, String> generatedHashes = new HashMap<>();
 
         Long testTimestamp = 221232131l;
